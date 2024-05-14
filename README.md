@@ -13,9 +13,22 @@ If you insist on using this plugin instead of ReuI, here's an easy documentary a
 1. First, there are 2 ways to show a hint to a player
 - Create an instance of hint and add them to the PlayerDisplay instance corresponding to a player.
 - Get PlayerUI corresponding to the player, and use the "ShowCommonHint" methods of that PlayerUI.
-2. Showing hints by creating instances of hint and add them to the PlayerDisplay
+2. Showing hints by creating instances of hints and adding them to the PlayerDisplay
   ```csharp
   var hint = Hint(100, HintAlignment.Left , "HelloWorld!") ;
   var playerDisplay = PlayerDisplay.Get(Player);
   playerDisplay.AddHint(hint);
   ```
+  This is an example of how to create a line of hint and add it to the player's screen. Any change to the instance of the hint will be updated directly on the player's screen. Therefore, after adding the hint onto playerDisplay, you can edit the hint's content by directly editing the content of the instance of the hint. For example, if I want to change the content of the hint to "你好，世界," I can do it by following code.
+  ```csharp
+  hint.message = "你好，世界";
+  ```
+3. Showing hint by using PlayerUI
+```csharp
+var playerUI = playerUI.Get(player);
+playerUI.ShowOtherHint("HelloWorld!");
+playerUI.ShowMapHint("RoomA", "This is room A");
+playerUI.ShowRoleHint("CustomRole", description.split("\n"));
+playerUI.ShowItemHint("CustomItem", "This is a custom item");
+```
+This is an example of how to show a simple, commonly used hint to a player.
