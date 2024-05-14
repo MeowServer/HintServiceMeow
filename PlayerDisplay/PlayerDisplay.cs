@@ -13,9 +13,10 @@ namespace HintServiceMeow
 
         private const int placeHolderMaximumHeightPX = 920;//The space that the place holder must fill 1160
 
-        public Player player;//The player this instance is refering to
+        //The player this player display is refering to
+        public Player player;
 
-        //Can be optimize by sorting hints while adding them
+        //Can be optimize by sorting hints when adding them
         private List<Hint> hintList = new List<Hint>();//List of hints shows to the player
         private List<DynamicHint> dynamicHintList = new List<DynamicHint>();//List of dynamic hints shows to the player
 
@@ -44,10 +45,10 @@ namespace HintServiceMeow
             }
         }
 
-        //Update Interval
-        private float UpdateInterval { get; } = 0.5f;//By experiment, the fastest update rate is 2 times per second.
+        //Update Rate Management stuff
+        private float UpdateInterval { get; } = 0.5f;   //By experiment, the fastest update rate is 2 times per second.
         internal TimeSpan lastTimeUpdate { get; set; } = TimeSpan.Zero;
-        private bool plannedUpdate { get; set; } = false; // Tells whether a update had been planned
+        private bool plannedUpdate { get; set; } = false;   // Tells whether a update had been planned
 
         //Update Methods for hint change events to call
         internal void UpdateWhenReady()
@@ -58,7 +59,7 @@ namespace HintServiceMeow
             plannedUpdate = true;
 
             var TimeToWait = (float)(UpdateInterval - (Round.ElapsedTime - lastTimeUpdate).TotalSeconds);
-            TimeToWait = TimeToWait < 0.05f ? 0.05f : TimeToWait;
+            TimeToWait = TimeToWait < 0.05f ? 0.05f : TimeToWait; //0.05f to make sure that all of the changes are updated beofre the next update
 
             Timing.CallDelayed(TimeToWait, () =>
             {
@@ -67,7 +68,7 @@ namespace HintServiceMeow
             });
         }
 
-        //Internal Update Methods
+        //Private Update Methods
         private void UpdateHint()
         {
             var displayHintList = GetRegularDisplayHints();
@@ -309,16 +310,14 @@ namespace HintServiceMeow
             
             }
 
-            UpdateWhenReady();
-            dynamicHintList.Find(x => x.id == id).HintUpdated -= UpdateWhenReady;
-
-            if (hintList.Any(x => x.id == id))
+            foreach(AbstractHint hint in hintList)
             {
-                hintList.Remove(hintList.Find(x => x.id == id));
+                RemoveHint(hint);
             }
-            else if (dynamicHintList.Any(x => x.id == id))
+
+            foreach(AbstractHint hint in dynamicHintList)
             {
-                dynamicHintList.Remove(dynamicHintList.Find(x => x.id == id));
+                RemoveHint(hint);
             }
         }
 
