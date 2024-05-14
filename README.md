@@ -10,4 +10,12 @@ To install this plugin, please go to the release page and download the newest Hi
 ### To Developers
 Please use ReuI instead. ReuI is a much more mature framework.
 If you insist on using this plugin instead of ReuI, here's an easy documentary about this plugin and a list of bugs I cannot solve myself:
-- ...
+1. First, there are 2 ways to show a hint to a player
+- Create an instance of hint and add them to the PlayerDisplay instance corresponding to a player.
+- Get PlayerUI corresponding to the player, and use the "ShowCommonHint" methods of that PlayerUI.
+2. Showing hints by creating instances of hint and add them to the PlayerDisplay
+  ```csharp
+  var hint = Hint(100, HintAlignment.Left , "HelloWorld!") ;
+  var playerDisplay = PlayerDisplay.Get(Player);
+  playerDisplay.AddHint(hint);
+  ```
