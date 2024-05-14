@@ -97,21 +97,21 @@ namespace HintServiceMeow
         CoroutineHandle commonHintUpdateCoroutine;
 
         private TimeSpan itemHintTimeToRemove = TimeSpan.MinValue;
-        public DynamicHint[] itemHints = new DynamicHint[2]
+        private DynamicHint[] itemHints = new DynamicHint[2]
         {
             new DynamicHint(450, 700, HintAlignment.Center, "", "itemHint1", true).setFontSize(25),
             new DynamicHint(450+25, 700+25, HintAlignment.Center, "", "itemHint2", true).setFontSize(25)
         };
 
         private TimeSpan mapHintTimeToRemove = TimeSpan.MinValue;
-        public DynamicHint[] mapHints = new DynamicHint[2]
+        private DynamicHint[] mapHints = new DynamicHint[2]
         {
             new DynamicHint(0, 200, HintAlignment.Right, "", "mapHint1", true).setFontSize(25),
             new DynamicHint(0+25, 200+25, HintAlignment.Right, "", "mapHint2", true).setFontSize(25)
         };
 
         private TimeSpan roleHintTimeToRemove = TimeSpan.MinValue;
-        public DynamicHint[] roleHints = new DynamicHint[4]
+        private DynamicHint[] roleHints = new DynamicHint[4]
         {
             new DynamicHint(100, 600, HintAlignment.Left, "", "roleTitle", true).setFontSize(30),
             new DynamicHint(100+30, 600+30 * 1, HintAlignment.Left, "", "roleDescription1", true).setFontSize(25),
@@ -120,7 +120,7 @@ namespace HintServiceMeow
         };
 
         private TimeSpan otherHintTimeToRemove = TimeSpan.MinValue;
-        public DynamicHint[] otherHints = new DynamicHint[4]
+        private DynamicHint[] otherHints = new DynamicHint[4]
         {
             new DynamicHint(500, 700, HintAlignment.Center, "", "otherHint1", true),
             new DynamicHint(520, 700, HintAlignment.Center, "", "otherHint2", true),
@@ -440,7 +440,7 @@ namespace HintServiceMeow
         }
 
         //PlayerUI tools
-        public PlayerUI(Player player)
+        internal PlayerUI(Player player)
         {
             this.player = player;
             this.playerDisplay = PlayerDisplay.Get(player);
@@ -465,12 +465,12 @@ namespace HintServiceMeow
             return playerUIs.Find(x => x.playerDisplay == display);
         }
 
-        public static void RemovePlayerUI(Player player)
+        internal static void RemovePlayerUI(Player player)
         {
             playerUIs.Find(x => x.player == player)?.Destruct();
         }
 
-        public void Destruct()
+        internal void Destruct()
         {
             //Effects
             DestructEffect();
@@ -485,7 +485,7 @@ namespace HintServiceMeow
             playerUIs.Remove(this);
         }
 
-        public static void ClearAllPlayerUI()
+        internal static void ClearAllPlayerUI()
         {
             foreach(PlayerUI ui in playerUIs)
             {

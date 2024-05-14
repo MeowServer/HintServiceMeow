@@ -239,7 +239,8 @@ namespace HintServiceMeow
     }
 
     /*
-     * 需要显示优先级方法
+     * Updation plan:
+     *  Dynamic Hint priority
      */
     public class DynamicHint : AbstractHint
     {

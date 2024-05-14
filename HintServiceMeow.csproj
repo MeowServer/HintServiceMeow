@@ -358,12 +358,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PlayerUI.cs" />
-    <Compile Include="PlayerUITemplates.cs" />
+    <Compile Include="PlayerUI\PlayerUI.cs" />
+    <Compile Include="PlayerUI\PlayerUITemplates.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Config.cs" />
-    <Compile Include="HintClass.cs" />
-    <Compile Include="PlayerDisplay.cs" />
+    <Compile Include="PlayerDisplay\HintClass.cs" />
+    <Compile Include="PlayerDisplay\PlayerDisplay.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
