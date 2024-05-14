@@ -1,16 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 
 using Exiled.API.Features;
 using Exiled.Events.EventArgs.Player;
 using Exiled.API.Enums;
-using MEC;
-using Utils.NonAllocLINQ;
 using Hints;
-using CentralAuth;
 using HarmonyLib;
-using Org.BouncyCastle.Asn1.Crmf;
 
 /*
  * V1.0.0 
