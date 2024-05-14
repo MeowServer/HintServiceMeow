@@ -83,11 +83,11 @@ namespace HintServiceMeow
 
         private void GetPlaceHolder(int size, List<string> messages)
         {
-
+            /*
             for (; size > 40; size -= 40)
             {
                 messages.Add("<size=40>　</size>");//█
-            }
+            }*/
 
             messages.Add($"<size={size}>　</size>");
         }
