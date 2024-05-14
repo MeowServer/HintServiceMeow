@@ -1,0 +1,196 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Exiled.CreditTags</name>
+    </assembly>
+    <members>
+        <member name="T:Exiled.CreditTags.Commands.ShowCreditTag">
+            <summary>
+            A client command to show an EXILED credit tag.
+            </summary>
+        </member>
+        <member name="P:Exiled.CreditTags.Commands.ShowCreditTag.Command">
+            <inheritdoc/>
+        </member>
+        <member name="P:Exiled.CreditTags.Commands.ShowCreditTag.Aliases">
+            <inheritdoc/>
+        </member>
+        <member name="P:Exiled.CreditTags.Commands.ShowCreditTag.Description">
+            <inheritdoc/>
+        </member>
+        <member name="M:Exiled.CreditTags.Commands.ShowCreditTag.Execute(System.ArraySegment{System.String},CommandSystem.ICommandSender,System.String@)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Exiled.CreditTags.Config">
+            <inheritdoc />
+        </member>
+        <member name="P:Exiled.CreditTags.Config.IsEnabled">
+            <inheritdoc/>
+        </member>
+        <member name="P:Exiled.CreditTags.Config.Debug">
+            <inheritdoc/>
+        </member>
+        <member name="T:Exiled.CreditTags.CreditTags">
+            <summary>
+            Handles credits for Exiled Devs, Contributors and Plugin devs.
+            </summary>
+        </member>
+        <member name="P:Exiled.CreditTags.CreditTags.Instance">
+            <summary>
+            Gets a static reference to this class.
+            </summary>
+        </member>
+        <member name="P:Exiled.CreditTags.CreditTags.Prefix">
+            <inheritdoc/>
+        </member>
+        <member name="P:Exiled.CreditTags.CreditTags.Ranks">
+            <summary>
+            Gets a <see cref="T:System.Collections.Generic.Dictionary`2"/> of Exiled Credit ranks.
+            </summary>
+        </member>
+        <member name="P:Exiled.CreditTags.CreditTags.RankCache">
+            <summary>
+            Gets a <see cref="T:System.Collections.Generic.Dictionary`2"/> of recently cached userIds and their ranks.
+            </summary>
+        </member>
+        <member name="M:Exiled.CreditTags.CreditTags.OnEnabled">
+            <inheritdoc/>
+        </member>
+        <member name="M:Exiled.CreditTags.CreditTags.OnDisabled">
+            <inheritdoc/>
+        </member>
+        <member name="F:Exiled.CreditTags.Enums.InfoSide.Badge">
+            <summary>
+            Uses badge.
+            </summary>
+        </member>
+        <member name="F:Exiled.CreditTags.Enums.InfoSide.CustomPlayerInfo">
+            <summary>
+            Uses Custom Player Info area
+            </summary>
+        </member>
+        <member name="F:Exiled.CreditTags.Enums.InfoSide.FirstAvailable">
+            <summary>
+            Uses Badge if available, otherwise uses CustomPlayerInfo if available.
+            </summary>
+        </member>
+        <member name="F:Exiled.CreditTags.Enums.InfoSide.Both">
+            <summary>
+            Includes both options.
+            </summary>
+        </member>
+        <member name="T:Exiled.CreditTags.Enums.RankType">
+            <summary>
+            Represents all existing ranks.
+            </summary>
+        </member>
+        <member name="F:Exiled.CreditTags.Enums.RankType.None">
+            <summary>
+            No EXILED roles.
+            </summary>
+        </member>
+        <member name="F:Exiled.CreditTags.Enums.RankType.Dev">
+            <summary>
+            Exiled Developer.
+            </summary>
+        </member>
+        <member name="F:Exiled.CreditTags.Enums.RankType.Contributor">
+            <summary>
+            Exiled Contributor.
+            </summary>
+        </member>
+        <member name="F:Exiled.CreditTags.Enums.RankType.PluginDev">
+            <summary>
+            Exiled Plugin Developer.
+            </summary>
+        </member>
+        <member name="F:Exiled.CreditTags.Enums.RankType.TournamentParticipant">
+            <summary>
+            EXILED Tournament Participant.
+            </summary>
+        </member>
+        <member name="F:Exiled.CreditTags.Enums.RankType.TournamentChampion">
+            <summary>
+            EXILED Tournament Champion.
+            </summary>
+        </member>
+        <member name="F:Exiled.CreditTags.Enums.RankType.Donator">
+            <summary>
+            EXILED Donator.
+            </summary>
+        </member>
+        <member name="T:Exiled.CreditTags.Events.CreditsHandler">
+            <summary>
+            Event Handlers for the <see cref="T:Exiled.CreditTags.CreditTags"/> plugin of Exiled.
+            </summary>
+        </member>
+        <member name="M:Exiled.CreditTags.Events.CreditsHandler.OnPlayerVerify(Exiled.Events.EventArgs.Player.VerifiedEventArgs)">
+            <summary>
+            Handles checking if a player should have a credit tag or not upon joining.
+            </summary>
+            <param name="ev"><inheritdoc cref="T:Exiled.Events.EventArgs.Player.VerifiedEventArgs"/></param>
+        </member>
+        <member name="T:Exiled.CreditTags.Features.Rank">
+            <summary>
+            An object representing Exiled Credit ranks.
+            </summary>
+        </member>
+        <member name="M:Exiled.CreditTags.Features.Rank.#ctor(System.String,System.String,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Exiled.CreditTags.Features.Rank"/> class.
+            </summary>
+            <param name="name">The name of the rank.</param>
+            <param name="color">The name of the rank's color.</param>
+            <param name="hexValue">The hex color value of the rank's color (in CustomPlayerInfo).</param>
+        </member>
+        <member name="P:Exiled.CreditTags.Features.Rank.Name">
+            <summary>
+            Gets a value representing the ranks name.
+            </summary>
+        </member>
+        <member name="P:Exiled.CreditTags.Features.Rank.Color">
+            <summary>
+            Gets a value representing the ranks color.
+            </summary>
+        </member>
+        <member name="P:Exiled.CreditTags.Features.Rank.HexValue">
+            <summary>
+            Gets a value representing the rank's color as a hex value.
+            </summary>
+        </member>
+        <member name="F:Exiled.CreditTags.Features.ThreadSafeRequest.done">
+            <summary>
+            Handles the Safe Thread Request.
+            </summary>
+        </member>
+        <member name="P:Exiled.CreditTags.Features.ThreadSafeRequest.Result">
+            <summary>
+            Gets the result.
+            </summary>
+        </member>
+        <member name="P:Exiled.CreditTags.Features.ThreadSafeRequest.Success">
+            <summary>
+            Gets a value indicating whether or not it was successful.
+            </summary>
+        </member>
+        <member name="P:Exiled.CreditTags.Features.ThreadSafeRequest.Code">
+            <summary>
+            Gets the HTTP Status Code.
+            </summary>
+        </member>
+        <member name="P:Exiled.CreditTags.Features.ThreadSafeRequest.Done">
+            <summary>
+            Gets a value indicating whether or not the request was successful.
+            </summary>
+        </member>
+        <member name="M:Exiled.CreditTags.Features.ThreadSafeRequest.Go(System.String,System.Action{Exiled.CreditTags.Features.ThreadSafeRequest},System.Action{System.String},UnityEngine.GameObject)">
+            <summary>
+            Gets the call to the website to obtain users to their roles.
+            </summary>
+            <param name="url">The URL.</param>
+            <param name="errorHandler">The error handling <see cref="T:System.Action`1"/>.</param>
+            <param name="resultHandler">The result handling <see cref="T:System.Action`1"/>.</param>
+            <param name="issuer">The <see cref="T:UnityEngine.GameObject"/> issuing the request.</param>
+        </member>
+    </members>
+</doc>
