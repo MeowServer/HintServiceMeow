@@ -3,3 +3,5 @@ obj
 Properties
 HintServiceMeow.csproj
 packages.config
+.gitignore
+.gitattributes
