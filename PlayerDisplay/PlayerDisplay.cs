@@ -21,12 +21,17 @@ namespace HintServiceMeow
         private List<DynamicHint> dynamicHintList = new List<DynamicHint>();//List of dynamic hints shows to the player
 
         private static CoroutineHandle HintRefreshCoroutine;
-        private static IEnumerator<float> RefreshHintEveryFiveSeconds()
+        private static IEnumerator<float> RefreshCoroutineMethod()
         {
             while(true)
             {
                 try
                 {
+                    if(playerDisplayList.Count <= 0)
+                    {
+                        yield break;
+                    }
+
                     foreach (PlayerDisplay pd in playerDisplayList)
                     {
                         if ((Round.ElapsedTime - pd.lastTimeUpdate).TotalSeconds >= 5)
@@ -78,7 +83,7 @@ namespace HintServiceMeow
             //reset CountDown
             lastTimeUpdate = Round.ElapsedTime;
 
-            player.ShowHint(text, 20);
+            player.ShowHint(text, float.MaxValue);
         }
 
         private void GetPlaceHolder(int size, List<string> messages)
@@ -218,9 +223,9 @@ namespace HintServiceMeow
         {
             this.player = player;
 
-            if (HintRefreshCoroutine == null|| !HintRefreshCoroutine.IsRunning)
+            if (HintRefreshCoroutine == null || !HintRefreshCoroutine.IsRunning)
             {
-                HintRefreshCoroutine = Timing.RunCoroutine(RefreshHintEveryFiveSeconds());
+                HintRefreshCoroutine = Timing.RunCoroutine(RefreshCoroutineMethod());
             }
 
             playerDisplayList.Add(this);

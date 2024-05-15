@@ -5,12 +5,13 @@ using PlayerRoles;
 using System;
 using System.Collections.Generic;
 
-
 namespace HintServiceMeow
 {
     /// <summary>
     /// A UI based on PlayerDisplay
     /// contain 3 main parts: common hints, UI Template, and player effects
+    /// 
+    /// player effects had not been implemented yet
     /// </summary>
     public class PlayerUI
     {

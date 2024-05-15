@@ -16,8 +16,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-
-
 namespace HintServiceMeow
 {
     public abstract class PlayerUITemplateBase
@@ -753,9 +751,9 @@ namespace HintServiceMeow
 
         public static string GetArmorInfo(Player player)
         {
-            if (player.Items.Any(x => x.IsArmor))
+            if (player.CurrentArmor != null)
             {
-                return Plugin.instance.Config.ItemName[player.Items.First(x => x.IsArmor).Type];
+                return Plugin.instance.Config.ItemName[player.CurrentArmor.Type];
             }
 
             return Plugin.instance.Config.NoArmor;
@@ -763,52 +761,54 @@ namespace HintServiceMeow
 
         public static string GetAmmoInfo(Player player)
         {
-            string ammoStatus;
-            Dictionary<ItemType, int> ammos = new Dictionary<ItemType, int>();
-            foreach(ItemType key in player.Ammo.Keys)
-            {
-                if (player.Ammo[key] > 0)
-                {
-                    ammos.Add(key, player.Ammo[key]);
-                }
-            }
+            Dictionary<ItemType, ushort> ammos = 
+                player.Ammo
+                .Where(x => x.Key != ItemType.None && x.Value > 0)
+                .ToDictionary(x => x.Key, x => x.Value);
 
-            if (player.CurrentItem != null && player.CurrentItem is Firearm firearm)
+            string ammoStatus;
+
+            if (player.CurrentItem is Firearm firearm)
             {
                 AmmoType ammoType = firearm.AmmoType;
                 ItemType itemType = ammoType.GetItemType();
 
-                if (!ammos.ContainsKey(itemType))
+                if (!ammos.ContainsKey(itemType) || ammos[itemType] == 0)
                 {
                     ammoStatus = Plugin.instance.Config.NoAmmo;
-                    return ammoStatus;
-                }
-
-                ammoStatus = Plugin.instance.Config.AmmoHint
-                    .Replace("{Ammo}", Plugin.instance.Config.AmmoName[ammoType])
-                    .Replace("{NumOfAmmo}", ammos[itemType].ToString());
-            }
-            else
-            {
-                if (player.Ammo.Keys.Count <= 0)
-                {
-                    ammoStatus = Plugin.instance.Config.NoAmmo;
-                }
-                else if (player.Ammo.Keys.Count <= 1)
-                {
-                    ammoStatus = Plugin.instance.Config.AmmoHint
-                        .Replace("{Ammo}", Plugin.instance.Config.ItemName[player.Ammo.Keys.First()])
-                        .Replace("{NumOfAmmo}", player.Ammo[player.Ammo.Keys.First(x => x != ItemType.None)].ToString());
                 }
                 else
                 {
-                    var numOfAmmos = 0;
+                    ammoStatus = Plugin.instance.Config.AmmoHint
+                    .Replace("{Ammo}", Plugin.instance.Config.AmmoName[ammoType])
+                    .Replace("{NumOfAmmo}", ammos[itemType].ToString());
+                }
+            }
+            else
+            {
+                var numOfAmmoTypes = ammos.Keys.Count;
+
+                if (numOfAmmoTypes <= 0)
+                {
+                    ammoStatus = Plugin.instance.Config.NoAmmo;
+                }
+                else if (numOfAmmoTypes <= 1)
+                {
+                    ammoStatus = Plugin.instance.Config.AmmoHint
+                        .Replace("{Ammo}", Plugin.instance.Config.ItemName[ammos.First().Key])
+                        .Replace("{NumOfAmmo}", ammos.First().Value.ToString());
+                }
+                else
+                {
+                    var totalAmmos = 0;
+
                     foreach (var numOfAmmo in ammos.Values)
                     {
-                        numOfAmmos += numOfAmmo;
+                        totalAmmos += numOfAmmo;
                     }
+
                     ammoStatus = Plugin.instance.Config.AmmoHint2
-                        .Replace("{NumOfAmmo}", numOfAmmos.ToString());
+                        .Replace("{NumOfAmmo}", totalAmmos.ToString());
                 }
             }
 

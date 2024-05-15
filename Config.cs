@@ -17,8 +17,8 @@ namespace HintServiceMeow
         public bool Debug { get; set; } = false;
 
         public string NoArmor { get; set; } = "没有装甲";
-        public string NoAmmo { get; set; } = "没有备弹";
 
+        public string NoAmmo { get; set; } = "没有备弹";
         public string AmmoHint { get; set; } = "{Ammo}共{NumOfAmmo}发";
         public string AmmoHint2 { get; set; } = "各种备弹共{NumOfAmmo}发";
 
@@ -129,7 +129,7 @@ namespace HintServiceMeow
         };
 
         [Description("Translation of different warhead status")]
-        public Dictionary<Exiled.API.Enums.WarheadStatus, string> WarheadStatusDictionary { get; private set; } = new Dictionary<Exiled.API.Enums.WarheadStatus, string>
+        public Dictionary<WarheadStatus, string> WarheadStatusDictionary { get; private set; } = new Dictionary<Exiled.API.Enums.WarheadStatus, string>
         {
             {WarheadStatus.Armed, "<color=#d0652f>已就绪</color>" },
             {WarheadStatus.NotArmed, "<color=#7fd827>未就绪</color>" },
