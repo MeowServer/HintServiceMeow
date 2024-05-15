@@ -9,7 +9,7 @@ using HarmonyLib;
 /*
  * V1.0.0 
  * V1.0.1
- *      Update the hint based on has change
+ *      Update the display based on hint's updation
  * V2.0.0
  *      Support Dynamic Hint
  *      Limit maximum update rate to 0.5/second
@@ -19,9 +19,9 @@ using HarmonyLib;
  *V2.1.1
  *      Fix some bugs
  *v2.2.0
- *      Use event to update player display, increase stability and decrease costs
+ *      Use the event to update the player display, increase stability, and decrease costs
  *v3.0.0
- *      Player UI is seperated form PlayerDisplay and extended more functions
+ *      Player UI is separated from PlayerDisplay and extended for more methods
  */
 namespace HintServiceMeow
 {
