@@ -1,16 +1,18 @@
-- [中文介绍](https://github.com/MeowServer/HintServiceMeow/blob/main/README_zh.md)
+
   
-Designed for Meow Servers~
-### Introduction
+### Designed for Meow Servers~
+- [English](https://github.com/MeowServer/HintServiceMeow/blob/main/README.md)
+- [中文](https://github.com/MeowServer/HintServiceMeow/blob/main/README_zh.md)
+## Introduction
 HintServiceMeow is a plugin based on the Exiled framework that allows plugins to display multiple hints on a player's screen simultaneously. It also gives you a simple way to fix your hint onto a specific position on the player's screen.
 
-### Installation
+## Installation
 To install this plugin, please go to the release page and download the newest HintServiceMeow.dll. Then, paste it into the plugin folder of the Exiled framework. Restart your server and ensure you read the following information:
 - This plugin is not compatible with any other plugins that use hints. It will also block all the server's functions related to hints (such as tips for picking up items).
 - This plugin is still under development; please contact 2679977872@qq.com for any bugs.
 - This plugin is designed for my own server. It should be compatible with any Exiled servers, but if not, please contact me.
 
-### To Developers
+## To Developers
 Please use [RueI](https://github.com/Ruemena/RueI) instead. RueI is a much more mature framework.
 If you insist on using this plugin instead of RueI, here's an easy documentary about this plugin:
 1. First, there are 2 ways to show a hint to a player
@@ -38,9 +40,9 @@ playerUI.ShowMapHint("RoomA", "This is room A");
 playerUI.ShowRoleHint("CustomRole", description.split("\n"));
 playerUI.ShowItemHint("CustomItem", "This is a custom item");
 ```
-### Bugs
+## Bugs
 Here are some bugs that might appear while using this plugin:
 - When players have reached the limit of the amount of ammo they can carry, they will receive a hint that tells them that they cannot pick any more ammo. This hint will interrupt the hints that are displayed by this plugin. To solve this problem, PlayerDisplay is updating the hint every 5 seconds. However, the player will not be able to see any hints before the next updation.
 - When too many hints are displayed in similar positions, the position of each hint might be less accurate.
-### Update Plan
+## Update Plan
 The next update will be the config for PlayerUI, allowing you to control and customize PlayerUI.
