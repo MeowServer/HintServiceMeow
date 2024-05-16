@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace HintServiceMeow
 {
+    //Not implemented
     public abstract class UIEffectBase
     {
         Player player;
