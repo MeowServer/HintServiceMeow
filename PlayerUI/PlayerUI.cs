@@ -17,18 +17,54 @@ namespace HintServiceMeow
     {
         private static List<PlayerUI> playerUIs = new List<PlayerUI>();
 
-        Player player;
-        PlayerDisplay playerDisplay;
-
-        //Template
-        PlayerUITemplateBase template;
-        CoroutineHandle templateUpdateCoroutine;
+        private Player player;
+        private PlayerDisplay playerDisplay;
 
         //Effects
-        CoroutineHandle effectsUpdateCoroutine;
+        private CoroutineHandle effectsUpdateCoroutine;
 
         private List<UIEffectBase> effects = new List<UIEffectBase>();
 
+        //Common Hints
+        private CoroutineHandle commonHintUpdateCoroutine;
+
+        private TimeSpan itemHintTimeToRemove = TimeSpan.MinValue;
+        private DynamicHint[] itemHints = new DynamicHint[2]
+        {
+            new DynamicHint(450, 700, HintAlignment.Center, "", "itemHint1", true).setFontSize(25),
+            new DynamicHint(450+25, 700+25, HintAlignment.Center, "", "itemHint2", true).setFontSize(25)
+        };
+
+        private TimeSpan mapHintTimeToRemove = TimeSpan.MinValue;
+        private DynamicHint[] mapHints = new DynamicHint[2]
+        {
+            new DynamicHint(0, 200, HintAlignment.Right, "", "mapHint1", true).setFontSize(25),
+            new DynamicHint(0+25, 200+25, HintAlignment.Right, "", "mapHint2", true).setFontSize(25)
+        };
+
+        private TimeSpan roleHintTimeToRemove = TimeSpan.MinValue;
+        private DynamicHint[] roleHints = new DynamicHint[4]
+        {
+            new DynamicHint(100, 600, HintAlignment.Left, "", "roleTitle", true).setFontSize(30),
+            new DynamicHint(100+30, 600+30 * 1, HintAlignment.Left, "", "roleDescription1", true).setFontSize(25),
+            new DynamicHint(100+50, 600+50, HintAlignment.Left, "", "roleDescription1", true).setFontSize(25),
+            new DynamicHint(100+70, 600+70, HintAlignment.Left, "", "roleDescription1", true).setFontSize(25)
+        };
+
+        private TimeSpan otherHintTimeToRemove = TimeSpan.MinValue;
+        private DynamicHint[] otherHints = new DynamicHint[4]
+        {
+            new DynamicHint(500, 700, HintAlignment.Center, "", "otherHint1", true),
+            new DynamicHint(520, 700, HintAlignment.Center, "", "otherHint2", true),
+            new DynamicHint(540, 700, HintAlignment.Center, "", "otherHint3", true),
+            new DynamicHint(560, 700, HintAlignment.Center, "", "otherHint4", true),
+        };
+
+        //Template
+        private PlayerUITemplateBase template;
+        private CoroutineHandle templateUpdateCoroutine;
+
+        //Private Effect Methods
         private IEnumerator<float> effectCoroutineMethod()
         {
             while (true)
@@ -60,6 +96,7 @@ namespace HintServiceMeow
             }
         }
 
+        //Public Effect Methods
         public void AddEffect(UIEffectBase effect)
         {
             effect.SetEffect();
@@ -94,42 +131,7 @@ namespace HintServiceMeow
             }
         }
 
-        //Common Hints
-        CoroutineHandle commonHintUpdateCoroutine;
-
-        private TimeSpan itemHintTimeToRemove = TimeSpan.MinValue;
-        private DynamicHint[] itemHints = new DynamicHint[2]
-        {
-            new DynamicHint(450, 700, HintAlignment.Center, "", "itemHint1", true).setFontSize(25),
-            new DynamicHint(450+25, 700+25, HintAlignment.Center, "", "itemHint2", true).setFontSize(25)
-        };
-
-        private TimeSpan mapHintTimeToRemove = TimeSpan.MinValue;
-        private DynamicHint[] mapHints = new DynamicHint[2]
-        {
-            new DynamicHint(0, 200, HintAlignment.Right, "", "mapHint1", true).setFontSize(25),
-            new DynamicHint(0+25, 200+25, HintAlignment.Right, "", "mapHint2", true).setFontSize(25)
-        };
-
-        private TimeSpan roleHintTimeToRemove = TimeSpan.MinValue;
-        private DynamicHint[] roleHints = new DynamicHint[4]
-        {
-            new DynamicHint(100, 600, HintAlignment.Left, "", "roleTitle", true).setFontSize(30),
-            new DynamicHint(100+30, 600+30 * 1, HintAlignment.Left, "", "roleDescription1", true).setFontSize(25),
-            new DynamicHint(100+50, 600+50, HintAlignment.Left, "", "roleDescription1", true).setFontSize(25),
-            new DynamicHint(100+70, 600+70, HintAlignment.Left, "", "roleDescription1", true).setFontSize(25)
-        };
-
-        private TimeSpan otherHintTimeToRemove = TimeSpan.MinValue;
-        private DynamicHint[] otherHints = new DynamicHint[4]
-        {
-            new DynamicHint(500, 700, HintAlignment.Center, "", "otherHint1", true),
-            new DynamicHint(520, 700, HintAlignment.Center, "", "otherHint2", true),
-            new DynamicHint(540, 700, HintAlignment.Center, "", "otherHint3", true),
-            new DynamicHint(560, 700, HintAlignment.Center, "", "otherHint4", true),
-        };
-
-        //Common Hints Update Coroutine Method
+        //Private Common Hints Methods
         private IEnumerator<float> CommonHintCoroutineMethod()
         {
             while (true)
@@ -198,7 +200,7 @@ namespace HintServiceMeow
             playerDisplay.RemoveHints(otherHints);
         }
 
-        //  Common Item Hint
+        //Public Common Item Hints Methods
         public void ShowItemHint(string itemName)
         {
             ShowItemHint(itemName, 4);
@@ -228,7 +230,7 @@ namespace HintServiceMeow
             itemHints[1].hide = false;
         }
 
-        //  Common Map Hint
+        //Public Common Map Hints Methods
         public void ShowMapHint(string roomName)
         {
             ShowMapHint(roomName, 4);
@@ -258,7 +260,7 @@ namespace HintServiceMeow
             mapHints[1].hide = false;
         }
 
-        //CommonRoleHint
+        //Public Common Role Hints Methods
         public void ShowRoleHint(string roleName)
         {
             ShowRoleHint(roleName, 4);
@@ -294,7 +296,7 @@ namespace HintServiceMeow
             }
         }
 
-        //  Common Other Hints
+        //Public Common Other Hints Methods
         public void ShowOtherHint(string hint)
         {
             ShowOtherHint(hint, 4);
@@ -323,7 +325,8 @@ namespace HintServiceMeow
                 otherHints[i].hide = otherHints[i].message == string.Empty;
             }
         }
-        //Template Tools
+
+        //Private Template Methods
         private void SetTemplate()
         {
             StopTemplateCoroutine();
@@ -440,7 +443,7 @@ namespace HintServiceMeow
             Timing.KillCoroutines(templateUpdateCoroutine);
         }
 
-        //PlayerUI tools
+        //Private PlayerUI methods
         internal PlayerUI(Player player)
         {
             this.player = player;
@@ -454,16 +457,6 @@ namespace HintServiceMeow
             StartTemplateCoroutine();
 
             playerUIs.Add(this);
-        }
-
-        public static PlayerUI Get(Player player)
-        {
-            return playerUIs.Find(x => x.player == player);
-        }
-
-        public static PlayerUI Get(PlayerDisplay display)
-        {
-            return playerUIs.Find(x => x.playerDisplay == display);
         }
 
         internal static void RemovePlayerUI(Player player)
@@ -488,64 +481,22 @@ namespace HintServiceMeow
 
         internal static void ClearAllPlayerUI()
         {
-            foreach(PlayerUI ui in playerUIs)
+            foreach (PlayerUI ui in playerUIs)
             {
                 ui.Destruct();
             }
         }
-    }
 
-    public abstract class UIEffectBase
-    {
-        Player player;
-        PlayerDisplay playerDisplay;
-
-        float intensity = 100f;
-
-        public UIEffectBase()
+        //Public PlayerUI tools
+        public static PlayerUI Get(Player player)
         {
-
+            return playerUIs.Find(x => x.player == player);
         }
 
-        public UIEffectBase(Player player)
+        public static PlayerUI Get(PlayerDisplay display)
         {
-            this.player = player;
-            this.playerDisplay = PlayerDisplay.Get(player);
-        }
-
-        public UIEffectBase(PlayerDisplay playerDisplay)
-        {
-            this.player = playerDisplay.player;
-            this.playerDisplay = playerDisplay;
-        }
-
-        public abstract void UpdateEffect();
-        public abstract void SetEffect();
-        public abstract void DestructEffect();
-    }
-
-    public class BloodLetterEffect:UIEffectBase
-    {
-        List<DynamicHint> dynamicHints = new List<DynamicHint>();
-
-        public BloodLetterEffect(Player player) : base(player)
-        {
-
-        }
-
-        public override void DestructEffect()
-        {
-
-        }
-
-        public override void SetEffect()
-        {
-
-        }
-
-        public override void UpdateEffect()
-        {
-
+            return playerUIs.Find(x => x.playerDisplay == display);
         }
     }
+
 }

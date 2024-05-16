@@ -6,23 +6,23 @@ using Exiled.API.Enums;
 using Hints;
 using HarmonyLib;
 
-/*
- * V1.0.0 
- * V1.0.1
- *      Update the display based on hint's updation
- * V2.0.0
- *      Support Dynamic Hint
- *      Limit maximum update rate to 0.5/second
- *      Fixed some bugs     
- *V2.1.0
- *      Add Common Hints
- *V2.1.1
- *      Fix some bugs
- *v2.2.0
- *      Use the event to update the player display, increase stability, and decrease costs
- *v3.0.0
- *      Player UI is separated from PlayerDisplay and extended for more methods
- */
+
+//*V1.0.0
+//* V1.0.1
+//* Update the display based on hint's updation
+// * V2.0.0
+// *      Support Dynamic Hint
+// *      Limit maximum update rate to 0.5/second
+// *      Fixed some bugs     
+// *V2.1.0
+// *      Add Common Hints
+// *V2.1.1
+// *      Fix some bugs
+// *v2.2.0
+// *      Use the event to update the player display, increase stability, and decrease costs
+// *v3.0.0
+// *      Player UI is separated from PlayerDisplay and extended for more methods
+
 namespace HintServiceMeow
 {
     class Plugin : Plugin<Config>
