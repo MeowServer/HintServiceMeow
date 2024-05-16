@@ -9,8 +9,8 @@ To install this plugin, please go to the release page and download the newest Hi
 - This plugin is designed for my own server. It should be compatible with any Exiled servers, but if not, please contact me.
 
 ### To Developers
-Please use ReuI instead. ReuI is a much more mature framework.
-If you insist on using this plugin instead of ReuI, here's an easy documentary about this plugin:
+Please use RueI instead. RueI is a much more mature framework.
+If you insist on using this plugin instead of RueI, here's an easy documentary about this plugin:
 1. First, there are 2 ways to show a hint to a player
 - Create an instance of hint and add them to the PlayerDisplay instance corresponding to a player.
 - Get PlayerUI corresponding to the player, and use the "ShowCommonHint" methods of that PlayerUI.
@@ -25,7 +25,7 @@ This is an example of creating a line of hints and adding it to the player's scr
 hint.message = "你好，世界";
 ```
 Y-coordinate: represents the height of the hint. The higher the y-coordinate is, the lower the hint is on the screen. The maximum y-coordinate you can use for a hint is 920. By experiment, the maximum y coordinate you will need to put a hint on the bottom of the screen is 720.
-HintAlignment: Whether to put the hint on the left, right, or the middle of player's screen.
+HintAlignment: Whether to put the hint on the left, right, or the middle of the player's screen.
 Message: The content of the hint.
 3. Showing hints by using PlayerUI
 ```csharp
