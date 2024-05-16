@@ -1,4 +1,6 @@
-为Meow服务器设计~
+### Designed for Meow Servers~
+- [English](https://github.com/MeowServer/HintServiceMeow/blob/main/README.md)
+- [中文](https://github.com/MeowServer/HintServiceMeow/blob/main/README_zh.md)
 ### 简介
 HintServiceMeow 是一款基于Exiled框架的插件，用于向玩家同时展示多个Hint，并让每一条Hint固定在特定的位置。
 
