@@ -29,7 +29,7 @@ namespace HintServiceMeow
     {
         public override string Name => "HintServiceMeow";
         public override string Author => "MeowServerOwner";
-        public override Version Version => new Version(2, 2, 0);
+        public override Version Version => new Version(3, 0, 0);
 
         public override PluginPriority Priority => PluginPriority.First;
 
