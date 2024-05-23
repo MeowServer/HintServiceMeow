@@ -110,14 +110,22 @@ namespace HintServiceMeow
                 }
             }
 
+            foreach(DynamicHint hint in spectatorHints)
+            {
+                hint.hide = true;
+            }
+
             spectatorHints[0].message = spectatingPlayers.Count > 0 ? "👥观察者" : string.Empty;
-            for (int i = 0; i < 4; i++)
+
+            for (int i = 1; i < spectatingPlayers.Count; i++)
             {
                 if(i >= spectatingPlayers.Count)
                     break;
 
                 spectatorHints[i].message = $"-{spectatingPlayers[i]?.Nickname}";
+                spectatorHints[i].hide = false;
             }
+
             spectatorHints[4].message = spectatingPlayers.Count > 4 ? $"共{spectatingPlayers.Count}个观察者正在观察您" : string.Empty;
 
             foreach (DynamicHint hint in spectatorHints)
@@ -338,8 +346,6 @@ namespace HintServiceMeow
                     message = template.Replace("{spectators_num}", Player.Get(RoleTypeId.Spectator).Count().ToString());
                 }
 
-
-
                 return message;
             }
 
@@ -529,83 +535,90 @@ namespace HintServiceMeow
         protected Dictionary<Player, TimeSpan> lastTimeSpotted = new Dictionary<Player, TimeSpan>();
         protected void CheckVisionInfo()
         {
-            if (Player.List.Count(x => x.IsHuman) <= 4)
+            try
             {
-                foreach (Player player in Player.List)
+                if (Player.List.Count(x => x.IsHuman) <= 4)
                 {
-                    if (!UICommonTools.IsSCP(player))
-                        continue;
-
-                    foreach (Player target in Player.List)
+                    foreach (Player player in Player.List)
                     {
-                        if (!target.IsHuman || target.Role.Team == Team.OtherAlive)
+                        if (!UICommonTools.IsSCP(player))
                             continue;
 
-                        if (!CanSee(player, target))
-                            continue;
-
-                        if (lastTimeSpotted.ContainsKey(player))
+                        foreach (Player target in Player.List)
                         {
-                            if (Round.ElapsedTime - lastTimeSpotted[player] > TimeSpan.FromSeconds(40))
+                            if (!target.IsHuman || target.Role.Team == Team.OtherAlive)
+                                continue;
+
+                            if (!CanSee(player, target))
+                                continue;
+
+                            if (lastTimeSpotted.ContainsKey(player))
                             {
-                                SCPInformations.Insert(0, new SCPEventHint(SCPEventHint.SCPEventType.SpotHuman, $"<b><color=#3385ff>⚪</color></b>{Config.instance.RoleName[player.Role.Type]}在{Config.instance.ZoneName[player.Zone]}找到了一个人类", Round.ElapsedTime));
-                                lastTimeSpotted[player] = Round.ElapsedTime;
+                                if (Round.ElapsedTime - lastTimeSpotted[player] > TimeSpan.FromSeconds(40))
+                                {
+                                    SCPInformations.Insert(0, new SCPEventHint(SCPEventHint.SCPEventType.SpotHuman, $"<b><color=#3385ff>⚪</color></b>{Config.instance.RoleName[player.Role.Type]}在{Config.instance.ZoneName[player.Zone]}找到了一个人类", Round.ElapsedTime));
+                                    lastTimeSpotted[player] = Round.ElapsedTime;
+                                }
                             }
-                        }
-                        else
-                        {
-                            lastTimeSpotted.Add(player, Round.ElapsedTime);
-                            SCPInformations.Insert(0, new SCPEventHint(SCPEventHint.SCPEventType.SCPDeath, $"<b><color=#3385ff>⚪</color></b>{Config.instance.RoleName[player.Role.Type]}在{Config.instance.ZoneName[player.Zone]}找到了一个人类", Round.ElapsedTime));
+                            else
+                            {
+                                lastTimeSpotted.Add(player, Round.ElapsedTime);
+                                SCPInformations.Insert(0, new SCPEventHint(SCPEventHint.SCPEventType.SCPDeath, $"<b><color=#3385ff>⚪</color></b>{Config.instance.RoleName[player.Role.Type]}在{Config.instance.ZoneName[player.Zone]}找到了一个人类", Round.ElapsedTime));
+                            }
                         }
                     }
                 }
-            }
-            else
-            {
-                foreach (Player player in Player.List)
+                else
                 {
-                    if (!UICommonTools.IsSCP(player))
-                        continue;
-
-                    List<Player> targets = new List<Player>();
-
-                    foreach (Player target in Player.List)
+                    foreach (Player player in Player.List)
                     {
-                        if (!target.IsHuman || target.Role.Team == Team.OtherAlive)
+                        if (!UICommonTools.IsSCP(player))
                             continue;
 
-                        if (!CanSee(player, target))
-                            continue;
+                        List<Player> targets = new List<Player>();
 
-                        if (lastTimeSpotted.ContainsKey(target))
+                        foreach (Player target in Player.List)
                         {
-                            if (Round.ElapsedTime - lastTimeSpotted[target] > TimeSpan.FromSeconds(40))
+                            if (!target.IsHuman || target.Role.Team == Team.OtherAlive)
+                                continue;
+
+                            if (!CanSee(player, target))
+                                continue;
+
+                            if (lastTimeSpotted.ContainsKey(target))
+                            {
+                                if (Round.ElapsedTime - lastTimeSpotted[target] > TimeSpan.FromSeconds(40))
+                                {
+                                    targets.Add(target);
+                                }
+                            }
+                            else
                             {
                                 targets.Add(target);
                             }
                         }
-                        else
-                        {
-                            targets.Add(target);
-                        }
-                    }
 
-                    if (targets.Count >= 4)
-                    {
-                        SCPInformations.Insert(0, new SCPEventHint(SCPEventHint.SCPEventType.SpotHuman2, $"⚪{Config.instance.RoleName[player.Role.Type]}在{player.Zone}找到了大量人类", Round.ElapsedTime));
-                        foreach (Player target in targets)
+                        if (targets.Count >= 4)
                         {
-                            if (lastTimeSpotted.ContainsKey(target))
+                            SCPInformations.Insert(0, new SCPEventHint(SCPEventHint.SCPEventType.SpotHuman2, $"⚪{Config.instance.RoleName[player.Role.Type]}在{player.Zone}找到了大量人类", Round.ElapsedTime));
+                            foreach (Player target in targets)
                             {
-                                lastTimeSpotted[target] = Round.ElapsedTime;
-                            }
-                            else
-                            {
-                                lastTimeSpotted.Add(target, Round.ElapsedTime);
+                                if (lastTimeSpotted.ContainsKey(target))
+                                {
+                                    lastTimeSpotted[target] = Round.ElapsedTime;
+                                }
+                                else
+                                {
+                                    lastTimeSpotted.Add(target, Round.ElapsedTime);
+                                }
                             }
                         }
                     }
                 }
+            }
+            catch(Exception e)
+            {
+                Log.Error(e);
             }
         }
 

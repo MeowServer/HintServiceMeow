@@ -1,4 +1,5 @@
 ﻿using Exiled.API.Features;
+using Hints;
 using MEC;
 using System;
 using System.Collections.Generic;
@@ -34,7 +35,7 @@ namespace HintServiceMeow
 
                     foreach (PlayerDisplay pd in playerDisplayList)
                     {
-                        if ((Round.ElapsedTime - pd.lastTimeUpdate).TotalSeconds >= 5)
+                        if ((Round.ElapsedTime - pd.lastTimeUpdate).TotalSeconds >= 3)
                         {
                             pd.UpdateWhenReady();
                         }
@@ -46,12 +47,18 @@ namespace HintServiceMeow
                 }
                 
 
-                yield return Timing.WaitForSeconds(5f);
+                yield return Timing.WaitForSeconds(3.1f);
             }
         }
 
+        //For patch to check
+        internal bool UpdatedRecently()
+        {
+            return (Round.ElapsedTime - lastTimeUpdate).TotalSeconds <= 0.01;
+        }
+
         //Update Rate Management stuff
-        private float UpdateInterval { get; } = 0.5f;   //By experiment, the fastest update rate is 2 times per second.
+        private TimeSpan UpdateInterval { get; } = TimeSpan.FromMilliseconds(500);   //By experiment, the fastest update rate is 2 times per second.
         internal TimeSpan lastTimeUpdate { get; set; } = TimeSpan.Zero;
         private bool plannedUpdate { get; set; } = false;   // Tells whether a update had been planned
 
@@ -63,7 +70,7 @@ namespace HintServiceMeow
 
             plannedUpdate = true;
 
-            var TimeToWait = (float)(UpdateInterval - (Round.ElapsedTime - lastTimeUpdate).TotalSeconds);
+            var TimeToWait = (float)(lastTimeUpdate + UpdateInterval - Round.ElapsedTime).TotalSeconds;
             TimeToWait = TimeToWait < 0.05f ? 0.05f : TimeToWait; //0.05f to make sure that all of the changes are updated beofre the next update
 
             Timing.CallDelayed(TimeToWait, () =>
@@ -77,13 +84,25 @@ namespace HintServiceMeow
         private void UpdateHint()
         {
             var displayHintList = GetRegularDisplayHints();
-            displayHintList = InsertDynamicHints(displayHintList);
             string text = ToMessage(displayHintList);
 
             //reset CountDown
             lastTimeUpdate = Round.ElapsedTime;
 
-            player.ShowHint(text, float.MaxValue);
+            player.HintDisplay.Show(
+                new TextHint(
+                    text,
+                    new HintParameter[]
+                    {
+                        new StringHintParameter(text)
+                    },
+                    new HintEffect[]
+                    {
+                        HintEffectPresets.TrailingPulseAlpha(1, 1, 1)
+                    },
+                    float.MaxValue
+                )
+            );
         }
 
         private void GetPlaceHolder(int size, List<string> messages)
@@ -97,9 +116,10 @@ namespace HintServiceMeow
             messages.Add($"<size={size}>　</size>");
         }
 
-        private List<Hint> InsertDynamicHints(List<Hint> hintList)
+        private void InsertDynamicHints(List<Hint> hintList)
         {
-            var NewHintList = new List<Hint>(hintList);
+            if (dynamicHintList.Count == 0)
+                return;
 
             //Arrange Dynamic Hints
             dynamicHintList.Sort(delegate (DynamicHint a, DynamicHint b)
@@ -122,44 +142,44 @@ namespace HintServiceMeow
 
                 //Top Position Flags
                 tempHintA.bottomYCoordinate = topYCoordinate;
-                if (NewHintList.FindIndex(x => x.bottomYCoordinate >= topYCoordinate) == -1)
+                if (hintList.FindIndex(x => x.bottomYCoordinate >= topYCoordinate) == -1)
                 {
-                    NewHintList.Insert(0, tempHintA);
+                    hintList.Insert(0, tempHintA);
                 }
                 else
                 {
-                    NewHintList.Insert(NewHintList.FindIndex(x => x.bottomYCoordinate >= topYCoordinate), tempHintA);
+                    hintList.Insert(hintList.FindIndex(x => x.bottomYCoordinate >= topYCoordinate), tempHintA);
                 }
 
                 //Bottom Position Flags
                 tempHintB.topYCoordinate = bottomYCoordinate;
-                if (NewHintList.FindIndex(x => x.topYCoordinate >= bottomYCoordinate) == -1)
+                if (hintList.FindIndex(x => x.topYCoordinate >= bottomYCoordinate) == -1)
                 {
-                    NewHintList.Add(tempHintB);
+                    hintList.Add(tempHintB);
                 }
                 else
                 {
-                    NewHintList.Insert(NewHintList.FindIndex(x => x.topYCoordinate >= bottomYCoordinate), tempHintB);
+                    hintList.Insert(hintList.FindIndex(x => x.topYCoordinate >= bottomYCoordinate), tempHintB);
                 }
 
-                for (var index = NewHintList.IndexOf(tempHintA); index < NewHintList.IndexOf(tempHintB); index++)
+                for (var index = hintList.IndexOf(tempHintA); index < hintList.IndexOf(tempHintB); index++)
                 {
-                    int space = NewHintList[index + 1].topYCoordinate - NewHintList[index].bottomYCoordinate;
+                    int space = hintList[index + 1].topYCoordinate - hintList[index].bottomYCoordinate;
 
                     if (space >= dynamicHint.fontSize)
                     {
-                        var hint = new Hint(dynamicHint, NewHintList[index].bottomYCoordinate);
-                        NewHintList.Insert(index + 1, hint);
+                        var hint = new Hint(dynamicHint, hintList[index].bottomYCoordinate);
+                        hintList.Insert(index + 1, hint);
 
                         break;
                     }
                 }
 
-                NewHintList.Remove(tempHintA);
-                NewHintList.Remove(tempHintB);//Remove flags
+                hintList.Remove(tempHintA);
+                hintList.Remove(tempHintB);//Remove flags
             }
 
-            return NewHintList;
+            return;
         }
 
         private List<Hint> GetRegularDisplayHints()
@@ -187,6 +207,8 @@ namespace HintServiceMeow
                     displayHintList.RemoveAt(index + 1);
                 }
             }
+
+            InsertDynamicHints(displayHintList);
 
             return displayHintList;
         }

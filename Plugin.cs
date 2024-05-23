@@ -47,8 +47,8 @@ namespace HintServiceMeow
             _harmony = new Harmony("HintServiceMeowHarmony");
             _harmony.PatchAll();
 
-            Exiled.Events.Handlers.Player.Verified += EventHandler.OnVerified;
-            Exiled.Events.Handlers.Player.Left += EventHandler.OnLeft;
+            Exiled.Events.Handlers.Player.Verified += OnVerified;
+            Exiled.Events.Handlers.Player.Left += OnLeft;
 
             base.OnEnabled();
         }
@@ -61,24 +61,15 @@ namespace HintServiceMeow
             _harmony.UnpatchAll();
             _harmony = null;
 
-            Exiled.Events.Handlers.Player.Verified -= EventHandler.OnVerified;
-            Exiled.Events.Handlers.Player.Left -= EventHandler.OnLeft;
+            Exiled.Events.Handlers.Player.Verified -= OnVerified;
+            Exiled.Events.Handlers.Player.Left -= OnLeft;
 
-            EventHandler.OnDisable();
+            OnDisable();
 
             base.OnDisabled();
         }
-    }
 
-    public static class EventHandler
-    {
-        public delegate void NewPlayerHandler(PlayerDisplay playerDisplay);
-        public static event NewPlayerHandler NewPlayer;
-
-        /// <summary>
-        /// Create PlayerDisplay and PlayerUI for the new player
-        /// </summary>
-        /// <param name="ev"></param>
+        // Create PlayerDisplay and PlayerUI for the new player
         private static void OnVerified(VerifiedEventArgs ev)
         {
             if (ev.Player.IsNPC) return;
@@ -86,7 +77,7 @@ namespace HintServiceMeow
             var pd = new PlayerDisplay(ev.Player);
             new PlayerUI(ev.Player);
 
-            NewPlayer.Invoke(pd);
+            EventHandler.InvokeNewPlayerEvent(pd);
         }
 
         private static void OnLeft(LeftEventArgs ev)
@@ -99,6 +90,17 @@ namespace HintServiceMeow
         {
             PlayerUI.ClearAllPlayerUI();
             PlayerDisplay.ClearPlayerDisplay();
+        }
+    }
+
+    public static class EventHandler
+    {
+        public delegate void NewPlayerHandler(PlayerDisplay playerDisplay);
+        public static event NewPlayerHandler NewPlayer;
+
+        internal static void InvokeNewPlayerEvent(PlayerDisplay pd)
+        {
+            NewPlayer.Invoke(pd);
         }
     }
 }

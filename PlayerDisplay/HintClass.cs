@@ -7,13 +7,6 @@ using System.Threading.Tasks;
 namespace HintServiceMeow
 {
 
-    public enum HintAlignment
-    {
-        Left,
-        Right,
-        Center
-    }
-
     public abstract class AbstractHint
     {
         public delegate void UpdateHandler();
@@ -223,18 +216,6 @@ namespace HintServiceMeow
         {
             this.fontSize = size;
             return this;
-        }
-    }
-
-    public class DynamicHintField
-    {
-        public int topYCoordinate;
-        public int bottomYCoordinate;
-
-        public DynamicHintField(int topYCoordinate, int bottomYCoordinate)
-        {
-            this.topYCoordinate = topYCoordinate;
-            this.bottomYCoordinate = bottomYCoordinate;
         }
     }
 
