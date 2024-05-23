@@ -22,6 +22,8 @@ using HarmonyLib;
 // *      Use the event to update the player display, increase stability, and decrease costs
 // *v3.0.0
 // *      Player UI is separated from PlayerDisplay and extended for more methods
+// *v3.0.1
+// *      Fix some bugs
 
 namespace HintServiceMeow
 {
@@ -29,7 +31,7 @@ namespace HintServiceMeow
     {
         public override string Name => "HintServiceMeow";
         public override string Author => "MeowServerOwner";
-        public override Version Version => new Version(3, 0, 0);
+        public override Version Version => new Version(3, 0, 1);
 
         public override PluginPriority Priority => PluginPriority.First;
 
@@ -77,7 +79,7 @@ namespace HintServiceMeow
         /// Create PlayerDisplay and PlayerUI for the new player
         /// </summary>
         /// <param name="ev"></param>
-        internal static void OnVerified(VerifiedEventArgs ev)
+        private static void OnVerified(VerifiedEventArgs ev)
         {
             if (ev.Player.IsNPC) return;
 
@@ -87,32 +89,16 @@ namespace HintServiceMeow
             NewPlayer.Invoke(pd);
         }
 
-        internal static void OnLeft(LeftEventArgs ev)
+        private static void OnLeft(LeftEventArgs ev)
         {
             PlayerUI.RemovePlayerUI(ev.Player);
             PlayerDisplay.RemovePlayerDisplay(ev.Player);
         }
 
-        internal static void OnDisable()
+        private static void OnDisable()
         {
             PlayerUI.ClearAllPlayerUI();
             PlayerDisplay.ClearPlayerDisplay();
-        }
-    }
-    
-    [HarmonyPatch(typeof(HintDisplay), nameof(HintDisplay.Show))]
-    static class HintPatch
-    {
-        static bool Prefix(Hints.Hint hint, ref HintDisplay __instance)
-        {
-            var playerDisplay = PlayerDisplay.Get(Player.Get(__instance.connectionToClient));
-
-            if (Round.ElapsedTime.TotalSeconds - playerDisplay.lastTimeUpdate.TotalSeconds <= 0.1)
-            {
-                return true;
-            }
-
-            return false;
         }
     }
 }
