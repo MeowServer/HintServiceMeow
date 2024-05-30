@@ -1,5 +1,6 @@
 ﻿using Exiled.API.Enums;
 using Exiled.API.Interfaces;
+using HintServiceMeow.UITemplates;
 using PlayerRoles;
 using Respawning;
 
@@ -9,19 +10,33 @@ using System.ComponentModel;
 
 namespace HintServiceMeow
 {
-    internal class Config:IConfig
+    public class Config:IConfig
     {
         public static Config instance;
 
         public bool IsEnabled { get; set; } = true;
         public bool Debug { get; set; } = false;
 
-        public string NoArmor { get; set; } = "没有装甲";
+        [Description("All of the following configs are used for PlayerUI")]
+        public bool EnablePlayerUI { get; set; } = true;
 
+        [Description("The text displayed for different ammo/armor status")]
+        public string NoArmor { get; set; } = "没有装甲";
         public string NoAmmo { get; set; } = "没有备弹";
         public string AmmoHint { get; set; } = "{Ammo}共{NumOfAmmo}发";
         public string AmmoHint2 { get; set; } = "各种备弹共{NumOfAmmo}发";
 
+        [Description("The config for different templates")]
+
+        public GeneralHumanTemplateConfig generalHumanTemplateConfig { get; private set; } = new GeneralHumanTemplateConfig();
+
+        public SCPTemplateConfig scpTemplateConfig { get; private set; } = new SCPTemplateConfig();
+
+        public CustomHumanTemplateConfig customHumanTemplate { get; private set; } = new CustomHumanTemplateConfig();
+
+        public CustomSCPTemplateConfig customSCPTemplate { get; private set; } = new CustomSCPTemplateConfig();
+
+        [Description("Translation of different role types")]
         public Dictionary<RoleTypeId, string> RoleName { get; private set; } = new Dictionary<RoleTypeId, string>()
         {
             { RoleTypeId.None, "无角色"},
@@ -51,6 +66,19 @@ namespace HintServiceMeow
             { RoleTypeId.Scp3114, "Scp3114"},
         };
 
+        [Description("Translation of different team types")]
+        public Dictionary<Team, string> TeamName { get; private set; } = new Dictionary<Team, string>()
+        {
+            { Team.ChaosInsurgency, "混沌分裂者" },
+            { Team.ClassD, "D级人员" },
+            { Team.Dead, "死后阵营" },
+            { Team.FoundationForces, "基金会阵营" },
+            { Team.OtherAlive, "其他阵营" },
+            { Team.Scientists, "科学家" },
+            { Team.SCPs, "SCP"},
+        };
+
+        [Description("Translation of different item types")]
         public Dictionary<ItemType, string> ItemName { get; private set; } = new Dictionary<ItemType, string>()
         {
             {ItemType.KeycardJanitor,"保洁员钥匙卡" },
@@ -100,6 +128,7 @@ namespace HintServiceMeow
             {ItemType.AntiSCP207,"粉色SCP207" }
         };
 
+        [Description("Translation of different zone names")]
         public Dictionary<ZoneType, string> ZoneName { get; private set; } = new Dictionary<ZoneType, string>()
         {
             {ZoneType.LightContainment, "轻收容区" },
@@ -109,7 +138,7 @@ namespace HintServiceMeow
             {ZoneType.Unspecified, "未指定区域" }
         };
 
-        [Description("Following Configs Are For The Respawn Display")]
+        [Description("Translation of different AmmoName types")]
         public Dictionary<AmmoType, string> AmmoName { get; private set; } = new Dictionary<AmmoType, string>()
         {
             {AmmoType.Ammo12Gauge,"12口径弹药" },
@@ -137,10 +166,34 @@ namespace HintServiceMeow
             {WarheadStatus.InProgress, "<color=#d0652f>正在倒计时</color>" },
         };
 
-        [Description("Time interval between each hint")]
+        [Description("RespawnTimer: Time interval between each hint")]
         public int HintDisplayInterval { get; set; } = 10;
 
-        [Description("A list of hints you want to display")]
+        [Description("RespawnTimer: A list of hints you want to display")]
         public List<string> Hints { get; private set; } = new List<string>() { "Some hints", "Some other hints" };
+    }
+
+    public class GeneralHumanTemplateConfig
+    {
+        public string TopBar { get; set; } = "TPS:{TPS} | {PlayerName}";
+        public string BottomBar { get; set; } = "{PlayerNickname}|<color={RoleColor}>{Role}</color>|{AmmoInfo}|{ArmorInfo}|<color=#7CB342>Meow</color>";
+    }
+
+    public class SCPTemplateConfig
+    {
+        public string TopBar { get; set; } = "TPS:{TPS} | {PlayerName}";
+        public string BottomBar { get; set; } = "{PlayerNickname}|<color={RoleColor}>{Role}</color>|剩余{TeammateCount}队友|<color=#7CB342>Meow</color>";
+    }
+
+    public class CustomHumanTemplateConfig
+    {
+        public string TopBar { get; set; } = "TPS:{TPS} | {PlayerName}";
+        public string BottomBar { get; set; } = "{PlayerNickname}|<color={RoleColor}>{Role}</color>|{AmmoInfo}|{ArmorInfo}|<color=#7CB342>Meow</color>";
+    }
+
+    public class CustomSCPTemplateConfig
+    {
+        public string TopBar { get; set; } = "TPS:{TPS} | {PlayerName}";
+        public string BottomBar { get; set; } = "{PlayerNickname}|<color=#EC2222>{Role}</color>|剩余{TeammateCount}队友|{AmmoInfo}|{ArmorInfo}|<color=#7CB342>Meow</color>";
     }
 }

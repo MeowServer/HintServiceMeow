@@ -75,8 +75,15 @@ namespace HintServiceMeow
 
             Timing.CallDelayed(TimeToWait, () =>
             {
-                UpdateHint();
-                plannedUpdate = false;
+                try
+                {
+                    UpdateHint();
+                    plannedUpdate = false;
+                }
+                catch(Exception ex)
+                {
+                   Log.Error(ex);
+                }
             });
         }
 
@@ -184,8 +191,12 @@ namespace HintServiceMeow
 
         private List<Hint> GetRegularDisplayHints()
         {
-            List<Hint> displayHintList =
-                hintList
+            if(hintList.Count == 0)
+            {
+                return new List<Hint>();
+            }
+
+            List<Hint> displayHintList = hintList
                 .Where(x => x.hide == false && x.message != string.Empty && x.message != null)
                 .ToList();
 
@@ -215,6 +226,9 @@ namespace HintServiceMeow
 
         private string ToMessage(List<Hint> displayHintList)
         {
+            if (displayHintList.Count == 0)
+                return string.Empty;
+
             List<string> messages = new List<string>();
 
             int placeHolderHeight = displayHintList.First().topYCoordinate;//+ 5;//+10 to make sure the hint on y=0 can be displayed

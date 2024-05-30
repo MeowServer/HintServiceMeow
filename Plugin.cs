@@ -5,6 +5,7 @@ using Exiled.Events.EventArgs.Player;
 using Exiled.API.Enums;
 using Hints;
 using HarmonyLib;
+using HintServiceMeow;
 
 
 //*V1.0.0
@@ -24,6 +25,11 @@ using HarmonyLib;
 // *      Player UI is separated from PlayerDisplay and extended for more methods
 // *v3.0.1
 // *      Fix some bugs
+// *V3.0.2
+// *      Fix the bug that crush the PlayerDisplay when there's no hint displayed on the screen
+// *V3.1.0
+// *      Add PlayerUI Config
+// *      TODO: ADD configs for spectator template, scp extra info, spectator info, etc.
 
 namespace HintServiceMeow
 {
@@ -31,7 +37,7 @@ namespace HintServiceMeow
     {
         public override string Name => "HintServiceMeow";
         public override string Author => "MeowServerOwner";
-        public override Version Version => new Version(3, 0, 1);
+        public override Version Version => new Version(3, 1, 0);
 
         public override PluginPriority Priority => PluginPriority.First;
 
@@ -75,7 +81,8 @@ namespace HintServiceMeow
             if (ev.Player.IsNPC) return;
 
             var pd = new PlayerDisplay(ev.Player);
-            new PlayerUI(ev.Player);
+            if(Config.instance.EnablePlayerUI)
+                new PlayerUI(ev.Player);
 
             EventHandler.InvokeNewPlayerEvent(pd);
         }
