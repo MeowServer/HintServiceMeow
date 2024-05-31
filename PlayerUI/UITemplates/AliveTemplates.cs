@@ -209,29 +209,42 @@ namespace HintServiceMeow.UITemplates
         protected Dictionary<Player, TimeSpan> lastTimeHurtInformed = new Dictionary<Player, TimeSpan>();
         protected void OnHurting(HurtEventArgs ev)
         {
-            if (UICommonTools.IsSCP(ev.Player) && ev.Player.Role.Type != RoleTypeId.Scp0492 && ev.Player.Health <= ev.Player.MaxHealth * 0.2)
+            try
             {
-                if (lastTimeHurtInformed.ContainsKey(ev.Player))
+                if (UICommonTools.IsSCP(ev.Player) && ev.Player.Role.Type != RoleTypeId.Scp0492 && ev.Player.Health <= ev.Player.MaxHealth * 0.2)
                 {
-                    if (Round.ElapsedTime - lastTimeHurtInformed[ev.Player] > TimeSpan.FromSeconds(40))
+                    if (lastTimeHurtInformed.ContainsKey(ev.Player))
                     {
+                        if (Round.ElapsedTime - lastTimeHurtInformed[ev.Player] > TimeSpan.FromSeconds(40))
+                        {
+                            SCPInformations.Insert(0, new SCPEventHint(SCPEventHint.SCPEventType.SCPLowHP, $"<b><color=#D32F2F>⚠</color></b>{Config.instance.RoleName[ev.Player.Role.Type]}的血量较低|血量：{(int)ev.Player.Health}", Round.ElapsedTime));
+                            lastTimeHurtInformed[ev.Player] = Round.ElapsedTime;
+                        }
+                    }
+                    else
+                    {
+                        lastTimeHurtInformed.Add(ev.Player, Round.ElapsedTime);
                         SCPInformations.Insert(0, new SCPEventHint(SCPEventHint.SCPEventType.SCPLowHP, $"<b><color=#D32F2F>⚠</color></b>{Config.instance.RoleName[ev.Player.Role.Type]}的血量较低|血量：{(int)ev.Player.Health}", Round.ElapsedTime));
-                        lastTimeHurtInformed[ev.Player] = Round.ElapsedTime;
                     }
                 }
-                else
-                {
-                    lastTimeHurtInformed.Add(ev.Player, Round.ElapsedTime);
-                    SCPInformations.Insert(0, new SCPEventHint(SCPEventHint.SCPEventType.SCPLowHP, $"<b><color=#D32F2F>⚠</color></b>{Config.instance.RoleName[ev.Player.Role.Type]}的血量较低|血量：{(int)ev.Player.Health}", Round.ElapsedTime));
-                }
+            }
+            catch(Exception ex)
+            {
+
             }
         }
 
         protected void OnChangingRole(ChangingRoleEventArgs ev)
         {
-            if (UICommonTools.IsSCP(ev.Player) && ev.Player.Role.Type != RoleTypeId.Scp0492 && ev.NewRole == RoleTypeId.Spectator)
+            try
             {
-                SCPInformations.Insert(0, new SCPEventHint(SCPEventHint.SCPEventType.SCPDeath, $"<b><color=#D32F2F>⚠</color></b>{Config.instance.RoleName[ev.Player.Role.Type]}已死亡", Round.ElapsedTime));
+                if (UICommonTools.IsSCP(ev.Player) && ev.Player.Role.Type != RoleTypeId.Scp0492 && ev.NewRole == RoleTypeId.Spectator)
+                {
+                    SCPInformations.Insert(0, new SCPEventHint(SCPEventHint.SCPEventType.SCPDeath, $"<b><color=#D32F2F>⚠</color></b>{Config.instance.RoleName[ev.Player.Role.Type]}已死亡", Round.ElapsedTime));
+                }
+            }catch(Exception ex)
+            {
+
             }
         }
 
@@ -321,7 +334,7 @@ namespace HintServiceMeow.UITemplates
             }
             catch (Exception e)
             {
-                Log.Error(e);
+                
             }
         }
 

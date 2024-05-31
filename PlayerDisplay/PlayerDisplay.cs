@@ -35,7 +35,7 @@ namespace HintServiceMeow
 
                     foreach (PlayerDisplay pd in playerDisplayList)
                     {
-                        if ((Round.ElapsedTime - pd.lastTimeUpdate).TotalSeconds >= 3)
+                        if ((DateTime.Now - pd.lastTimeUpdate).TotalSeconds >= 3)
                         {
                             pd.UpdateWhenReady();
                         }
@@ -54,12 +54,12 @@ namespace HintServiceMeow
         //For patch to check
         internal bool UpdatedRecently()
         {
-            return (Round.ElapsedTime - lastTimeUpdate).TotalSeconds <= 0.01;
+            return (DateTime.Now - lastTimeUpdate).TotalSeconds <= 0.01;
         }
 
         //Update Rate Management stuff
         private TimeSpan UpdateInterval { get; } = TimeSpan.FromMilliseconds(500);   //By experiment, the fastest update rate is 2 times per second.
-        internal TimeSpan lastTimeUpdate { get; set; } = TimeSpan.Zero;
+        internal DateTime lastTimeUpdate { get; set; } = DateTime.MinValue;
         private bool plannedUpdate { get; set; } = false;   // Tells whether a update had been planned
 
         //Update Methods for hint change events to call
@@ -70,10 +70,10 @@ namespace HintServiceMeow
 
             plannedUpdate = true;
 
-            var TimeToWait = (float)(lastTimeUpdate + UpdateInterval - Round.ElapsedTime).TotalSeconds;
-            TimeToWait = TimeToWait < 0.05f ? 0.05f : TimeToWait; //0.05f to make sure that all of the changes are updated beofre the next update
+            var TimeToWait = (float)((lastTimeUpdate + UpdateInterval) - DateTime.Now).TotalMilliseconds;
+            TimeToWait = TimeToWait < 50f ? 50f : TimeToWait; //0.05f to make sure that all of the changes are updated beofre the next update
 
-            Timing.CallDelayed(TimeToWait, () =>
+            Timing.CallDelayed(TimeToWait/1000, () =>
             {
                 try
                 {
@@ -94,7 +94,7 @@ namespace HintServiceMeow
             string text = ToMessage(displayHintList);
 
             //reset CountDown
-            lastTimeUpdate = Round.ElapsedTime;
+            lastTimeUpdate = DateTime.Now;
 
             player.HintDisplay.Show(
                 new TextHint(
@@ -135,15 +135,17 @@ namespace HintServiceMeow
             });
 
             //Insert Dynamic Hints into the display hint list by transforming them into regular hints
-            var tempHintA = new Hint(0, HintAlignment.Center, "TempFirst").setFontSize(0);
-            var tempHintB = new Hint(0, HintAlignment.Center, "TempLast").setFontSize(0);
 
-            foreach (DynamicHint dynamicHint in dynamicHintList)
+            //Flags used to indicate the max and min y value of the dynamic hint
+            List<DynamicHint> displayableDynamicHints = this.dynamicHintList
+                .Where(x => x.hide == false && x.message != string.Empty && x.message != null)
+                .ToList();
+
+            Hint tempHintA = new Hint(0, HintAlignment.Center, "TempFirst").setFontSize(0);
+            Hint tempHintB = new Hint(0, HintAlignment.Center, "TempLast").setFontSize(0);
+            
+            foreach (DynamicHint dynamicHint in displayableDynamicHints)
             {
-                //skip hided hints
-                if (dynamicHint.hide == true) continue;
-                if (dynamicHint.message == string.Empty && dynamicHint.message == null) continue;
-
                 var topYCoordinate = dynamicHint.hintField.topYCoordinate;
                 var bottomYCoordinate = dynamicHint.hintField.bottomYCoordinate;
 
@@ -191,31 +193,32 @@ namespace HintServiceMeow
 
         private List<Hint> GetRegularDisplayHints()
         {
-            if(hintList.Count == 0)
-            {
-                return new List<Hint>();
-            }
+            List<Hint> displayHintList = new List<Hint>();
 
-            List<Hint> displayHintList = hintList
+            if (hintList.Count != 0)
+            {
+                displayHintList = hintList
                 .Where(x => x.hide == false && x.message != string.Empty && x.message != null)
                 .ToList();
 
-            //Arrange Hints
-            displayHintList.Sort(delegate (Hint a, Hint b)
-            {
-                return a.topYCoordinate.CompareTo(b.topYCoordinate);
-            });
-
-            //Detect overlap hints
-            for (var index = 0; index < displayHintList.Count - 1; index++)
-            {
-                if (displayHintList[index].bottomYCoordinate > displayHintList[index + 1].topYCoordinate)
+                //Arrange Hints
+                displayHintList.Sort(delegate (Hint a, Hint b)
                 {
-                    Log.Warn("Two Hints are overlapping each others");
-                    Log.Warn("First Hint: " + displayHintList[index].ToString());
-                    Log.Warn("Second Hint: " + displayHintList[index + 1].ToString());
+                    return a.topYCoordinate.CompareTo(b.topYCoordinate);
+                });
 
-                    displayHintList.RemoveAt(index + 1);
+                //Detect overlap hints
+                for (var index = 0; index < displayHintList.Count - 1; index++)
+                {
+                    if (displayHintList[index].bottomYCoordinate > displayHintList[index + 1].topYCoordinate)
+                    {
+                        Log.Debug("Two Hints are overlapping each others");
+                        Log.Debug("PlayerDisplay Player: " + this.player.Nickname);
+                        Log.Debug("First Hint: " + displayHintList[index].ToString());
+                        Log.Debug("Second Hint: " + displayHintList[index + 1].ToString());
+
+                        displayHintList.RemoveAt(index + 1);
+                    }
                 }
             }
 

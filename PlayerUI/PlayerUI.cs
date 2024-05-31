@@ -5,6 +5,7 @@ using PlayerRoles;
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HintServiceMeow
 {
@@ -447,6 +448,12 @@ namespace HintServiceMeow
         //Private PlayerUI methods
         internal PlayerUI(Player player)
         {
+            if(playerUIs.Any(x => x.player == player))
+            {
+                Log.Error($"A PlayerUI for this player had already been created for this player : {player.Nickname}");
+                return;
+            }
+
             this.player = player;
             this.playerDisplay = PlayerDisplay.Get(player);
             //effect
