@@ -51,10 +51,17 @@ namespace HintServiceMeow
             }
         }
 
-        //For patch to check
+        //For patch
+        private bool AllowNextUpdate = false;
         internal bool UpdatedRecently()
         {
-            return (DateTime.Now - lastTimeUpdate).TotalSeconds <= 0.01;
+            if(AllowNextUpdate)
+            {
+                AllowNextUpdate = false;
+                return true;
+            }
+
+            return false;
         }
 
         //Update Rate Management stuff
@@ -96,6 +103,7 @@ namespace HintServiceMeow
             //reset CountDown
             lastTimeUpdate = DateTime.Now;
 
+            AllowNextUpdate = true;
             player.HintDisplay.Show(
                 new TextHint(
                     text,
