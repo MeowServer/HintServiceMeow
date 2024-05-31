@@ -30,6 +30,8 @@ using HintServiceMeow;
 // *V3.1.0
 // *      Add PlayerUI Config
 // *      TODO: ADD configs for spectator template, scp extra info, spectator info, etc.
+// *V3.1.1
+// *      bug fixing
 
 namespace HintServiceMeow
 {
@@ -37,7 +39,7 @@ namespace HintServiceMeow
     {
         public override string Name => "HintServiceMeow";
         public override string Author => "MeowServerOwner";
-        public override Version Version => new Version(3, 1, 0);
+        public override Version Version => new Version(3, 1, 1);
 
         public override PluginPriority Priority => PluginPriority.First;
 

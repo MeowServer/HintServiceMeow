@@ -150,14 +150,31 @@ namespace HintServiceMeow.UITemplates
         {
             List<Player> spectatingPlayers = new List<Player>();
 
-            foreach (Player item in Player.List.Where(x => x.Role.Type == RoleTypeId.Spectator))
-            {
-                SpectatorRole spectator = player.Role.As<SpectatorRole>();
+            if (player == null)
+                return spectatingPlayers;
 
-                if (spectator.SpectatedPlayer == player)
+            foreach (Player item in Player.List)
+            {
+                if(item == null || item.Role == null)
+                    continue;
+
+                if (item.Role.Type != RoleTypeId.Spectator)
+                    continue;
+
+                try
                 {
-                    spectatingPlayers.Add(player);
+                    SpectatorRole spectator = player.Role.As<SpectatorRole>();
+
+                    if (spectator != null && spectator.SpectatedPlayer == player)
+                    {
+                        spectatingPlayers.Add(player);
+                    }
                 }
+                catch (Exception)
+                {
+                    continue;
+                }
+                
             }
 
             return spectatingPlayers;
