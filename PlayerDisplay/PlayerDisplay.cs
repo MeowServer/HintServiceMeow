@@ -97,7 +97,7 @@ namespace HintServiceMeow
         //Private Update Methods
         private void UpdateHint()
         {
-            var displayHintList = GetRegularDisplayHints();
+            var displayHintList = GetDisplayableHints();
             string text = ToMessage(displayHintList);
 
             //reset CountDown
@@ -199,14 +199,14 @@ namespace HintServiceMeow
             return;
         }
 
-        private List<Hint> GetRegularDisplayHints()
+        private List<Hint> GetDisplayableHints()
         {
             List<Hint> displayHintList = new List<Hint>();
 
             if (hintList.Count != 0)
             {
                 displayHintList = hintList
-                .Where(x => x.hide == false && x.message != string.Empty && x.message != null)
+                .Where(x => x.hide == false && x.message != null && x.message != string.Empty)
                 .ToList();
 
                 //Arrange Hints
@@ -383,7 +383,7 @@ namespace HintServiceMeow
 
         public AbstractHint FindHint(string id)
         {
-            if (id == null)
+            if (id == null && id == string.Empty)
             {
                 throw new Exception("A null name had been passed to FindHint");
             }
