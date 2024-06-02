@@ -1,4 +1,4 @@
-### Designed for Meow Servers~
+### Meow服务器设计~
 - [English](https://github.com/MeowServer/HintServiceMeow/blob/main/README.md)
 - [中文](https://github.com/MeowServer/HintServiceMeow/blob/main/README_zh.md)
 ### 简介
