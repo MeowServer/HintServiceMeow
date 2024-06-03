@@ -32,6 +32,8 @@ using HintServiceMeow;
 // *      TODO: ADD configs for spectator template, scp extra info, spectator info, etc.
 // *V3.1.1
 // *      bug fixing
+// *V3.1.2
+// *      Use patch to block all the hints from other plugins
 
 namespace HintServiceMeow
 {
@@ -39,7 +41,7 @@ namespace HintServiceMeow
     {
         public override string Name => "HintServiceMeow";
         public override string Author => "MeowServerOwner";
-        public override Version Version => new Version(3, 1, 1);
+        public override Version Version => new Version(3, 1, 2);
 
         public override PluginPriority Priority => PluginPriority.First;
 
