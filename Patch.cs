@@ -37,4 +37,14 @@ namespace HintServiceMeow
             }
         }
     }
+
+    [HarmonyPatch(typeof(Player))]
+    [HarmonyPatch("ShowHint", typeof(string), typeof(float))]
+    static class HintPatch2
+    {
+        static bool Prefix(string message, float duration, ref Player __instance)
+        {
+            return false;
+        }
+    }
 }

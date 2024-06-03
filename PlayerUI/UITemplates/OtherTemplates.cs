@@ -235,27 +235,26 @@ namespace HintServiceMeow.UITemplates
 
             private static int hintIndex = 0;
             private static TimeSpan lastTimeRefresh = TimeSpan.Zero;
-            private static int timeToRefresh = Plugin.instance.Config.HintDisplayInterval;
+            private static TimeSpan timeToRefresh = TimeSpan.FromSeconds(Plugin.instance.Config.HintDisplayInterval);
             public static string GetHint()
             {
-                string message = Plugin.instance.Config.Hints[hintIndex];
-
-                var TimeInterval = Round.ElapsedTime.TotalSeconds - lastTimeRefresh.TotalSeconds;
-                if (TimeInterval < timeToRefresh) return message;
-
-                //If need refresh
-                lastTimeRefresh = Round.ElapsedTime;
-
-                if (hintIndex == Plugin.instance.Config.Hints.Count() - 1)
+                var TimeInterval = Round.ElapsedTime - lastTimeRefresh;
+                if (TimeInterval > timeToRefresh)
                 {
-                    hintIndex = 0;
-                }
-                else
-                {
-                    hintIndex++;
+                    //If need refresh
+                    lastTimeRefresh = Round.ElapsedTime;
+
+                    if (hintIndex == Plugin.instance.Config.Hints.Count() - 1)
+                    {
+                        hintIndex = 0;
+                    }
+                    else
+                    {
+                        hintIndex++;
+                    }
                 }
 
-                return message;
+                return Plugin.instance.Config.Hints[hintIndex];
             }
         }
     }

@@ -428,7 +428,6 @@ namespace HintServiceMeow
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex);
                 }
 
                 yield return Timing.WaitForSeconds(0.1f);
