@@ -111,7 +111,7 @@ namespace HintServiceMeow
 
         internal static void InvokeNewPlayerEvent(PlayerDisplay pd)
         {
-            NewPlayer.Invoke(pd);
+            NewPlayer?.Invoke(pd);
         }
     }
 }
