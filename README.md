@@ -34,7 +34,7 @@ Message: The content that will be displayed on player's screen.
 3. Showing hints by using PlayerUI
 PlayerUI is an easier way to show hints to a player. It contains common hints, UI, and player effects (not finished). Common hints represent the hints that are commonly used in the plugins. This includes map hints, role hints, item hints, and other hints. This is an example of how to show a common hint to a player.
 ```csharp
-var playerUI = playerUI.Get(player);
+var playerUI = PlayerUI.Get(player);
 playerUI.ShowOtherHint("HelloWorld!");
 playerUI.ShowMapHint("RoomA", "This is room A");
 playerUI.ShowRoleHint("CustomRole", description.split("\n"));

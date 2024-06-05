@@ -32,7 +32,7 @@ HintAlignment: 代表了Hint的水平座标，可以将其放在左侧，右侧�
 Message: Hint显示的内容
 3. 通过PlayerUI展示Hint
 ```csharp
-var playerUI = playerUI.Get(player);
+var playerUI = PlayerUI.Get(player);
 playerUI.ShowOtherHint("HelloWorld!");
 playerUI.ShowMapHint("RoomA", "This is room A");
 playerUI.ShowRoleHint("CustomRole", description.split("\n"));
