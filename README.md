@@ -45,4 +45,4 @@ Here are some bugs that might appear while using this plugin:
 - When players have reached the limit of the amount of ammo they can carry, they will receive a hint that tells them that they cannot pick any more ammo. This hint will interrupt the hints that are displayed by this plugin. To solve this problem, PlayerDisplay is updating the hint every 5 seconds. However, the player will not be able to see any hints before the next updation.
 - When too many hints are displayed in similar positions, the position of each hint might be less accurate.
 ## Update Plan
-The next update will be the config for PlayerUI, allowing you to control and customize PlayerUI.
+The next update will be the config for PlayerUI, allowing you to control and customize PlayerUI. (finishing in V3.2)
