@@ -10,10 +10,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Exiled.API.Features;
 using Exiled.API.Features.Roles;
+using HintServiceMeow.Config;
 
 namespace HintServiceMeow.UITemplates
 {
-    public abstract class AliveTemplate : PlayerUITemplateBase
+    internal abstract class AliveTemplate : PlayerUITemplateBase
     {
         //Top Bar
         public Hint TopBar = new Hint(0, HintAlignment.Center, "", "TopBar1", true).setFontSize(15);
@@ -63,7 +64,7 @@ namespace HintServiceMeow.UITemplates
 
         protected virtual void UpdateSpectatorHints()
         {
-            var spectatingPlayers = UICommonTools.GetSpectatorInfo(player);
+            var spectatingPlayers = PlayerUICommonTools.GetSpectatorInfo(player);
 
             spectatorTip.hide = true;
             spectatorHints.ForEach(x => x.hide = true);
@@ -87,8 +88,7 @@ namespace HintServiceMeow.UITemplates
 
         }
     }
-
-    public class GeneralHumanTemplate : AliveTemplate
+    internal class GeneralHumanTemplate : AliveTemplate
     {
         public override PlayerUITemplateType type { get; } = PlayerUITemplateType.GeneralHuman;
 
@@ -99,22 +99,22 @@ namespace HintServiceMeow.UITemplates
 
         protected override void UpdateTopBar()
         {
-            string template = Config.instance.generalHumanTemplateConfig.TopBar;
+            string template = PluginConfig.instance.GeneralHumanTemplateConfig.TopBar;
 
-            TopBar.message = UICommonTools.GetContent(template, player);
+            TopBar.message = PlayerUICommonTools.GetContent(template, player);
             TopBar.hide = false;
         }
 
         protected override void UpdateBottomBar()
         {
-            string template = Config.instance.generalHumanTemplateConfig.BottomBar;
+            string template = PluginConfig.instance.GeneralHumanTemplateConfig.BottomBar;
 
-            BottomBar.message = UICommonTools.GetContent(template, player);
+            BottomBar.message = PlayerUICommonTools.GetContent(template, player);
             BottomBar.hide = false;
         }
     }
 
-    public class SCPTemplate : AliveTemplate
+    internal class SCPTemplate : AliveTemplate
     {
         public override PlayerUITemplateType type { get; } = PlayerUITemplateType.SCP;
 
@@ -135,17 +135,17 @@ namespace HintServiceMeow.UITemplates
 
         protected override void UpdateTopBar()
         {
-            string template = Config.instance.scpTemplateConfig.TopBar;
+            string template = PluginConfig.instance.ScpTemplateConfig.TopBar;
 
-            TopBar.message = UICommonTools.GetContent(template, player);
+            TopBar.message = PlayerUICommonTools.GetContent(template, player);
             TopBar.hide = false;
         }
 
         protected override void UpdateBottomBar()
         {
-            string template = Config.instance.scpTemplateConfig.BottomBar;
+            string template = PluginConfig.instance.ScpTemplateConfig.BottomBar;
 
-            BottomBar.message = UICommonTools.GetContent(template, player);
+            BottomBar.message = PlayerUICommonTools.GetContent(template, player);
             BottomBar.hide = false;
         }
 
@@ -211,20 +211,20 @@ namespace HintServiceMeow.UITemplates
         {
             try
             {
-                if (UICommonTools.IsSCP(ev.Player) && ev.Player.Role.Type != RoleTypeId.Scp0492 && ev.Player.Health <= ev.Player.MaxHealth * 0.2)
+                if (PlayerUICommonTools.IsSCP(ev.Player) && ev.Player.Role.Type != RoleTypeId.Scp0492 && ev.Player.Health <= ev.Player.MaxHealth * 0.2)
                 {
                     if (lastTimeHurtInformed.ContainsKey(ev.Player))
                     {
                         if (Round.ElapsedTime - lastTimeHurtInformed[ev.Player] > TimeSpan.FromSeconds(40))
                         {
-                            SCPInformations.Insert(0, new SCPEventHint(SCPEventHint.SCPEventType.SCPLowHP, $"<b><color=#D32F2F>⚠</color></b>{Config.instance.RoleName[ev.Player.Role.Type]}的血量较低|血量：{(int)ev.Player.Health}", Round.ElapsedTime));
+                            SCPInformations.Insert(0, new SCPEventHint(SCPEventHint.SCPEventType.SCPLowHP, $"<b><color=#D32F2F>⚠</color></b>{PluginConfig.instance.GeneralConfig.RoleName[ev.Player.Role.Type]}的血量较低|血量：{(int)ev.Player.Health}", Round.ElapsedTime));
                             lastTimeHurtInformed[ev.Player] = Round.ElapsedTime;
                         }
                     }
                     else
                     {
                         lastTimeHurtInformed.Add(ev.Player, Round.ElapsedTime);
-                        SCPInformations.Insert(0, new SCPEventHint(SCPEventHint.SCPEventType.SCPLowHP, $"<b><color=#D32F2F>⚠</color></b>{Config.instance.RoleName[ev.Player.Role.Type]}的血量较低|血量：{(int)ev.Player.Health}", Round.ElapsedTime));
+                        SCPInformations.Insert(0, new SCPEventHint(SCPEventHint.SCPEventType.SCPLowHP, $"<b><color=#D32F2F>⚠</color></b>{PluginConfig.instance.GeneralConfig.RoleName[ev.Player.Role.Type]}的血量较低|血量：{(int)ev.Player.Health}", Round.ElapsedTime));
                     }
                 }
             }
@@ -238,9 +238,9 @@ namespace HintServiceMeow.UITemplates
         {
             try
             {
-                if (UICommonTools.IsSCP(ev.Player) && ev.Player.Role.Type != RoleTypeId.Scp0492 && ev.NewRole == RoleTypeId.Spectator)
+                if (PlayerUICommonTools.IsSCP(ev.Player) && ev.Player.Role.Type != RoleTypeId.Scp0492 && ev.NewRole == RoleTypeId.Spectator)
                 {
-                    SCPInformations.Insert(0, new SCPEventHint(SCPEventHint.SCPEventType.SCPDeath, $"<b><color=#D32F2F>⚠</color></b>{Config.instance.RoleName[ev.Player.Role.Type]}已死亡", Round.ElapsedTime));
+                    SCPInformations.Insert(0, new SCPEventHint(SCPEventHint.SCPEventType.SCPDeath, $"<b><color=#D32F2F>⚠</color></b>{PluginConfig.instance.GeneralConfig.RoleName[ev.Player.Role.Type]}已死亡", Round.ElapsedTime));
                 }
             }catch(Exception ex)
             {
@@ -257,7 +257,7 @@ namespace HintServiceMeow.UITemplates
                 {
                     foreach (Player player in Player.List)
                     {
-                        if (!UICommonTools.IsSCP(player))
+                        if (!PlayerUICommonTools.IsSCP(player))
                             continue;
 
                         foreach (Player target in Player.List)
@@ -272,14 +272,14 @@ namespace HintServiceMeow.UITemplates
                             {
                                 if (Round.ElapsedTime - lastTimeSpotted[player] > TimeSpan.FromSeconds(40))
                                 {
-                                    SCPInformations.Insert(0, new SCPEventHint(SCPEventHint.SCPEventType.SpotHuman, $"<b><color=#3385ff>⚪</color></b>{Config.instance.RoleName[player.Role.Type]}在{Config.instance.ZoneName[player.Zone]}找到了一个人类", Round.ElapsedTime));
+                                    SCPInformations.Insert(0, new SCPEventHint(SCPEventHint.SCPEventType.SpotHuman, $"<b><color=#3385ff>⚪</color></b>{PluginConfig.instance.GeneralConfig.RoleName[player.Role.Type]}在{PluginConfig.instance.GeneralConfig.ZoneName[player.Zone]}找到了一个人类", Round.ElapsedTime));
                                     lastTimeSpotted[player] = Round.ElapsedTime;
                                 }
                             }
                             else
                             {
                                 lastTimeSpotted.Add(player, Round.ElapsedTime);
-                                SCPInformations.Insert(0, new SCPEventHint(SCPEventHint.SCPEventType.SCPDeath, $"<b><color=#3385ff>⚪</color></b>{Config.instance.RoleName[player.Role.Type]}在{Config.instance.ZoneName[player.Zone]}找到了一个人类", Round.ElapsedTime));
+                                SCPInformations.Insert(0, new SCPEventHint(SCPEventHint.SCPEventType.SCPDeath, $"<b><color=#3385ff>⚪</color></b>{PluginConfig.instance.GeneralConfig.RoleName[player.Role.Type]}在{PluginConfig.instance.GeneralConfig.ZoneName[player.Zone]}找到了一个人类", Round.ElapsedTime));
                             }
                         }
                     }
@@ -288,7 +288,7 @@ namespace HintServiceMeow.UITemplates
                 {
                     foreach (Player player in Player.List)
                     {
-                        if (!UICommonTools.IsSCP(player))
+                        if (!PlayerUICommonTools.IsSCP(player))
                             continue;
 
                         List<Player> targets = new List<Player>();
@@ -316,7 +316,7 @@ namespace HintServiceMeow.UITemplates
 
                         if (targets.Count >= 4)
                         {
-                            SCPInformations.Insert(0, new SCPEventHint(SCPEventHint.SCPEventType.SpotHuman2, $"⚪{Config.instance.RoleName[player.Role.Type]}在{player.Zone}找到了大量人类", Round.ElapsedTime));
+                            SCPInformations.Insert(0, new SCPEventHint(SCPEventHint.SCPEventType.SpotHuman2, $"⚪{PluginConfig.instance.GeneralConfig.RoleName[player.Role.Type]}在{player.Zone}找到了大量人类", Round.ElapsedTime));
                             foreach (Player target in targets)
                             {
                                 if (lastTimeSpotted.ContainsKey(target))

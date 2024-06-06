@@ -1,4 +1,5 @@
 ﻿using Exiled.API.Features;
+using HintServiceMeow.UITemplates;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,14 @@ using System.Threading.Tasks;
 
 namespace HintServiceMeow.UITemplates
 {
-    public abstract class PlayerUITemplateBase
+    internal interface IPlayerUITemplate
+    {
+       void UpdateTemplate();
+        void SetUpTemplate();
+        void DestructTemplate();
+    }
+
+    internal abstract class PlayerUITemplateBase: IPlayerUITemplate
     {
         public enum PlayerUITemplateType
         {
@@ -26,8 +34,6 @@ namespace HintServiceMeow.UITemplates
         {
             this.player = player;
             this.playerDisplay = PlayerDisplay.Get(player);
-
-            SetUpTemplate();
         }
 
         public abstract void UpdateTemplate();

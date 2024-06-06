@@ -1,5 +1,6 @@
 ﻿using Exiled.API.Features;
 using Exiled.CustomRoles.API.Features;
+using HintServiceMeow.Config;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace HintServiceMeow.UITemplates
 {
-    public class CustomSCPTemplate : SCPTemplate
+    internal class CustomSCPTemplate : SCPTemplate
     {
         public override PlayerUITemplateType type { get; } = PlayerUITemplateType.CustomSCP;
 
@@ -18,22 +19,22 @@ namespace HintServiceMeow.UITemplates
 
         protected override void UpdateTopBar()
         {
-            string template = Config.instance.customSCPTemplate.TopBar;
+            string template = PluginConfig.instance.CustomSCPTemplate.TopBar;
 
-            TopBar.message = UICommonTools.GetContent(template, player);
+            TopBar.message = PlayerUICommonTools.GetContent(template, player);
             TopBar.hide = false;
         }
 
         protected override void UpdateBottomBar()
         {
-            string template = Config.instance.customSCPTemplate.BottomBar;
+            string template = PluginConfig.instance.CustomSCPTemplate.BottomBar;
 
-            BottomBar.message = UICommonTools.GetContent(template, player);
+            BottomBar.message = PlayerUICommonTools.GetContent(template, player);
             BottomBar.hide = false;
         }
     }
 
-    public class CustomHumanTemplate : GeneralHumanTemplate
+    internal class CustomHumanTemplate : GeneralHumanTemplate
     {
         public override PlayerUITemplateType type { get; } = PlayerUITemplateType.CustomHuman;
 
@@ -43,17 +44,17 @@ namespace HintServiceMeow.UITemplates
 
         protected override void UpdateTopBar()
         {
-            string template = Config.instance.customHumanTemplate.TopBar;
+            string template = PluginConfig.instance.CustomHumanTemplate.TopBar;
 
-            TopBar.message = UICommonTools.GetContent(template, player);
+            TopBar.message = PlayerUICommonTools.GetContent(template, player);
             TopBar.hide = false;
         }
 
         protected override void UpdateBottomBar()
         {
-            string template = Config.instance.customHumanTemplate.BottomBar;
+            string template = PluginConfig.instance.CustomHumanTemplate.BottomBar;
 
-            BottomBar.message = UICommonTools.GetContent(template, player);
+            BottomBar.message = PlayerUICommonTools.GetContent(template, player);
             BottomBar.hide = false;
         }
     }

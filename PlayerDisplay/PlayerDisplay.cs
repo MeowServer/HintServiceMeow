@@ -65,7 +65,7 @@ namespace HintServiceMeow
         }
 
         //Update Rate Management stuff
-        private TimeSpan UpdateInterval { get; } = TimeSpan.FromMilliseconds(500);   //By experiment, the fastest update rate is 2 times per second.
+        private TimeSpan UpdateInterval { get; } = Config.PluginConfig.instance.PlayerDisplayConfig.MinUpdateInterval;   //By experiment, the fastest update rate is 2 times per second.
         internal DateTime lastTimeUpdate { get; set; } = DateTime.MinValue;
         private bool plannedUpdate { get; set; } = false;   // Tells whether a update had been planned
 
@@ -78,7 +78,8 @@ namespace HintServiceMeow
             plannedUpdate = true;
 
             var TimeToWait = (float)((lastTimeUpdate + UpdateInterval) - DateTime.Now).TotalMilliseconds;
-            TimeToWait = TimeToWait < 50f ? 50f : TimeToWait; //0.05f to make sure that all of the changes are updated beofre the next update
+            var MinDelay = Config.PluginConfig.instance.PlayerDisplayConfig.MinTimeDelayBeforeUpdate;
+            TimeToWait = TimeToWait < MinDelay ? MinDelay : TimeToWait; //Having a min delay to make sure that all of the changes are updated beofre the next update
 
             Timing.CallDelayed(TimeToWait/1000, () =>
             {

@@ -1,11 +1,14 @@
 ﻿using Exiled.API.Features;
-using HintServiceMeow.UITemplates;
 using MEC;
 using PlayerRoles;
+
+using HintServiceMeow.Effect;
+using HintServiceMeow.UITemplates;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HintServiceMeow.Config;
 
 namespace HintServiceMeow
 {
@@ -202,6 +205,39 @@ namespace HintServiceMeow
             playerDisplay.RemoveHints(otherHints);
         }
 
+        //Static common hints methods
+        public static void BroadcastOtherHint(string hint)
+        {
+            foreach(PlayerUI ui in playerUIs)
+            {
+                ui.ShowOtherHint(hint);
+            }
+        }
+
+        public static void BroadcastOtherHint(string[] hints)
+        {
+            foreach (PlayerUI ui in playerUIs)
+            {
+                ui.ShowOtherHint(hints);
+            }
+        }
+
+        public static void BroadcastOtherHints(string hint, int time)
+        {
+            foreach (PlayerUI ui in playerUIs)
+            {
+                ui.ShowOtherHint(hint, time);
+            }
+        }
+
+        public static void BroadcastOtherHints(string[] hints, int time)
+        {
+            foreach (PlayerUI ui in playerUIs)
+            {
+                ui.ShowOtherHint(hints, time);
+            }
+        }
+
         //Public Common Item Hints Methods
         public void ShowItemHint(string itemName)
         {
@@ -288,6 +324,11 @@ namespace HintServiceMeow
             roleHints[0].message = roleName;
             roleHints[0].hide = false;
 
+            if(description.Count() >= roleHints.Length)
+            {
+                Log.Warn($"There's more than 3 descriptions passed into ShowRoleHint for: {roleName}, ShowRoleHint can handle at most 3 lines of description");
+            }
+
             for(int i = 0; i < description.Length; i++)
             {
                 if(i >= roleHints.Length - 1) 
@@ -306,10 +347,12 @@ namespace HintServiceMeow
 
         public void ShowOtherHint(string hint, int time)
         {
-            ShowOtherHint(new string[]
-            {
-                hint,
-            }, time);
+            ShowOtherHint(
+                new string[]
+                {
+                    hint
+                }
+                ,time);
         }
 
         public void ShowOtherHint(string[] hints)
@@ -321,7 +364,12 @@ namespace HintServiceMeow
         {
             otherHintTimeToRemove = Round.ElapsedTime + TimeSpan.FromSeconds(time);
 
-            for(int i = 0; i < otherHints.Length; i++)
+            if (hints.Count() >= otherHints.Length)
+            {
+                Log.Warn($"There's more than 4 hints passed into ShowOtherHints. ShowOtherHints can handle at most 4 lines of hints");
+            }
+
+            for (int i = 0; i < otherHints.Length; i++)
             {
                 otherHints[i].message = hints.Length > i ? hints[i] : string.Empty;
                 otherHints[i].hide = otherHints[i].message == string.Empty;
@@ -335,9 +383,9 @@ namespace HintServiceMeow
 
             template?.DestructTemplate();
 
-            if(UICommonTools.IsCustomRole(player))
+            if(PlayerUICommonTools.IsCustomRole(player))
             {
-                if(UICommonTools.IsSCP(player))
+                if(PlayerUICommonTools.IsSCP(player))
                 {
                     template = new CustomSCPTemplate(player);
                 }
@@ -366,16 +414,23 @@ namespace HintServiceMeow
                 }
             }
 
+            template?.SetUpTemplate();
             StartTemplateCoroutine();
+        }
+
+        private void DestructTemplate()
+        {
+            StopTemplateCoroutine();
+            template?.DestructTemplate();
         }
 
         private bool CheckTemplate()
         {
             bool isCorrectType;
 
-            if (UICommonTools.IsCustomRole(player))
+            if (PlayerUICommonTools.IsCustomRole(player))
             {
-                if (UICommonTools.IsSCP(player))
+                if (PlayerUICommonTools.IsSCP(player))
                 {
                     isCorrectType = template?.type == PlayerUITemplateBase.PlayerUITemplateType.CustomSCP;
                 }
@@ -436,15 +491,19 @@ namespace HintServiceMeow
 
         private void StartTemplateCoroutine()
         {
+            if (templateUpdateCoroutine.IsRunning)
+                Timing.KillCoroutines(templateUpdateCoroutine);
+
             templateUpdateCoroutine = Timing.RunCoroutine(TemplateUpdateCoroutineMethod());
         }
 
         private void StopTemplateCoroutine()
         {
-            Timing.KillCoroutines(templateUpdateCoroutine);
+            if(templateUpdateCoroutine.IsRunning)
+                Timing.KillCoroutines(templateUpdateCoroutine);
         }
 
-        //Private PlayerUI methods
+        //internal PlayerUI methods
         internal PlayerUI(Player player)
         {
             if(playerUIs.Any(x => x.player == player))
@@ -455,20 +514,20 @@ namespace HintServiceMeow
 
             this.player = player;
             this.playerDisplay = PlayerDisplay.Get(player);
+
             //effect
-            SetUpEffect();
+            if(PluginConfig.instance.PlayerUIConfig.EnableEffects)
+                SetUpEffect();
+
             //common hints
-            SetUpCommonHints();
+            if (PluginConfig.instance.PlayerUIConfig.EnableCommonHints)
+                SetUpCommonHints();
+
             //template
-            SetTemplate();
-            StartTemplateCoroutine();
+            if (PluginConfig.instance.PlayerUIConfig.EnableUITemplates)
+                SetTemplate();
 
             playerUIs.Add(this);
-        }
-
-        internal static void RemovePlayerUI(Player player)
-        {
-            playerUIs.Find(x => x.player == player)?.Destruct();
         }
 
         internal void Destruct()
@@ -480,13 +539,17 @@ namespace HintServiceMeow
             DestructCommonHints();
 
             //Template
-            StopTemplateCoroutine();
-            template?.DestructTemplate();
+            DestructTemplate();
 
             playerUIs.Remove(this);
         }
 
-        internal static void ClearAllPlayerUI()
+        internal static void RemovePlayerUI(Player player)
+        {
+            playerUIs.Find(x => x.player == player)?.Destruct();
+        }
+
+        internal static void ClearPlayerUI()
         {
             foreach (PlayerUI ui in playerUIs)
             {

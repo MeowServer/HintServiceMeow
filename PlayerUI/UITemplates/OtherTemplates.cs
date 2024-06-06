@@ -9,7 +9,7 @@ using Exiled.API.Features;
 
 namespace HintServiceMeow.UITemplates
 {
-    public class SpectatorTemplate : PlayerUITemplateBase
+    internal class SpectatorTemplate : PlayerUITemplateBase
     {
         public override PlayerUITemplateType type { get; } = PlayerUITemplateType.Spectator;
 
@@ -113,7 +113,7 @@ namespace HintServiceMeow.UITemplates
                     message = template
                     .Replace("{RespawnMinute}", Respawn.TimeUntilSpawnWave.ToString("mm"))//Respawn Time
                     .Replace("{RespawnSecond}", Respawn.TimeUntilSpawnWave.ToString("ss"))//Respawn Time
-                    .Replace("{RespawnTeam}", Plugin.instance.Config.RespawnTeamDictionary[Respawn.NextKnownTeam]);//Team
+                    .Replace("{RespawnTeam}", Config.PluginConfig.instance.GeneralConfig.RespawnTeamDictionary[Respawn.NextKnownTeam]);//Team
                 }
                 else
                 {
@@ -136,13 +136,13 @@ namespace HintServiceMeow.UITemplates
                 if (Warhead.Status == Exiled.API.Enums.WarheadStatus.InProgress)
                 {
                     message = template
-                    .Replace("{WarheadStatus}", Plugin.instance.Config.WarheadStatusDictionary[Warhead.Status])
+                    .Replace("{WarheadStatus}", Config.PluginConfig.instance.GeneralConfig.WarheadStatusDictionary[Warhead.Status])
                     .Replace("{TimeRemaining}", "<color=#d0652f>" + ((int)Warhead.DetonationTimer).ToString() + "秒" + "</color>");
                 }
                 else
                 {
                     message = template
-                    .Replace("{WarheadStatus}", Plugin.instance.Config.WarheadStatusDictionary[Warhead.Status])
+                    .Replace("{WarheadStatus}", Config.PluginConfig.instance.GeneralConfig.WarheadStatusDictionary[Warhead.Status])
                     .Replace("{TimeRemaining}", String.Empty);
                 }
 
@@ -235,7 +235,7 @@ namespace HintServiceMeow.UITemplates
 
             private static int hintIndex = 0;
             private static TimeSpan lastTimeRefresh = TimeSpan.Zero;
-            private static TimeSpan timeToRefresh = TimeSpan.FromSeconds(Plugin.instance.Config.HintDisplayInterval);
+            private static TimeSpan timeToRefresh = TimeSpan.FromSeconds(Config.PluginConfig.instance.SpectatorTemplateConfig.HintDisplayInterval);
             public static string GetHint()
             {
                 var TimeInterval = Round.ElapsedTime - lastTimeRefresh;
@@ -244,7 +244,7 @@ namespace HintServiceMeow.UITemplates
                     //If need refresh
                     lastTimeRefresh = Round.ElapsedTime;
 
-                    if (hintIndex == Plugin.instance.Config.Hints.Count() - 1)
+                    if (hintIndex == Config.PluginConfig.instance.SpectatorTemplateConfig.Hints.Count() - 1)
                     {
                         hintIndex = 0;
                     }
@@ -254,9 +254,8 @@ namespace HintServiceMeow.UITemplates
                     }
                 }
 
-                return Plugin.instance.Config.Hints[hintIndex];
+                return Config.PluginConfig.instance.SpectatorTemplateConfig.Hints[hintIndex];
             }
         }
     }
-
 }

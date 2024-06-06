@@ -4,6 +4,7 @@ using Exiled.API.Features;
 using Exiled.API.Features.Items;
 using Exiled.API.Features.Roles;
 using Exiled.CustomRoles.API.Features;
+using HintServiceMeow.Config;
 using PlayerRoles;
 using System;
 using System.Collections.Generic;
@@ -11,9 +12,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HintServiceMeow.UITemplates
+namespace HintServiceMeow
 {
-    public static class UICommonTools
+    public static class PlayerUICommonTools
     {
         /// <summary>
         /// This code return a value that indicate whether a player is a scp, this include custom roles that include "SCP" in their name
@@ -60,10 +61,10 @@ namespace HintServiceMeow.UITemplates
         {
             if (player.CurrentArmor != null)
             {
-                return Plugin.instance.Config.ItemName[player.CurrentArmor.Type];
+                return PluginConfig.instance.GeneralConfig.ItemName[player.CurrentArmor.Type];
             }
 
-            return Plugin.instance.Config.NoArmor;
+            return PluginConfig.instance.PlayerUIToolsConfig.NoArmor;
         }
 
         public static string GetAmmoInfo(Player player)
@@ -82,12 +83,12 @@ namespace HintServiceMeow.UITemplates
 
                 if (!ammos.ContainsKey(itemType) || ammos[itemType] == 0)
                 {
-                    ammoStatus = Plugin.instance.Config.NoAmmo;
+                    ammoStatus = PluginConfig.instance.PlayerUIToolsConfig.NoAmmo;
                 }
                 else
                 {
-                    ammoStatus = Plugin.instance.Config.AmmoHint
-                    .Replace("{Ammo}", Plugin.instance.Config.AmmoName[ammoType])
+                    ammoStatus = PluginConfig.instance.PlayerUIToolsConfig.AmmoHint1
+                    .Replace("{Ammo}", PluginConfig.instance.GeneralConfig.AmmoName[ammoType])
                     .Replace("{NumOfAmmo}", ammos[itemType].ToString());
                 }
             }
@@ -97,12 +98,12 @@ namespace HintServiceMeow.UITemplates
 
                 if (numOfAmmoTypes <= 0)
                 {
-                    ammoStatus = Plugin.instance.Config.NoAmmo;
+                    ammoStatus = PluginConfig.instance.PlayerUIToolsConfig.NoAmmo;
                 }
                 else if (numOfAmmoTypes <= 1)
                 {
-                    ammoStatus = Plugin.instance.Config.AmmoHint
-                        .Replace("{Ammo}", Plugin.instance.Config.ItemName[ammos.First().Key])
+                    ammoStatus = PluginConfig.instance.PlayerUIToolsConfig.AmmoHint1
+                        .Replace("{Ammo}", PluginConfig.instance.GeneralConfig.ItemName[ammos.First().Key])
                         .Replace("{NumOfAmmo}", ammos.First().Value.ToString());
                 }
                 else
@@ -114,7 +115,7 @@ namespace HintServiceMeow.UITemplates
                         totalAmmos += numOfAmmo;
                     }
 
-                    ammoStatus = Plugin.instance.Config.AmmoHint2
+                    ammoStatus = PluginConfig.instance.PlayerUIToolsConfig.AmmoHint2
                         .Replace("{NumOfAmmo}", totalAmmos.ToString());
                 }
             }
@@ -126,16 +127,16 @@ namespace HintServiceMeow.UITemplates
         {
             //player nickname, actual name, role, rolecolor, ammo, armor, team,
             //TPS, 
-            Config config = Plugin.instance.Config;
+            PluginConfig config = PluginConfig.instance;
 
             template = template
                 //Player Name
                 .Replace("{PlayerNickname}", player.CustomName)
                 .Replace("{PlayerName}", player.Nickname)
                 //Roles
-                .Replace("{Role}", GetCustomRole(player)?.Name ?? config.RoleName[player.Role.Type])
+                .Replace("{Role}", GetCustomRole(player)?.Name ?? config.GeneralConfig.RoleName[player.Role.Type])
                 .Replace("{RoleColor}", player.Role.Color.ToHex())
-                .Replace("{Team}", config.TeamName[player.Role.Team])
+                .Replace("{Team}", config.GeneralConfig.TeamName[player.Role.Team])
                 .Replace("{TeammateCount}", (Player.List.Count(x => player.LeadingTeam == x.LeadingTeam) - 1).ToString())
                 //Ammo/Armor info
                 .Replace("{AmmoInfo}", GetAmmoInfo(player))

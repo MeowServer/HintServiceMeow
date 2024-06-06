@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HintServiceMeow
+namespace HintServiceMeow.Effect
 {
-    //Not implemented
+    //Not implemented yet
     public abstract class UIEffectBase
     {
         Player player;

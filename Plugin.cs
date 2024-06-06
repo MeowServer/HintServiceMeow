@@ -6,42 +6,46 @@ using Exiled.API.Enums;
 using Hints;
 using HarmonyLib;
 using HintServiceMeow;
+using HintServiceMeow.Config;
 
 
-//*V1.0.0
-//* V1.0.1
-//* Update the display based on hint's updation
-// * V2.0.0
-// *      Support Dynamic Hint
-// *      Limit maximum update rate to 0.5/second
-// *      Fixed some bugs     
-// *V2.1.0
-// *      Add Common Hints
-// *V2.1.1
-// *      Fix some bugs
-// *v2.2.0
-// *      Use the event to update the player display, increase stability, and decrease costs
-// *v3.0.0
-// *      Player UI is separated from PlayerDisplay and extended for more methods
-// *v3.0.1
-// *      Fix some bugs
-// *V3.0.2
-// *      Fix the bug that crush the PlayerDisplay when there's no hint displayed on the screen
-// *V3.1.0
-// *      Add PlayerUI Config
-// *      TODO: ADD configs for spectator template, scp extra info, spectator info, etc.
-// *V3.1.1
-// *      bug fixing
-// *V3.1.2
-// *      Use patch to block all the hints from other plugins
+// *    V1.0.0
+// *    V1.0.1
+// *        Update the display based on hint's updation
+// *    V2.0.0
+// *        Support Dynamic Hint
+// *        Limit maximum update rate to 0.5/second
+// *        Fixed some bugs     
+// *    V2.1.0
+// *        Add Common Hints
+// *    V2.1.1
+// *        Fix some bugs
+// *    V2.2.0
+// *        Use the event to update the player display, increase stability, and decrease costs
+// *    V3.0.0
+// *         Player UI is separated from PlayerDisplay and extended for more methods
+// *    V3.0.1
+// *        Fix some bugs
+// *    V3.0.2
+// *        Fix the bug that crush the PlayerDisplay when there's no hint displayed on the screen
+// *    V3.1.0
+// *         Add PlayerUI Config
+// *        TODO: ADD configs for spectator template, scp extra info, spectator info, etc.
+// *    V3.1.1
+// *        bug fixing
+// *    V3.1.2
+// *         Use patch to block all the hints from other plugins
+// *    V3.2.0
+// *         Organized config
+// *        Make PlayerUI more customizable
 
 namespace HintServiceMeow
 {
-    class Plugin : Plugin<Config>
+    class Plugin : Plugin<PluginConfig>
     {
         public override string Name => "HintServiceMeow";
         public override string Author => "MeowServerOwner";
-        public override Version Version => new Version(3, 1, 2);
+        public override Version Version => new Version(3, 2, 0);
 
         public override PluginPriority Priority => PluginPriority.First;
 
@@ -52,7 +56,7 @@ namespace HintServiceMeow
         public override void OnEnabled()
         {
             instance = this;
-            Config.instance = Config;
+            PluginConfig.instance = Config;
 
             _harmony = new Harmony("HintServiceMeowHarmony");
             _harmony.PatchAll();
@@ -66,7 +70,7 @@ namespace HintServiceMeow
         public override void OnDisabled()
         {
             instance = null;
-            Config.instance = null;
+            PluginConfig.instance = null;
 
             _harmony.UnpatchAll();
             _harmony = null;
@@ -85,7 +89,7 @@ namespace HintServiceMeow
             if (ev.Player.IsNPC) return;
 
             var pd = new PlayerDisplay(ev.Player);
-            if(Config.instance.EnablePlayerUI)
+            if(PluginConfig.instance.EnablePlayerUI)
                 new PlayerUI(ev.Player);
 
             EventHandler.InvokeNewPlayerEvent(pd);
@@ -99,7 +103,7 @@ namespace HintServiceMeow
 
         private static void OnDisable()
         {
-            PlayerUI.ClearAllPlayerUI();
+            PlayerUI.ClearPlayerUI();
             PlayerDisplay.ClearPlayerDisplay();
         }
     }
