@@ -16,7 +16,7 @@ HintServiceMeow 是一款基于Exiled框架的插件，用于向玩家同时展�
 如果你坚持使用本插件而非RueI, 这是一个简单的指导：
 1. 首先，有两种方式向一个玩家展示一条Hint
 - 创建一个hint类型的实例，并将其加入到和玩家对应的PlayerDisplay类中
-- 直接获取玩家对应的PlayerUI，并使用“常用Hint”方法
+- 直接获取玩家对应的PlayerUI，并使用“通用Hint”方法
 2. 通过创建Hint实例来展示Hint
 ```csharp
 var hint = new Hint(100, HintAlignment.Left , "HelloWorld!") ;
