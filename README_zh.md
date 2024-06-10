@@ -11,9 +11,7 @@ HintServiceMeow 是一款基于Exiled框架的插件，用于向玩家同时展�
 - 这个插件是为Meow服务器所设计的，和其他Exiled服务器兼容，但如果不兼容，请联系我。
 
 ### 致开发者
-请使用 [RueI](https://github.com/Ruemena/RueI) 其相较于本插件更加的成熟稳定
-
-如果你坚持使用本插件而非RueI, 这是一个简单的指导：
+这里是一个简单的指导：
 1. 首先，有两种方式向一个玩家展示一条Hint
 - 创建一个hint类型的实例，并将其加入到和玩家对应的PlayerDisplay类中
 - 直接获取玩家对应的PlayerUI，并使用“通用Hint”方法
