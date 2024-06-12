@@ -37,15 +37,18 @@ using HintServiceMeow.Config;
 // *         Use patch to block all the hints from other plugins
 // *    V3.2.0
 // *         Organized config
-// *        Make PlayerUI more customizable
+// *         Make PlayerUI more customizable
+// *    V3.3.0
+// *         Seperate PlayerUITemplate from PlayerUI
+// *         PlayerUITemplate is now a new plugin called CustomizableUIMeow
 
 namespace HintServiceMeow
 {
-    class Plugin : Plugin<PluginConfig>
+    public class Plugin : Plugin<PluginConfig>
     {
         public override string Name => "HintServiceMeow";
         public override string Author => "MeowServerOwner";
-        public override Version Version => new Version(3, 2, 0);
+        public override Version Version => new Version(3, 3, 0);
 
         public override PluginPriority Priority => PluginPriority.First;
 
@@ -89,8 +92,7 @@ namespace HintServiceMeow
             if (ev.Player.IsNPC) return;
 
             var pd = new PlayerDisplay(ev.Player);
-            if(PluginConfig.instance.EnablePlayerUI)
-                new PlayerUI(ev.Player);
+            new PlayerUI(ev.Player);
 
             EventHandler.InvokeNewPlayerEvent(pd);
         }

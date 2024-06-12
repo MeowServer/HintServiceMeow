@@ -3,7 +3,6 @@ using MEC;
 using PlayerRoles;
 
 using HintServiceMeow.Effect;
-using HintServiceMeow.UITemplates;
 
 using System;
 using System.Collections.Generic;
@@ -65,9 +64,6 @@ namespace HintServiceMeow
             new DynamicHint(560, 700, HintAlignment.Center, "", "otherHint4", true),
         };
 
-        //Template
-        private PlayerUITemplateBase template;
-        private CoroutineHandle templateUpdateCoroutine;
 
         //Private Effect Methods
         private IEnumerator<float> effectCoroutineMethod()
@@ -376,133 +372,6 @@ namespace HintServiceMeow
             }
         }
 
-        //Private Template Methods
-        private void SetTemplate()
-        {
-            StopTemplateCoroutine();
-
-            template?.DestructTemplate();
-
-            if(PlayerUICommonTools.IsCustomRole(player))
-            {
-                if(PlayerUICommonTools.IsSCP(player))
-                {
-                    template = new CustomSCPTemplate(player);
-                }
-                else
-                {
-                    template = new CustomHumanTemplate(player);
-                }
-            }
-            else
-            {
-                if (player.IsAlive && player.IsHuman)
-                {
-                    template = new GeneralHumanTemplate(player);
-                }
-                else if (player.IsAlive && player.IsScp)
-                {
-                    template = new SCPTemplate(player);
-                }
-                else if (player.Role.Type == RoleTypeId.Spectator)
-                {
-                    template = new SpectatorTemplate(player);
-                }
-                else
-                {
-                    template = null;
-                }
-            }
-
-            template?.SetUpTemplate();
-            StartTemplateCoroutine();
-        }
-
-        private void DestructTemplate()
-        {
-            StopTemplateCoroutine();
-            template?.DestructTemplate();
-        }
-
-        private bool CheckTemplate()
-        {
-            bool isCorrectType;
-
-            if (PlayerUICommonTools.IsCustomRole(player))
-            {
-                if (PlayerUICommonTools.IsSCP(player))
-                {
-                    isCorrectType = template?.type == PlayerUITemplateBase.PlayerUITemplateType.CustomSCP;
-                }
-                else
-                {
-                    isCorrectType = template?.type == PlayerUITemplateBase.PlayerUITemplateType.CustomHuman;
-                }
-            }
-            else
-            {
-                if (player.IsAlive && player.IsHuman)
-                {
-                    isCorrectType = template?.type == PlayerUITemplateBase.PlayerUITemplateType.GeneralHuman;
-                }
-                else if (player.IsAlive && player.IsScp)
-                {
-                    isCorrectType = template?.type == PlayerUITemplateBase.PlayerUITemplateType.SCP;
-                }
-                else if (player.Role.Type == RoleTypeId.Spectator)
-                {
-                    isCorrectType = template?.type == PlayerUITemplateBase.PlayerUITemplateType.Spectator;
-                }
-                else
-                {
-                    isCorrectType = template == null;
-                }
-            }
-
-            return isCorrectType;
-        }
-
-        private IEnumerator<float> TemplateUpdateCoroutineMethod()
-        {
-            while (true)
-            {
-                if (!player.IsConnected)
-                {
-                    yield return Timing.WaitForSeconds(0.1f);
-                    continue;
-                }
-
-                try
-                {
-                    if (!CheckTemplate())
-                    {
-                        SetTemplate();
-                    }
-
-                    template?.UpdateTemplate();
-                }
-                catch (Exception ex)
-                {
-                }
-
-                yield return Timing.WaitForSeconds(0.1f);
-            }
-        }
-
-        private void StartTemplateCoroutine()
-        {
-            if (templateUpdateCoroutine.IsRunning)
-                Timing.KillCoroutines(templateUpdateCoroutine);
-
-            templateUpdateCoroutine = Timing.RunCoroutine(TemplateUpdateCoroutineMethod());
-        }
-
-        private void StopTemplateCoroutine()
-        {
-            if(templateUpdateCoroutine.IsRunning)
-                Timing.KillCoroutines(templateUpdateCoroutine);
-        }
-
         //internal PlayerUI methods
         internal PlayerUI(Player player)
         {
@@ -515,17 +384,9 @@ namespace HintServiceMeow
             this.player = player;
             this.playerDisplay = PlayerDisplay.Get(player);
 
-            //effect
-            if(PluginConfig.instance.PlayerUIConfig.EnableEffects)
-                SetUpEffect();
+            SetUpEffect();
 
-            //common hints
-            if (PluginConfig.instance.PlayerUIConfig.EnableCommonHints)
-                SetUpCommonHints();
-
-            //template
-            if (PluginConfig.instance.PlayerUIConfig.EnableUITemplates)
-                SetTemplate();
+            SetUpCommonHints();
 
             playerUIs.Add(this);
         }
@@ -537,9 +398,6 @@ namespace HintServiceMeow
 
             //Common Hints
             DestructCommonHints();
-
-            //Template
-            DestructTemplate();
 
             playerUIs.Remove(this);
         }
