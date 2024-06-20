@@ -39,7 +39,7 @@ using HintServiceMeow.Config;
 // *         Organized config
 // *         Make PlayerUI more customizable
 // *    V3.3.0
-// *         Seperate PlayerUITemplate from PlayerUI
+// *         Separate PlayerUITemplate from PlayerUI
 // *         PlayerUITemplate is now a new plugin called CustomizableUIMeow
 
 namespace HintServiceMeow
