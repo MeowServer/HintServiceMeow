@@ -122,6 +122,10 @@ namespace HintServiceMeow
 
         public void ShowItemHint(string itemName, int time) => ShowItemHint(itemName, new string[]{},time);
 
+        public void ShowItemHint(string itemName, string description) => ShowItemHint(itemName, new string[] { description }, config.ItemHintDisplayTime);
+
+        public void ShowItemHint(string itemName, string description, int time) => ShowItemHint(itemName, new string[] { description }, time);
+
         public void ShowItemHint(string itemName, string[] description) => ShowItemHint(itemName, description, config.ItemHintDisplayTime);
 
         public void ShowItemHint(string itemName, string[] description, int time)
@@ -136,8 +140,8 @@ namespace HintServiceMeow
                 if (!description.TryGet(i - 1, out string element))
                     break;
 
-                _roleHints[i].message = element;
-                _roleHints[i].hide = false;
+                _itemHints[i].message = element;
+                _itemHints[i].hide = false;
             }
         }
         #endregion Common Item Hints Methods
@@ -146,6 +150,10 @@ namespace HintServiceMeow
         public void ShowMapHint(string roomName) => ShowMapHint(roomName, config.ShortMapHintDisplayTime);
 
         public void ShowMapHint(string roomName, int time) => ShowMapHint(roomName, new string[]{}, time);
+
+        public void ShowMapHint(string roomName, string description) => ShowMapHint(roomName, new string[1] { description }, config.ItemHintDisplayTime);
+
+        public void ShowMapHint(string roomName, string description, int time) => ShowMapHint(roomName, new string[1] { description }, time);
 
         public void ShowMapHint(string roomName, string[] description) => ShowMapHint(roomName, description, config.MapHintDisplayTime);
 
@@ -163,8 +171,8 @@ namespace HintServiceMeow
                 if (!description.TryGet(i - 1, out string element))
                     break;
 
-                _roleHints[i].message = element;
-                _roleHints[i].hide = false;
+                _mapHints[i].message = element;
+                _mapHints[i].hide = false;
             }
         }
         #endregion Common Map Hints Methods
@@ -173,6 +181,10 @@ namespace HintServiceMeow
         public void ShowRoleHint(string roleName) => ShowRoleHint(roleName, config.ShortRoleHintDisplayTime);
 
         public void ShowRoleHint(string roleName, int time) => ShowRoleHint(roleName, new string[]{}, time);
+
+        public void ShowRoleHint(string roleName, string description) => ShowRoleHint(roleName, new string[] { description }, config.ItemHintDisplayTime);
+
+        public void ShowRoleHint(string roleName, string description, int time) => ShowRoleHint(roleName, new string[] { description }, time);
 
         public void ShowRoleHint(string roleName, string[] description)=> ShowRoleHint(roleName, description, config.RoleHintDisplayTime);
 
@@ -209,13 +221,13 @@ namespace HintServiceMeow
 
             _otherHints.ForEach(x => x.hide = true);
 
-            for (int i = 0; i < _roleHints.Count; i++)
+            for (int i = 0; i < _otherHints.Count; i++)
             {
                 if (!hints.TryGet(i, out string element))
                     break;
 
-                _roleHints[i].message = element;
-                _roleHints[i].hide = false;
+                _otherHints[i].message = element;
+                _otherHints[i].hide = false;
             }
         }
         #endregion Common Other Hints Methods

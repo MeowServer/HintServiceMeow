@@ -9,8 +9,8 @@ namespace HintServiceMeow.Config
 {
     public class PlayerUIConfig
     {
-        [Description("The default time to show for each type of common hint.\r\n" +
-                     "Short means that the hint has on title but not decription\r\n")]
+        [Description("The default time to show for each type of common hint.\n" +
+                     "Short means that the hint has on title but not decription")]
         public int ItemHintDisplayTime { get; set; } = 10;
         public int ShortItemHintDisplayTime { get; set; } = 5;
 
@@ -22,9 +22,9 @@ namespace HintServiceMeow.Config
 
         public int OtherHintDisplayTime { get; set; } = 5;
 
-        [Description("The default config to show for each type of common hint.\r\n" +
-                     "Only config for alignment, font size, hint fiel, and priority are valid.\r\n")]
-        public List<DynamicHintConfig> ItemHints { get; set; } = new List<DynamicHintConfig>()
+        [Description("The default config to show for each type of common hint.\n" +
+                     "Only config for alignment, font size, hint fiel, and priority are valid.")]
+        public List<DynamicHintPositionConfig> ItemHints { get; set; } = new List<DynamicHintPositionConfig>()
         {
             new DynamicHintPositionConfig()
             {
@@ -42,12 +42,12 @@ namespace HintServiceMeow.Config
             }
         };
 
-        public List<DynamicHintConfig> MapHints { get; set; } = new List<DynamicHintConfig>()
+        public List<DynamicHintPositionConfig> MapHints { get; set; } = new List<DynamicHintPositionConfig>()
         {
             new DynamicHintPositionConfig()
             {
                 Alignment = HintAlignment.Right,
-                FontSize = 25,
+                FontSize = 30,
                 TopYCoordinate = 0,
                 BottomYCoordinate = 200
             },
@@ -60,7 +60,7 @@ namespace HintServiceMeow.Config
             }
         };
 
-        public List<DynamicHintConfig> RoleHints { get; set; } = new List<DynamicHintConfig>()
+        public List<DynamicHintPositionConfig> RoleHints { get; set; } = new List<DynamicHintPositionConfig>()
         {
             new DynamicHintPositionConfig()
             {
@@ -92,7 +92,7 @@ namespace HintServiceMeow.Config
             }
         };
 
-        public List<DynamicHintConfig> OtherHints { get; set; } = new List<DynamicHintConfig>()
+        public List<DynamicHintPositionConfig> OtherHints { get; set; } = new List<DynamicHintPositionConfig>()
         {
             new DynamicHintPositionConfig()
             {

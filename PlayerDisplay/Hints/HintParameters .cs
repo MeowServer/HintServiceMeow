@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine.AI;
 
 namespace HintServiceMeow
 {
@@ -24,6 +25,9 @@ namespace HintServiceMeow
 
     public class DynamicHintField
     {
+        internal delegate void UpdateHandler();
+        internal event UpdateHandler OnUpdate;
+
         public int topYCoordinate;
         public int bottomYCoordinate;
 

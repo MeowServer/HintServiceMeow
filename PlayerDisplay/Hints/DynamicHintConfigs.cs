@@ -7,15 +7,15 @@ using System.Threading.Tasks;
 
 namespace HintServiceMeow
 {
-    [Description("Please be aware that the plugin might not be using all of the config." +
-                 "\r\nIn other words, not all of the following configs are valid")]
+    [Description("Please be aware that the plugin might not be using all of the config.\n" +
+                 "In other words, not all of the following configs are valid")]
     public class DynamicHintConfig
     {
         [Description("The ID of the hint")]
         public string Id { get; set; } = null;
 
-        [Description("The priority of the hint. Higher priority means the hint is less likely to be covered by other hint." +
-                     "\r\nnAvailable: Highest, High, Medium, Low, Lowest")]
+        [Description("The priority of the hint. Higher priority means the hint is less likely to be covered by other hint.\n" +
+                     "Available: Highest, High, Medium, Low, Lowest")]
         public HintPriority Priority { get; set; } = HintPriority.Medium;
 
         public DynamicHintPositionConfig Position { get; set; } = new DynamicHintPositionConfig();
@@ -29,8 +29,8 @@ namespace HintServiceMeow
 
     public class DynamicHintPositionConfig
     {
-        [Description("The alignment of the hint. " +
-                     "\r\nAvailable: Left, Right, Center ")]
+        [Description("The alignment of the hint.\n" +
+                     "Available: Left, Right, Center ")]
         public HintAlignment Alignment { get; set; } = HintAlignment.Center;
 
         [Description("The size of the font, default is 20")]

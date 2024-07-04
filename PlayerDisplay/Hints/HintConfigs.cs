@@ -13,7 +13,7 @@ namespace HintServiceMeow
         public string Id { get; set; } = null;
 
         [Description("The priority of the hint. Higher priority means the hint is less likely to be covered by other hint." +
-                     "\r\nAvailable: Highest, High, Medium, Low, Lowest")]
+                     "\nAvailable: Highest, High, Medium, Low, Lowest")]
         public HintPriority Priority { get; set; } = HintPriority.Medium;
 
         public HintPositionConfig Position { get; set; } = new HintPositionConfig();
@@ -28,7 +28,7 @@ namespace HintServiceMeow
     public class HintPositionConfig
     {
         [Description("The alignment of the hint. " +
-                     "\r\nAvailable: Left, Right, Center ")]
+                     "\nAvailable: Left, Right, Center ")]
         public HintAlignment Alignment { get; set; } = HintAlignment.Center;
 
         [Description("The initial YCoordinate of the hint, default is 500")]
@@ -52,7 +52,7 @@ namespace HintServiceMeow
         public string Message { get; set; } = "This is a default message";
 
         [Description("To hide the hint or not.")]
-        public bool Hide { get; set; } = false;
+        public bool Hide { get; set; } = true;
 
         public static implicit operator HintConfig(HintContentConfig v)
         {

@@ -15,15 +15,7 @@ namespace HintServiceMeow
         public string id
         {
             get => _id;
-            set
-            {
-                if (_id != value)
-                    return;
-
-                _id = value;
-                if (!hide) OnHintUpdated();
-
-            }
+            set => _id = value;
         }
 
         private HintPriority _priority = HintPriority.Medium;
@@ -46,7 +38,7 @@ namespace HintServiceMeow
             get => _alignment;
             set
             {
-                if (_alignment != value)
+                if (_alignment == value)
                     return;
 
                 _alignment = value;
@@ -60,7 +52,7 @@ namespace HintServiceMeow
             get => _fontSize;
             set
             {
-                if (_fontSize != value)
+                if (_fontSize == value)
                     return;
 
                 _fontSize = value;
@@ -74,7 +66,7 @@ namespace HintServiceMeow
             get => _message;
             set
             {
-                if (_message != value)
+                if (_message == value)
                     return;
 
                 _message = value;
@@ -88,7 +80,7 @@ namespace HintServiceMeow
             get => _hide;
             set
             {
-                if (_hide != value)
+                if (_hide == value)
                     return;
 
                 _hide = value;
@@ -175,34 +167,21 @@ namespace HintServiceMeow
         private int _yCoordinate = 500;
         public int topYCoordinate
         {
-            get
-            {
-                return _yCoordinate;
-            }
+            get => _yCoordinate;
             set
             {
-                if (_yCoordinate != value)
-                {
-                    _yCoordinate = value;
-                    if (!hide) OnHintUpdated();
-                }
+                if (_yCoordinate == value)
+                    return;
+
+                _yCoordinate = value;
+                if (!hide) OnHintUpdated();
             }
         }
 
         public int bottomYCoordinate
         {
-            get
-            {
-                return topYCoordinate + fontSize;
-            }
-            set
-            {
-                if (_yCoordinate != value - fontSize)
-                {
-                    _yCoordinate = value - fontSize;
-                    if (!hide) OnHintUpdated();
-                }
-            }
+            get => topYCoordinate + fontSize;
+            set => topYCoordinate = value - fontSize;
         }
 
         #region Constructors
@@ -270,7 +249,7 @@ namespace HintServiceMeow
 
         public Hint SetBottomYCoordinate(int y)
         {
-            this.bottomYCoordinate = y;
+            this.topYCoordinate = y + fontSize;
             return this;
         }
         #endregion
@@ -297,14 +276,29 @@ namespace HintServiceMeow
 
     public class DynamicHint : AbstractHint
     {
-        private DynamicHintField _hintField = new DynamicHintField(300, 700);
+        private DynamicHintField _hintField = null;
         public DynamicHintField hintField
         {
-            get => _hintField;
+            get
+            {
+                if (_hintField == null)
+                {
+                    _hintField = new DynamicHintField(300, 700);
+                    _hintField.OnUpdate += OnHintUpdated;
+                }
+
+                return _hintField;
+            }
             set
             {
-                if (_hintField != value)
+                if (_hintField == value)
                     return;
+
+                if (_hintField == null)
+                    _hintField = new DynamicHintField(300, 700);
+
+                _hintField.OnUpdate -= OnHintUpdated;
+                value.OnUpdate += OnHintUpdated;
 
                 _hintField = value;
 

@@ -25,7 +25,7 @@ namespace HintServiceMeow
             var pd = new PlayerDisplay(ev.Player);
             new PlayerUI(ev.Player);
 
-            EventHandler.InvokeNewPlayerEvent(pd);
+            InvokeNewPlayerEvent(pd);
         }
 
         internal static void OnLeft(LeftEventArgs ev)

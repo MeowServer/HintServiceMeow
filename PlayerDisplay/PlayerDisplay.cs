@@ -13,7 +13,11 @@ namespace HintServiceMeow
         //List of all the PlayerDisplay instances
         private static readonly List<PlayerDisplay> PlayerDisplayList = new List<PlayerDisplay>();
 
-        private const int PlaceHolderMaximumHeightPx = 920;
+        private const int PlaceHolderMaximumHeightPx = 920;//1120;
+
+        //Public const
+        public const int DisplayableMinHeight = 0;
+        public const int DisplayableMaxHeight = 720;
 
         private static PlayerDisplayConfig config => PluginConfig.Instance.PlayerDisplayConfig;
 
@@ -109,7 +113,6 @@ namespace HintServiceMeow
         # region Private Update Methods
         private void UpdateHint()
         {
-            
             string text = ToMessage(GetDisplayableHints());
 
             //reset CountDown
@@ -137,11 +140,10 @@ namespace HintServiceMeow
 
         private static void GetPlaceHolder(int size, List<string> messages)
         {
-            /*
             for (; size > 40; size -= 40)
             {
                 messages.Add("<size=40>　</size>");//█
-            }*/
+            }
 
             messages.Add($"<size={size}>　</size>");
         }
@@ -162,12 +164,10 @@ namespace HintServiceMeow
                 return result;
             });
 
-            //Insert Dynamic Hints into the display hint list by transforming them into regular hints
+            List<DynamicHint> displayableDynamicHints = this._dynamicHintList
+                .FindAll(x => x.hide == false && !string.IsNullOrEmpty(x.message));
 
             //Flags used to indicate the max and min y value of the dynamic hint
-            IEnumerable<DynamicHint> displayableDynamicHints = this._dynamicHintList
-                .Where(x => x.hide == false && !string.IsNullOrEmpty(x.message));
-
             Hint tempHintA = new Hint()
             {
                 fontSize = 0,
@@ -212,13 +212,14 @@ namespace HintServiceMeow
                 {
                     int space = hintList[index + 1].topYCoordinate - hintList[index].bottomYCoordinate;
 
-                    if (space >= dynamicHint.fontSize)
-                    {
-                        var hint = new Hint(dynamicHint, hintList[index].bottomYCoordinate);
-                        hintList.Insert(index + 1, hint);
+                    if (space < dynamicHint.fontSize)
+                        continue;
 
-                        break;
-                    }
+                    //Insert Dynamic Hints into the display hint list by transforming them into regular hints
+                    var hint = new Hint(dynamicHint, hintList[index].bottomYCoordinate);
+                    hintList.Insert(index + 1, hint);
+
+                    break;
                 }
 
                 //Remove flags
@@ -234,8 +235,7 @@ namespace HintServiceMeow
             if (_hintList.Count != 0)
             {
                 displayHintList = _hintList
-                .Where(x => x.hide == false && !string.IsNullOrEmpty(x.message))
-                .ToList();
+                    .FindAll(x => x.hide == false && !string.IsNullOrEmpty(x.message));
 
                 //Arrange Hints
                 displayHintList.Sort((a, b) => a.topYCoordinate.CompareTo(b.topYCoordinate));
@@ -243,10 +243,13 @@ namespace HintServiceMeow
                 //Remove low priority hints that are overlapped by high priority hints
                 for (var index = 0; index < displayHintList.Count - 1; index++)
                 {
-                    if (displayHintList[index].bottomYCoordinate > displayHintList[index + 1].topYCoordinate)
-                    {
-                        displayHintList.RemoveAt(displayHintList[index].priority > displayHintList[index + 1].priority?index + 1:index);
-                    }
+                    if (displayHintList[index].bottomYCoordinate <= displayHintList[index + 1].topYCoordinate)
+                        continue;
+
+                    if (displayHintList[index].priority > displayHintList[index + 1].priority)
+                        displayHintList.RemoveAt(index + 1);
+                    else
+                        displayHintList.RemoveAt(index);
                 }
             }
 
@@ -255,6 +258,7 @@ namespace HintServiceMeow
             return displayHintList;
         }
 
+        //public static int count = 28; // Dev only
         private string ToMessage(List<Hint> displayHintList)
         {
             if (displayHintList.Count == 0)
@@ -282,7 +286,16 @@ namespace HintServiceMeow
 
             string message = string.Join("\n", messages);
 
+            message = RemoveIllegalTags(message);
+
             return message;
+        }
+
+        private string RemoveIllegalTags(string rawText)
+        {
+            return rawText
+                .Replace("{", string.Empty)
+                .Replace("}", string.Empty);
         }
         #endregion
 
@@ -322,8 +335,7 @@ namespace HintServiceMeow
 
             if (_hintList.Contains(hint))
                 return;
-
-            UpdateWhenReady();
+            
             hint.HintUpdated += UpdateWhenReady;
 
             if(hint is Hint h)
@@ -334,6 +346,8 @@ namespace HintServiceMeow
             {
                 _dynamicHintList.Add(dh);
             }
+
+            UpdateWhenReady();
         }
 
         public void AddHints(IEnumerable<AbstractHint> hints)
@@ -347,11 +361,8 @@ namespace HintServiceMeow
         public void RemoveHint(AbstractHint hint)
         {
             if (hint == null)
-            {
                 throw new NullReferenceException();
-            }
 
-            UpdateWhenReady();
             hint.HintUpdated -= UpdateWhenReady;
 
             if (hint is Hint h)
@@ -362,6 +373,8 @@ namespace HintServiceMeow
             {
                 _dynamicHintList.Remove(dh);
             }
+
+            UpdateWhenReady();
         }
 
         public void RemoveHint(string id)
