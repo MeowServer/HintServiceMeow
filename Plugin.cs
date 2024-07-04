@@ -1,11 +1,8 @@
 ﻿using System;
 
 using Exiled.API.Features;
-using Exiled.Events.EventArgs.Player;
 using Exiled.API.Enums;
-using Hints;
 using HarmonyLib;
-using HintServiceMeow;
 using HintServiceMeow.Config;
 
 
@@ -29,7 +26,7 @@ using HintServiceMeow.Config;
 // *    V3.0.2
 // *        Fix the bug that crush the PlayerDisplay when there's no hint displayed on the screen
 // *    V3.1.0
-// *         Add PlayerUI Config
+// *         Add PlayerUIConfig Config
 // *        TODO: ADD configs for spectator template, scp extra info, spectator info, etc.
 // *    V3.1.1
 // *        bug fixing
@@ -37,14 +34,18 @@ using HintServiceMeow.Config;
 // *         Use patch to block all the hints from other plugins
 // *    V3.2.0
 // *         Organized config
-// *         Make PlayerUI more customizable
+// *         Make PlayerUIConfig more customizable
 // *    V3.3.0
-// *         Separate PlayerUITemplate from PlayerUI
+// *         Separate PlayerUITemplate from PlayerUIConfig
 // *         PlayerUITemplate is now a new plugin called CustomizableUIMeow
+// *    V4.0.0
+// *        Add config for hints
+// *        Improve code quality
+// *        Add more comments
 
 namespace HintServiceMeow
 {
-    public class Plugin : Plugin<PluginConfig>
+    internal class Plugin : Plugin<PluginConfig>
     {
         public override string Name => "HintServiceMeow";
         public override string Author => "MeowServerOwner";
@@ -59,13 +60,13 @@ namespace HintServiceMeow
         public override void OnEnabled()
         {
             instance = this;
-            PluginConfig.instance = Config;
+            PluginConfig.Instance = Config;
 
             _harmony = new Harmony("HintServiceMeowHarmony");
             _harmony.PatchAll();
 
-            Exiled.Events.Handlers.Player.Verified += OnVerified;
-            Exiled.Events.Handlers.Player.Left += OnLeft;
+            Exiled.Events.Handlers.Player.Verified += EventHandler.OnVerified;
+            Exiled.Events.Handlers.Player.Left += EventHandler.OnLeft;
 
             base.OnEnabled();
         }
@@ -73,51 +74,19 @@ namespace HintServiceMeow
         public override void OnDisabled()
         {
             instance = null;
-            PluginConfig.instance = null;
+            PluginConfig.Instance = null;
 
             _harmony.UnpatchAll();
             _harmony = null;
 
-            Exiled.Events.Handlers.Player.Verified -= OnVerified;
-            Exiled.Events.Handlers.Player.Left -= OnLeft;
+            Exiled.Events.Handlers.Player.Verified -= EventHandler.OnVerified;
+            Exiled.Events.Handlers.Player.Left -= EventHandler.OnLeft;
 
-            OnDisable();
+            EventHandler.OnDisable();
 
             base.OnDisabled();
         }
-
-        // Create PlayerDisplay and PlayerUI for the new player
-        private static void OnVerified(VerifiedEventArgs ev)
-        {
-            if (ev.Player.IsNPC) return;
-
-            var pd = new PlayerDisplay(ev.Player);
-            new PlayerUI(ev.Player);
-
-            EventHandler.InvokeNewPlayerEvent(pd);
-        }
-
-        private static void OnLeft(LeftEventArgs ev)
-        {
-            PlayerUI.RemovePlayerUI(ev.Player);
-            PlayerDisplay.RemovePlayerDisplay(ev.Player);
-        }
-
-        private static void OnDisable()
-        {
-            PlayerUI.ClearPlayerUI();
-            PlayerDisplay.ClearPlayerDisplay();
-        }
     }
 
-    public static class EventHandler
-    {
-        public delegate void NewPlayerHandler(PlayerDisplay playerDisplay);
-        public static event NewPlayerHandler NewPlayer;
-
-        internal static void InvokeNewPlayerEvent(PlayerDisplay pd)
-        {
-            NewPlayer?.Invoke(pd);
-        }
-    }
+    
 }

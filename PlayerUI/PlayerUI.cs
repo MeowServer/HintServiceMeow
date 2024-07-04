@@ -1,210 +1,92 @@
 ﻿using Exiled.API.Features;
 using MEC;
-using PlayerRoles;
 
 using HintServiceMeow.Effect;
+using HintServiceMeow.Config;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HintServiceMeow.Config;
 
 namespace HintServiceMeow
 {
     /// <summary>
     /// A UI based on PlayerDisplay
-    /// contain 3 main parts: common hints, UI Template, and player effects
-    /// 
-    /// player effects had not been implemented yet
+    /// contain 3 main parts: common hints, UI Template, and _player _effects
     /// </summary>
     public class PlayerUI
     {
-        private static List<PlayerUI> playerUIs = new List<PlayerUI>();
+        private static PlayerUIConfig config => PluginConfig.Instance.PlayerUIConfig;
 
-        private Player player;
-        private PlayerDisplay playerDisplay;
+        private static readonly List<PlayerUI> PlayerUIList = new List<PlayerUI>();
 
-        //Effects
-        private CoroutineHandle effectsUpdateCoroutine;
+        private readonly Player _player;
+        private readonly PlayerDisplay _playerDisplay;
 
-        private List<UIEffectBase> effects = new List<UIEffectBase>();
+        #region Effects
+        private CoroutineHandle _effectsUpdateCoroutine;
 
-        //Common Hints
-        private CoroutineHandle commonHintUpdateCoroutine;
+        private readonly List<IUIEffect> _effects = new List<IUIEffect>();
+        #endregion
+            
+        #region Common Hints
+        private CoroutineHandle _commonHintUpdateCoroutine;
 
-        private TimeSpan itemHintTimeToRemove = TimeSpan.MinValue;
-        private DynamicHint[] itemHints = new DynamicHint[2]
-        {
-            new DynamicHint(450, 700, HintAlignment.Center, "", "itemHint1", true).setFontSize(25),
-            new DynamicHint(450+25, 700+25, HintAlignment.Center, "", "itemHint2", true).setFontSize(25)
-        };
+        private DateTime _itemHintTimeToRemove = DateTime.MinValue;
+        private readonly List<DynamicHint> _itemHints = new List<DynamicHint>();
 
-        private TimeSpan mapHintTimeToRemove = TimeSpan.MinValue;
-        private DynamicHint[] mapHints = new DynamicHint[2]
-        {
-            new DynamicHint(0, 200, HintAlignment.Right, "", "mapHint1", true).setFontSize(25),
-            new DynamicHint(0+25, 200+25, HintAlignment.Right, "", "mapHint2", true).setFontSize(25)
-        };
+        private DateTime _mapHintTimeToRemove = DateTime.MinValue;
+        private readonly List<DynamicHint> _mapHints = new List<DynamicHint>();
 
-        private TimeSpan roleHintTimeToRemove = TimeSpan.MinValue;
-        private DynamicHint[] roleHints = new DynamicHint[4]
-        {
-            new DynamicHint(100, 600, HintAlignment.Left, "", "roleTitle", true).setFontSize(30),
-            new DynamicHint(100+30, 600+30 * 1, HintAlignment.Left, "", "roleDescription1", true).setFontSize(25),
-            new DynamicHint(100+50, 600+50, HintAlignment.Left, "", "roleDescription1", true).setFontSize(25),
-            new DynamicHint(100+70, 600+70, HintAlignment.Left, "", "roleDescription1", true).setFontSize(25)
-        };
+        private DateTime _roleHintTimeToRemove = DateTime.MinValue;
+        private readonly List<DynamicHint> _roleHints = new List<DynamicHint>();
 
-        private TimeSpan otherHintTimeToRemove = TimeSpan.MinValue;
-        private DynamicHint[] otherHints = new DynamicHint[4]
-        {
-            new DynamicHint(500, 700, HintAlignment.Center, "", "otherHint1", true),
-            new DynamicHint(520, 700, HintAlignment.Center, "", "otherHint2", true),
-            new DynamicHint(540, 700, HintAlignment.Center, "", "otherHint3", true),
-            new DynamicHint(560, 700, HintAlignment.Center, "", "otherHint4", true),
-        };
+        private DateTime _otherHintTimeToRemove = DateTime.MinValue;
+        private readonly List<DynamicHint> _otherHints = new List<DynamicHint>();
+        #endregion
 
-
-        //Private Effect Methods
-        private IEnumerator<float> effectCoroutineMethod()
-        {
-            while (true)
-            {
-                foreach(UIEffectBase effect in effects)
-                {
-                    effect.UpdateEffect();
-                }
-
-                yield return Timing.WaitForSeconds(0.1f);
-            }
-        }
-
-        private void SetUpEffect()
-        {
-            effectsUpdateCoroutine = Timing.RunCoroutine(effectCoroutineMethod());
-        }
-
-        private void DestructEffect()
-        {
-            if(effectsUpdateCoroutine.IsRunning)
-            {
-                Timing.KillCoroutines(effectsUpdateCoroutine);
-            }
-
-            foreach(UIEffectBase effect in effects)
-            {
-                effect.DestructEffect();
-            }
-        }
-
-        //Public Effect Methods
-        public void AddEffect(UIEffectBase effect)
+        #region Effect Methods
+        public void AddEffect(IUIEffect effect)
         {
             effect.SetEffect();
-            effects.Add(effect);
+            _effects.Add(effect);
         }
 
-        public void AddEffect<EffectType>()
+        public void AddEffect<TEffectType>()
         {
-            EffectType instance = (EffectType)Activator.CreateInstance(typeof(EffectType));
+            TEffectType instance = (TEffectType)Activator.CreateInstance(typeof(TEffectType));
 
-            if(instance is UIEffectBase effect)
+            if(instance is IUIEffect effect)
             {
                 AddEffect(effect);
             }
         }
 
-        public void RemoveEffect(UIEffectBase effect)
+        public void RemoveEffect(IUIEffect effect)
         {
             effect.DestructEffect();
-            effects.Remove(effect);
+            _effects.Remove(effect);
         }
 
-        public void RemoveEffect<EffectType>()
+        public void RemoveEffect<TEffectType >()
         {
-            foreach(UIEffectBase effect in effects)
+            foreach(IUIEffect effect in _effects)
             {
-                if(effect is EffectType)
+                if(effect is TEffectType)
                 {
                     RemoveEffect(effect);
                     return;
                 }
             }
         }
+        #endregion
 
-        //Private Common Hints Methods
-        private IEnumerator<float> CommonHintCoroutineMethod()
-        {
-            while (true)
-            {
-                try
-                {
-                    TimeSpan currentTime = Round.ElapsedTime;
+        #region Common Hint Methods
 
-                    if (currentTime > itemHintTimeToRemove)
-                    {
-                        itemHints[0].hide = true;
-                        itemHints[1].hide = true;
-                    }
-
-                    if (currentTime > mapHintTimeToRemove)
-                    {
-                        mapHints[0].hide = true;
-                        mapHints[1].hide = true;
-                    }
-
-                    if (currentTime > roleHintTimeToRemove)
-                    {
-                        foreach (DynamicHint hint in roleHints)
-                        {
-                            hint.hide = true;
-                        }
-                    }
-
-                    if (currentTime > otherHintTimeToRemove)
-                    {
-                        foreach (DynamicHint hint in otherHints)
-                        {
-                            hint.hide = true;
-                        }
-                    }
-                }
-                catch(Exception ex)
-                {
-                    Log.Error(ex);
-                }
-
-                yield return Timing.WaitForSeconds(0.1f);
-            }
-        }
-
-        private void SetUpCommonHints()
-        {
-            playerDisplay.AddHints(itemHints);
-            playerDisplay.AddHints(mapHints);
-            playerDisplay.AddHints(roleHints);
-            playerDisplay.AddHints(otherHints);
-
-            commonHintUpdateCoroutine = Timing.RunCoroutine(CommonHintCoroutineMethod());
-        }
-
-        private void DestructCommonHints()
-        {
-            if(commonHintUpdateCoroutine.IsRunning)
-            {
-                Timing.KillCoroutines(commonHintUpdateCoroutine);
-            }
-
-            playerDisplay.RemoveHints(itemHints);
-            playerDisplay.RemoveHints(mapHints);
-            playerDisplay.RemoveHints(roleHints);
-            playerDisplay.RemoveHints(otherHints);
-        }
-
-        //Static common hints methods
+        #region Broadcast Other Hint Methods
         public static void BroadcastOtherHint(string hint)
         {
-            foreach(PlayerUI ui in playerUIs)
+            foreach(PlayerUI ui in PlayerUIList)
             {
                 ui.ShowOtherHint(hint);
             }
@@ -212,7 +94,7 @@ namespace HintServiceMeow
 
         public static void BroadcastOtherHint(string[] hints)
         {
-            foreach (PlayerUI ui in playerUIs)
+            foreach (PlayerUI ui in PlayerUIList)
             {
                 ui.ShowOtherHint(hints);
             }
@@ -220,7 +102,7 @@ namespace HintServiceMeow
 
         public static void BroadcastOtherHints(string hint, int time)
         {
-            foreach (PlayerUI ui in playerUIs)
+            foreach (PlayerUI ui in PlayerUIList)
             {
                 ui.ShowOtherHint(hint, time);
             }
@@ -228,167 +110,147 @@ namespace HintServiceMeow
 
         public static void BroadcastOtherHints(string[] hints, int time)
         {
-            foreach (PlayerUI ui in playerUIs)
+            foreach (PlayerUI ui in PlayerUIList)
             {
                 ui.ShowOtherHint(hints, time);
             }
         }
+        #endregion Broadcast Other Hint Methods
 
-        //Public Common Item Hints Methods
-        public void ShowItemHint(string itemName)
+        #region Common Item Hints Methods
+        public void ShowItemHint(string itemName) => ShowItemHint(itemName, config.ShortItemHintDisplayTime);
+
+        public void ShowItemHint(string itemName, int time) => ShowItemHint(itemName, new string[]{},time);
+
+        public void ShowItemHint(string itemName, string[] description) => ShowItemHint(itemName, description, config.ItemHintDisplayTime);
+
+        public void ShowItemHint(string itemName, string[] description, int time)
         {
-            ShowItemHint(itemName, 4);
-        }
+            _itemHintTimeToRemove = DateTime.Now + TimeSpan.FromSeconds(time);
 
-        public void ShowItemHint(string itemName, int time)
+            _itemHints[0].message = itemName;
+            _itemHints[0].hide = false;
+
+            for (int i = 1; i < _itemHints.Count; i++)
+            {
+                if (!description.TryGet(i - 1, out string element))
+                    break;
+
+                _roleHints[i].message = element;
+                _roleHints[i].hide = false;
+            }
+        }
+        #endregion Common Item Hints Methods
+
+        # region Common Map Hints Methods
+        public void ShowMapHint(string roomName) => ShowMapHint(roomName, config.ShortMapHintDisplayTime);
+
+        public void ShowMapHint(string roomName, int time) => ShowMapHint(roomName, new string[]{}, time);
+
+        public void ShowMapHint(string roomName, string[] description) => ShowMapHint(roomName, description, config.MapHintDisplayTime);
+
+        public void ShowMapHint(string roomName, string[] description, int time)
         {
-            itemHintTimeToRemove = Round.ElapsedTime + TimeSpan.FromSeconds(time);
+            _mapHintTimeToRemove = DateTime.Now + TimeSpan.FromSeconds(time);
 
-            itemHints[0].message = itemName;
-            itemHints[0].hide = false;
+            _mapHints.ForEach(x => x.hide = true);
+
+            _mapHints[0].message = roomName;
+            _mapHints[0].hide = false;
+
+            for (int i = 1; i < _mapHints.Count; i++)
+            {
+                if (!description.TryGet(i - 1, out string element))
+                    break;
+
+                _roleHints[i].message = element;
+                _roleHints[i].hide = false;
+            }
         }
+        #endregion Common Map Hints Methods
 
-        public void ShowItemHint(string itemName, string description)
-        {
-            ShowItemHint(itemName, description, 7);
-        }
+        # region Common Role Hints Methods
+        public void ShowRoleHint(string roleName) => ShowRoleHint(roleName, config.ShortRoleHintDisplayTime);
 
-        public void ShowItemHint(string itemName, string description, int time)
-        {
-            itemHintTimeToRemove = Round.ElapsedTime + TimeSpan.FromSeconds(time);
+        public void ShowRoleHint(string roleName, int time) => ShowRoleHint(roleName, new string[]{}, time);
 
-            itemHints[0].message = itemName;
-            itemHints[0].hide = false;
-
-            itemHints[1].message = description;
-            itemHints[1].hide = false;
-        }
-
-        //Public Common Map Hints Methods
-        public void ShowMapHint(string roomName)
-        {
-            ShowMapHint(roomName, 4);
-        }
-
-        public void ShowMapHint(string roomName, int time)
-        {
-            mapHintTimeToRemove = Round.ElapsedTime + TimeSpan.FromSeconds(time);
-
-            mapHints[0].message = roomName;
-            mapHints[0].hide = false;
-        }
-
-        public void ShowMapHint(string roomName, string description)
-        {
-            ShowMapHint(roomName, description, 7);
-        }
-
-        public void ShowMapHint(string roomName, string description, int time)
-        {
-            mapHintTimeToRemove = Round.ElapsedTime + TimeSpan.FromSeconds(time);
-
-            mapHints[0].message = roomName;
-            mapHints[0].hide = false;
-
-            mapHints[1].message = description;
-            mapHints[1].hide = false;
-        }
-
-        //Public Common Role Hints Methods
-        public void ShowRoleHint(string roleName)
-        {
-            ShowRoleHint(roleName, 4);
-        }
-
-        public void ShowRoleHint(string roleName, int time)
-        {
-            roleHintTimeToRemove = Round.ElapsedTime + TimeSpan.FromSeconds(time);
-
-            roleHints[0].message = roleName;
-            roleHints[0].hide = false;
-        }
-
-        public void ShowRoleHint(string roleName, string[] description)
-        {
-            ShowRoleHint(roleName, description, 7);
-        }
+        public void ShowRoleHint(string roleName, string[] description)=> ShowRoleHint(roleName, description, config.RoleHintDisplayTime);
 
         public void ShowRoleHint(string roleName, string[] description, int time)
         {
-            roleHintTimeToRemove = Round.ElapsedTime + TimeSpan.FromSeconds(time);
+            _roleHintTimeToRemove = DateTime.Now + TimeSpan.FromSeconds(time);
 
-            roleHints[0].message = roleName;
-            roleHints[0].hide = false;
+            _roleHints.ForEach(x => x.hide = true);
 
-            if(description.Count() >= roleHints.Length)
+            _roleHints[0].message = roleName;
+            _roleHints[0].hide = false;
+
+            for(int i = 1; i < _roleHints.Count; i++)
             {
-                Log.Warn($"There's more than 3 descriptions passed into ShowRoleHint for: {roleName}, ShowRoleHint can handle at most 3 lines of description");
-            }
-
-            for(int i = 0; i < description.Length; i++)
-            {
-                if(i >= roleHints.Length - 1) 
+                if(!description.TryGet(i - 1, out string element)) 
                     break;
 
-                roleHints[i + 1].message = $"• {description[i]}";
-                roleHints[i + 1].hide = false;
+                _roleHints[i].message = element;
+                _roleHints[i].hide = false;
             }
         }
+        #endregion Common Role Hints Methods
 
-        //Public Common Other Hints Methods
-        public void ShowOtherHint(string hint)
-        {
-            ShowOtherHint(hint, 4);
-        }
+        # region Common Other Hints Methods
+        public void ShowOtherHint(string hint) => ShowOtherHint(hint, config.OtherHintDisplayTime);
 
-        public void ShowOtherHint(string hint, int time)
-        {
-            ShowOtherHint(
-                new string[]
-                {
-                    hint
-                }
-                ,time);
-        }
+        public void ShowOtherHint(string hint, int time) => ShowOtherHint(new string[] { hint }, time);
 
-        public void ShowOtherHint(string[] hints)
-        {
-            ShowOtherHint(hints, 7);
-        }
+        public void ShowOtherHint(string[] hints) => ShowOtherHint(hints, config.OtherHintDisplayTime * hints.Length);
 
         public void ShowOtherHint(string[] hints, int time)
         {
-            otherHintTimeToRemove = Round.ElapsedTime + TimeSpan.FromSeconds(time);
+            _otherHintTimeToRemove = DateTime.Now + TimeSpan.FromSeconds(time);
 
-            if (hints.Count() >= otherHints.Length)
-            {
-                Log.Warn($"There's more than 4 hints passed into ShowOtherHints. ShowOtherHints can handle at most 4 lines of hints");
-            }
+            _otherHints.ForEach(x => x.hide = true);
 
-            for (int i = 0; i < otherHints.Length; i++)
+            for (int i = 0; i < _roleHints.Count; i++)
             {
-                otherHints[i].message = hints.Length > i ? hints[i] : string.Empty;
-                otherHints[i].hide = otherHints[i].message == string.Empty;
+                if (!hints.TryGet(i, out string element))
+                    break;
+
+                _roleHints[i].message = element;
+                _roleHints[i].hide = false;
             }
         }
+        #endregion Common Other Hints Methods
 
-        //internal PlayerUI methods
+        #endregion Common Hint Methods
+
+        #region Public PlayerUIConfig tools
+        public static PlayerUI Get(Player player)
+        {
+            return PlayerUIList.Find(x => x._player == player);
+        }
+
+        public static PlayerUI Get(PlayerDisplay display)
+        {
+            return PlayerUIList.Find(x => x._playerDisplay == display);
+        }
+        #endregion Public PlayerUIConfig tools
+
+        #region Internal PlayerUIConfig Methods
         internal PlayerUI(Player player)
         {
-            if(playerUIs.Any(x => x.player == player))
+            if (PlayerUIList.Any(x => x._player == player))
             {
-                Log.Error($"A PlayerUI for this player had already been created for this player : {player.Nickname}");
+                Log.Error($"A PlayerUIConfig for this _player had already been created for this _player : {player.Nickname}");
                 return;
             }
 
-            this.player = player;
-            this.playerDisplay = PlayerDisplay.Get(player);
+            this._player = player;
+            this._playerDisplay = PlayerDisplay.Get(player);
 
             SetUpEffect();
 
             SetUpCommonHints();
 
-            playerUIs.Add(this);
+            PlayerUIList.Add(this);
         }
 
         internal void Destruct()
@@ -399,32 +261,158 @@ namespace HintServiceMeow
             //Common Hints
             DestructCommonHints();
 
-            playerUIs.Remove(this);
+            PlayerUIList.Remove(this);
         }
 
         internal static void RemovePlayerUI(Player player)
         {
-            playerUIs.Find(x => x.player == player)?.Destruct();
+            PlayerUIList.Find(x => x._player == player)?.Destruct();
         }
 
         internal static void ClearPlayerUI()
         {
-            foreach (PlayerUI ui in playerUIs)
+            foreach (PlayerUI ui in PlayerUIList)
             {
                 ui.Destruct();
             }
         }
+        #endregion Internal PlayerUIConfig Methods
 
-        //Public PlayerUI tools
-        public static PlayerUI Get(Player player)
+        #region Private Effect Methods
+        private IEnumerator<float> EffectCoroutineMethod()
         {
-            return playerUIs.Find(x => x.player == player);
+            while (true)
+            {
+                foreach (IUIEffect effect in _effects)
+                {
+                    effect.UpdateEffect();
+                }
+
+                yield return Timing.WaitForSeconds(0.1f);
+            }
         }
 
-        public static PlayerUI Get(PlayerDisplay display)
+        private void SetUpEffect()
         {
-            return playerUIs.Find(x => x.playerDisplay == display);
+            _effectsUpdateCoroutine = Timing.RunCoroutine(EffectCoroutineMethod());
         }
+
+        private void DestructEffect()
+        {
+            if (_effectsUpdateCoroutine.IsRunning)
+            {
+                Timing.KillCoroutines(_effectsUpdateCoroutine);
+            }
+
+            foreach (IUIEffect effect in _effects)
+            {
+                effect.DestructEffect();
+            }
+        }
+        #endregion
+
+        # region Private Common Hints Methods
+        private IEnumerator<float> CommonHintCoroutineMethod()
+        {
+            while (true)
+            {
+                try
+                {
+                    DateTime currentTime = DateTime.Now;
+
+                    if (currentTime > _itemHintTimeToRemove)
+                    {
+                        _itemHints.ForEach(x => x.hide = true);
+                    }
+
+                    if (currentTime > _mapHintTimeToRemove)
+                    {
+                        _mapHints.ForEach(x => x.hide = true);
+                    }
+
+                    if (currentTime > _roleHintTimeToRemove)
+                    {
+                        _roleHints.ForEach(x => x.hide = true);
+                    }
+
+                    if (currentTime > _otherHintTimeToRemove)
+                    {
+                        _otherHints.ForEach(x => x.hide = true);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex);
+                }
+
+                var timeToWait =
+                    new[]
+                    {
+                        _itemHintTimeToRemove,
+                        _mapHintTimeToRemove,
+                        _roleHintTimeToRemove,
+                        _otherHintTimeToRemove
+                    }.Min() - DateTime.Now;
+
+                yield return Timing.WaitForSeconds((float)timeToWait.TotalMilliseconds + 0.01f);
+            }
+        }
+
+        private void SetUpCommonHints()
+        {
+            _itemHints.AddRange(config.ItemHints
+                .Select(x => new DynamicHint(x)
+                {
+                    hide = true,
+                    message = "",
+                    priority = HintPriority.Medium,
+                }));
+
+            _mapHints.AddRange(config.MapHints
+                .Select(x => new DynamicHint(x)
+                {
+                    hide = true,
+                    message = "",
+                    priority = HintPriority.Medium,
+                }));
+
+            _roleHints.AddRange(config.RoleHints
+                .Select(x => new DynamicHint(x)
+                {
+                    hide = true,
+                    message = "",
+                    priority = HintPriority.Medium,
+                }));
+
+            _otherHints.AddRange(config.OtherHints
+                .Select(x => new DynamicHint(x)
+                {
+                    hide = true,
+                    message = "",
+                    priority = HintPriority.Medium,
+                }));
+
+            _playerDisplay.AddHints(_itemHints);
+            _playerDisplay.AddHints(_mapHints);
+            _playerDisplay.AddHints(_roleHints);
+            _playerDisplay.AddHints(_otherHints);
+
+            _commonHintUpdateCoroutine = Timing.RunCoroutine(CommonHintCoroutineMethod());
+        }
+
+        private void DestructCommonHints()
+        {
+            if (_commonHintUpdateCoroutine.IsRunning)
+            {
+                Timing.KillCoroutines(_commonHintUpdateCoroutine);
+            }
+
+            _playerDisplay.RemoveHints(_itemHints);
+            _playerDisplay.RemoveHints(_mapHints);
+            _playerDisplay.RemoveHints(_roleHints);
+            _playerDisplay.RemoveHints(_otherHints);
+        }
+        #endregion
     }
 
 }

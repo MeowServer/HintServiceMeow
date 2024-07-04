@@ -6,6 +6,15 @@ using System.Threading.Tasks;
 
 namespace HintServiceMeow
 {
+    public enum HintPriority
+    {
+        Highest = 192,
+        High = 160,
+        Medium = 128,
+        Low = 96,
+        Lowest = 64
+    }
+
     public enum HintAlignment
     {
         Left,

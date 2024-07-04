@@ -7,58 +7,42 @@ using System.Threading.Tasks;
 
 namespace HintServiceMeow.Effect
 {
-    //Not implemented yet
-    public abstract class UIEffectBase
+    /// <summary>
+    /// Not implemented yet
+    /// </summary>
+    public interface IUIEffect
     {
-        Player player;
-        PlayerDisplay playerDisplay;
+        void UpdateEffect();
+        void SetEffect();
+        void DestructEffect();
+    }
 
-        float intensity = 100f;
+    /// <summary>
+    /// Not implemented yet
+    /// </summary>
+    public abstract class UIEffectBase : IUIEffect
+    {
+        protected Player player => PlayerDisplay.player;
+        protected PlayerDisplay PlayerDisplay;
 
-        public UIEffectBase()
+        protected float Intensity = 100f;
+
+        protected UIEffectBase()
         {
-
         }
 
-        public UIEffectBase(Player player)
+        protected UIEffectBase(Player player)
         {
-            this.player = player;
-            this.playerDisplay = PlayerDisplay.Get(player);
+            this.PlayerDisplay = PlayerDisplay.Get(player);
         }
 
-        public UIEffectBase(PlayerDisplay playerDisplay)
+        protected UIEffectBase(PlayerDisplay playerDisplay)
         {
-            this.player = playerDisplay.player;
-            this.playerDisplay = playerDisplay;
+            this.PlayerDisplay = playerDisplay;
         }
 
         public abstract void UpdateEffect();
         public abstract void SetEffect();
         public abstract void DestructEffect();
-    }
-
-    public class BloodLetterEffect : UIEffectBase
-    {
-        List<DynamicHint> dynamicHints = new List<DynamicHint>();
-
-        public BloodLetterEffect(Player player) : base(player)
-        {
-
-        }
-
-        public override void DestructEffect()
-        {
-
-        }
-
-        public override void SetEffect()
-        {
-
-        }
-
-        public override void UpdateEffect()
-        {
-
-        }
     }
 }

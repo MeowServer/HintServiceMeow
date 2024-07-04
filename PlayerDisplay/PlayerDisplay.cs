@@ -4,107 +4,121 @@ using MEC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HintServiceMeow.Config;
 
 namespace HintServiceMeow
 {
     public class PlayerDisplay
     {
         //List of all the PlayerDisplay instances
-        private static List<PlayerDisplay> playerDisplayList = new List<PlayerDisplay>();
+        private static readonly List<PlayerDisplay> PlayerDisplayList = new List<PlayerDisplay>();
 
-        private const int placeHolderMaximumHeightPX = 920;//The space that the place holder must fill 1160
+        private const int PlaceHolderMaximumHeightPx = 920;
 
-        //The player this player display is refering to
+        private static PlayerDisplayConfig config => PluginConfig.Instance.PlayerDisplayConfig;
+
+        //The player this player display binds to
         public Player player;
 
-        //Can be optimize by sorting hints when adding them
-        private List<Hint> hintList = new List<Hint>();//List of hints shows to the player
-        private List<DynamicHint> dynamicHintList = new List<DynamicHint>();//List of dynamic hints shows to the player
+        private readonly List<Hint> _hintList = new List<Hint>();//List of hints shows to the player
+        private readonly List<DynamicHint> _dynamicHintList = new List<DynamicHint>();//List of dynamic hints shows to the player
 
-        private static CoroutineHandle HintRefreshCoroutine;
-        private static IEnumerator<float> RefreshCoroutineMethod()
+        //Patch
+        private bool _allowNextUpdate = false;
+        internal bool AllowPatchUpdate
         {
-            while(true)
+            get
             {
-                try
-                {
-                    if(playerDisplayList.Count <= 0)
-                    {
-                        yield break;
-                    }
-
-                    foreach (PlayerDisplay pd in playerDisplayList)
-                    {
-                        if ((DateTime.Now - pd.lastTimeUpdate).TotalSeconds >= 3)
-                        {
-                            pd.UpdateWhenReady();
-                        }
-                    }
-                }
-                catch(Exception e)
-                {
-                    Log.Error(e);
-                }
-                
-
-                yield return Timing.WaitForSeconds(3.1f);
+                var allow = _allowNextUpdate;
+                _allowNextUpdate = false;
+                return allow;
             }
         }
 
-        //For patch
-        private bool AllowNextUpdate = false;
-        internal bool UpdatedRecently()
-        {
-            if(AllowNextUpdate)
-            {
-                AllowNextUpdate = false;
-                return true;
-            }
+        /// <summary>
+        /// Called periodically when player display is ready to update. Default period is 0.1s (10 times per second)
+        /// </summary>
+        public event UpdateAvailableEventHandler UpdateAvailable;
+        public delegate void UpdateAvailableEventHandler(PlayerDisplay playerDisplay);
+        private static CoroutineHandle _hintRefreshCoroutine;
 
-            return false;
-        }
+        //Update Rate Management
+        private static TimeSpan UpdateInterval => config.MinUpdateInterval;
+        private bool UpdateReady => (DateTime.Now - _lastTimeUpdate) >= UpdateInterval;
+        private DateTime _lastTimeUpdate = DateTime.MinValue;
+        private bool _plannedUpdate = false;   // Tells whether an update had been planned
 
-        //Update Rate Management stuff
-        private TimeSpan UpdateInterval { get; } = Config.PluginConfig.instance.PlayerDisplayConfig.MinUpdateInterval;   //By experiment, the fastest update rate is 2 times per second.
-        internal DateTime lastTimeUpdate { get; set; } = DateTime.MinValue;
-        private bool plannedUpdate { get; set; } = false;   // Tells whether a update had been planned
-
-        //Update Methods for hint change events to call
+        #region Update Management Methods
         internal void UpdateWhenReady()
         {
-            if (plannedUpdate)
-                return;//return if a update had been planned.
+            if (_plannedUpdate)
+                return;//return if an update had already been planned.
 
-            plannedUpdate = true;
+            _plannedUpdate = true;
 
-            var TimeToWait = (float)((lastTimeUpdate + UpdateInterval) - DateTime.Now).TotalMilliseconds;
-            var MinDelay = Config.PluginConfig.instance.PlayerDisplayConfig.MinTimeDelayBeforeUpdate;
-            TimeToWait = TimeToWait < MinDelay ? MinDelay : TimeToWait; //Having a min delay to make sure that all of the changes are updated beofre the next update
+            var timeToWait = (float)((_lastTimeUpdate + UpdateInterval) - DateTime.Now).TotalMilliseconds;
+            var minDelay = config.MinTimeDelayBeforeUpdate;
+            timeToWait = Math.Max(timeToWait, minDelay); //Having a min delay to make sure that all the changes are updated before next update
 
-            Timing.CallDelayed(TimeToWait/1000, () =>
+            Timing.CallDelayed(timeToWait/1000, () =>
             {
                 try
                 {
                     UpdateHint();
-                    plannedUpdate = false;
+                    _plannedUpdate = false;
                 }
                 catch(Exception ex)
                 {
                    Log.Error(ex);
+                   _plannedUpdate = false;
                 }
             });
         }
 
-        //Private Update Methods
+        //Coroutine Method
+        private static IEnumerator<float> RefreshCoroutineMethod()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (PlayerDisplayList.Count <= 0)
+                    {
+                        yield break;
+                    }
+
+                    foreach (PlayerDisplay pd in PlayerDisplayList)
+                    {
+                        if ((DateTime.Now - pd._lastTimeUpdate).TotalSeconds >= config.ForceUpdateInterval)
+                            pd.UpdateWhenReady();
+
+                        if (pd.UpdateReady)
+                            pd.UpdateAvailable?.Invoke(pd);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e);
+                }
+
+                yield return Timing.WaitForSeconds(config.HintUpdateInterval);
+            }
+        }
+        #endregion
+
+        # region Private Update Methods
         private void UpdateHint()
         {
-            var displayHintList = GetDisplayableHints();
-            string text = ToMessage(displayHintList);
+            
+            string text = ToMessage(GetDisplayableHints());
 
             //reset CountDown
-            lastTimeUpdate = DateTime.Now;
+            _lastTimeUpdate = DateTime.Now;
 
-            AllowNextUpdate = true;
+            //Allow patch
+            _allowNextUpdate = true;
+
+            //Display the hint
             player.HintDisplay.Show(
                 new TextHint(
                     text,
@@ -121,7 +135,7 @@ namespace HintServiceMeow
             );
         }
 
-        private void GetPlaceHolder(int size, List<string> messages)
+        private static void GetPlaceHolder(int size, List<string> messages)
         {
             /*
             for (; size > 40; size -= 40)
@@ -134,50 +148,64 @@ namespace HintServiceMeow
 
         private void InsertDynamicHints(List<Hint> hintList)
         {
-            if (dynamicHintList.Count == 0)
+            if (_dynamicHintList.Count == 0)
                 return;
 
             //Arrange Dynamic Hints
-            dynamicHintList.Sort(delegate (DynamicHint a, DynamicHint b)
+            _dynamicHintList.Sort((a, b) =>
             {
-                return a.hintField.topYCoordinate.CompareTo(b.hintField.topYCoordinate);
+                int result = a.priority.CompareTo(b.priority);
+                
+                if(result == 0)
+                    result = a.hintField.topYCoordinate.CompareTo(b.hintField.topYCoordinate);
+
+                return result;
             });
 
             //Insert Dynamic Hints into the display hint list by transforming them into regular hints
 
             //Flags used to indicate the max and min y value of the dynamic hint
-            List<DynamicHint> displayableDynamicHints = this.dynamicHintList
-                .Where(x => x.hide == false && x.message != string.Empty && x.message != null)
-                .ToList();
+            IEnumerable<DynamicHint> displayableDynamicHints = this._dynamicHintList
+                .Where(x => x.hide == false && !string.IsNullOrEmpty(x.message));
 
-            Hint tempHintA = new Hint(0, HintAlignment.Center, "TempFirst").setFontSize(0);
-            Hint tempHintB = new Hint(0, HintAlignment.Center, "TempLast").setFontSize(0);
+            Hint tempHintA = new Hint()
+            {
+                fontSize = 0,
+            };
+
+            Hint tempHintB = new Hint()
+            {
+                fontSize = 0,
+            };
             
             foreach (DynamicHint dynamicHint in displayableDynamicHints)
             {
                 var topYCoordinate = dynamicHint.hintField.topYCoordinate;
                 var bottomYCoordinate = dynamicHint.hintField.bottomYCoordinate;
 
-                //Top Position Flags
+                //Insert Top Position Flags
                 tempHintA.bottomYCoordinate = topYCoordinate;
-                if (hintList.FindIndex(x => x.bottomYCoordinate >= topYCoordinate) == -1)
+                var index1 = hintList.FindIndex(x => x.bottomYCoordinate >= topYCoordinate);
+                if (index1 == -1)
                 {
                     hintList.Insert(0, tempHintA);
                 }
                 else
                 {
-                    hintList.Insert(hintList.FindIndex(x => x.bottomYCoordinate >= topYCoordinate), tempHintA);
+                    hintList.Insert(index1, tempHintA);
                 }
 
-                //Bottom Position Flags
+                //Insert Bottom Position Flags
                 tempHintB.topYCoordinate = bottomYCoordinate;
-                if (hintList.FindIndex(x => x.topYCoordinate >= bottomYCoordinate) == -1)
+                var index2 = hintList.FindIndex(x => x.topYCoordinate >= bottomYCoordinate);
+                if (index2 == -1)
                 {
                     hintList.Add(tempHintB);
                 }
                 else
                 {
-                    hintList.Insert(hintList.FindIndex(x => x.topYCoordinate >= bottomYCoordinate), tempHintB);
+                    
+                    hintList.Insert(index2, tempHintB);
                 }
 
                 for (var index = hintList.IndexOf(tempHintA); index < hintList.IndexOf(tempHintB); index++)
@@ -193,40 +221,31 @@ namespace HintServiceMeow
                     }
                 }
 
+                //Remove flags
                 hintList.Remove(tempHintA);
-                hintList.Remove(tempHintB);//Remove flags
+                hintList.Remove(tempHintB);
             }
-
-            return;
         }
 
         private List<Hint> GetDisplayableHints()
         {
             List<Hint> displayHintList = new List<Hint>();
 
-            if (hintList.Count != 0)
+            if (_hintList.Count != 0)
             {
-                displayHintList = hintList
-                .Where(x => x.hide == false && x.message != null && x.message != string.Empty)
+                displayHintList = _hintList
+                .Where(x => x.hide == false && !string.IsNullOrEmpty(x.message))
                 .ToList();
 
                 //Arrange Hints
-                displayHintList.Sort(delegate (Hint a, Hint b)
-                {
-                    return a.topYCoordinate.CompareTo(b.topYCoordinate);
-                });
+                displayHintList.Sort((a, b) => a.topYCoordinate.CompareTo(b.topYCoordinate));
 
-                //Detect overlap hints
+                //Remove low priority hints that are overlapped by high priority hints
                 for (var index = 0; index < displayHintList.Count - 1; index++)
                 {
                     if (displayHintList[index].bottomYCoordinate > displayHintList[index + 1].topYCoordinate)
                     {
-                        Log.Debug("Two Hints are overlapping each others");
-                        Log.Debug("PlayerDisplay Player: " + this.player.Nickname);
-                        Log.Debug("First Hint: " + displayHintList[index].ToString());
-                        Log.Debug("Second Hint: " + displayHintList[index + 1].ToString());
-
-                        displayHintList.RemoveAt(index + 1);
+                        displayHintList.RemoveAt(displayHintList[index].priority > displayHintList[index + 1].priority?index + 1:index);
                     }
                 }
             }
@@ -258,52 +277,42 @@ namespace HintServiceMeow
 
             //last hint
             messages.Add(displayHintList.Last().GetText());
-            placeHolderHeight = placeHolderMaximumHeightPX - displayHintList.Last().bottomYCoordinate;
+            placeHolderHeight = PlaceHolderMaximumHeightPx - displayHintList.Last().bottomYCoordinate;
             GetPlaceHolder(placeHolderHeight, messages);
 
             string message = string.Join("\n", messages);
 
             return message;
         }
+        #endregion
 
-        //Constructor/Destructors
+        #region Constructor and Destructors
         internal PlayerDisplay(Player player)
         {
             this.player = player;
 
-            if (HintRefreshCoroutine == null || !HintRefreshCoroutine.IsRunning)
-            {
-                HintRefreshCoroutine = Timing.RunCoroutine(RefreshCoroutineMethod());
-            }
+            if (!_hintRefreshCoroutine.IsRunning)
+                _hintRefreshCoroutine = Timing.RunCoroutine(RefreshCoroutineMethod());
 
-            playerDisplayList.Add(this);
+            PlayerDisplayList.Add(this);
         }
 
         internal static void RemovePlayerDisplay(Player player)
         {
-            playerDisplayList.RemoveAll(x => x.player == player);
+            PlayerDisplayList.RemoveAll(x => x.player == player);
         }
 
         internal static void ClearPlayerDisplay()
         {
-            playerDisplayList.Clear();
+            PlayerDisplayList.Clear();
         }
+        #endregion
 
-        //Player Display Methods
-        public static PlayerDisplay Get(Player player)
-        {
-            foreach (PlayerDisplay playerDisplay in playerDisplayList)
-            {
-                if (playerDisplay.player.Id == player.Id)
-                {
-                    return playerDisplay;
-                }
-            }
+        #region Player Display Methods
+        public static PlayerDisplay Get(Player player) => PlayerDisplayList.Find(x => x.player == player);
+        #endregion
 
-            return null;
-        }
-
-        //Regular Hint Methods
+        #region Regular Hint Methods
         public void AddHint(AbstractHint hint)
         {
             if (hint == null)
@@ -311,7 +320,7 @@ namespace HintServiceMeow
                 throw new NullReferenceException();
             }
 
-            if (hintList.Contains(hint))
+            if (_hintList.Contains(hint))
                 return;
 
             UpdateWhenReady();
@@ -319,12 +328,12 @@ namespace HintServiceMeow
 
             if(hint is Hint h)
             {
-                hintList.Add(h);
-            }else if(hint is DynamicHint dh)
-            {
-                dynamicHintList.Add(dh);
+                _hintList.Add(h);
             }
-            
+            else if(hint is DynamicHint dh)
+            {
+                _dynamicHintList.Add(dh);
+            }
         }
 
         public void AddHints(IEnumerable<AbstractHint> hints)
@@ -347,11 +356,11 @@ namespace HintServiceMeow
 
             if (hint is Hint h)
             {
-                hintList.Remove(h);
+                _hintList.Remove(h);
             }
             else if (hint is DynamicHint dh)
             {
-                dynamicHintList.Remove(dh);
+                _dynamicHintList.Remove(dh);
             }
         }
 
@@ -359,16 +368,16 @@ namespace HintServiceMeow
         {
             if (id == null)
             {
-                throw new Exception("A null name had been passed to RemoveHint");
+                throw new Exception("A null id had been passed to RemoveHint");
             
             }
 
-            foreach(AbstractHint hint in hintList)
+            foreach(AbstractHint hint in _hintList.Where(x => x.id == id))
             {
                 RemoveHint(hint);
             }
 
-            foreach(AbstractHint hint in dynamicHintList)
+            foreach(AbstractHint hint in _dynamicHintList.Where(x => x.id == id))
             {
                 RemoveHint(hint);
             }
@@ -384,21 +393,14 @@ namespace HintServiceMeow
 
         public AbstractHint FindHint(string id)
         {
-            if (id == null && id == string.Empty)
+            if (string.IsNullOrEmpty(id))
             {
                 throw new Exception("A null name had been passed to FindHint");
             }
 
-            if (hintList.Any(x => x.id == id))
-            {
-                return hintList.Find(x => x.id == id);
-            }
-            else if (dynamicHintList.Any(x => x.id == id))
-            {
-                return dynamicHintList.Find(x => x.id == id);
-            }
-
-            return null;
+            var hint = _hintList.Find(x => x.id == id);
+            var dynamicHint = _dynamicHintList.Find(x => x.id == id);
+            return hint??(AbstractHint)dynamicHint;
         }
 
         public void RemoveHintAfter(Hint hint, float time)
@@ -432,5 +434,6 @@ namespace HintServiceMeow
                 hint.hide = true;
             });
         }
+        #endregion
     }
 }
