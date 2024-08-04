@@ -127,6 +127,8 @@ namespace HintServiceMeow
             _harmony = new Harmony("HintServiceMeowHarmony" + Version);
             _harmony.PatchAll();
 
+            FontTool.CheckFontFile();
+
             //Register events
             if (!(Assembly.GetExecutingAssembly().GetType("Exiled.Events.Handlers.Player") != null))
             {

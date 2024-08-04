@@ -1,13 +1,17 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
+using System.Drawing.Text;
+
 using UnityEngine;
 using HintServiceMeow.Core.Models.Hints;
 
 //NW API
 using PluginAPI.Core;
+
 
 namespace HintServiceMeow.Core.Utilities
 {
@@ -19,25 +23,26 @@ namespace HintServiceMeow.Core.Utilities
 
         private static Font Font
         {
-            get
-            {
-                if (_font == null)
-                {
-                    _font = Font.CreateDynamicFontFromOSFont("Araboto-Light", 20);
-                    if (_font == null || !_font.HasCharacter('M'))
-                    {
-                        Log.Error("Did not found required font in system.");
-                        Log.Error("The required font file will be place on the desktop. Please install it manually.");
-
-                        CopyEmbeddedFont();
-                    }
-                }
-
-                return _font;
-            }
+            get => _font;
         }
 
-        public static void CopyEmbeddedFont()
+        public static void CheckFontFile()
+        {
+            string fontName = "Araboto-Light";
+
+            bool isFontInstalled = new InstalledFontCollection().Families.Any(fontFamily => fontFamily.Name.Equals(fontName, StringComparison.OrdinalIgnoreCase));
+            if (!isFontInstalled)
+            {
+                Log.Error("Did not found required font in system.");
+                Log.Error("The required font file will be place on the desktop. Please install it manually.");
+
+                CopyEmbeddedFont();
+            }
+
+            _font = Font.CreateDynamicFontFromOSFont(fontName, 20);
+        }
+
+        private static void CopyEmbeddedFont()
         {
             try
             {
@@ -51,7 +56,7 @@ namespace HintServiceMeow.Core.Utilities
                         throw new InvalidOperationException(resourceName + " not found.");
                     }
 
-                    string desktopPath = Path.Combine(Path.GetTempPath(), "Required Font.ttf");
+                    string desktopPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Required Font.ttf");
                     using (FileStream tempFile = new FileStream(desktopPath, FileMode.Create))
                     {
                         stream.CopyTo(tempFile);
