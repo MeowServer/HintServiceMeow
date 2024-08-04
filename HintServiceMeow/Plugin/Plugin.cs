@@ -49,13 +49,15 @@ using PluginAPI.Core.Attributes;
 // *        Add hint Priority
 // *        Make common hint customizable
 // *        Improve code quality
-// *    V5.0.0  Rework
+// *    V5.0.0  Rework(Pre-release)
 // *        Rewrite core code
 // *        Add sync speed, auto text, and several new properties to hint
 // *        Standardized code style
 // *        Add NW API support
 // *        Remove hint config template
 // *        Separate PlayerUI and CommonHint
+// *    V5.0.0  Rework
+// *        Fix the bug that cause the font file to place in the TEMP folder
 
 namespace HintServiceMeow
 {
