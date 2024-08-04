@@ -29,7 +29,7 @@ PlayerDisplay represents a player's screen. This is an example of creating a hin
 hint.Text = "你好，世界";
 ```
 2. Showing hints using PlayerUI
-PlayerUI is an easier way to show hints to a player. The common hint component in PlayerUI cana help you show a commonly used hint to a player. This includes map hints, role hints, and item hints. Here is an example of how to show a common hint to a player.
+PlayerUI is an easier way to show hints to a player. The common hint component in PlayerUI includes several methods for you to show commonly used hints, such as map hints, role hints, and item hints. Here is an example of how to show a common hint to a player.
 ```csharp
 var playerUi = PlayerUI.Get(player);//Could be ReferenceHub or Player
 playerUi.CommonHint.ShowOtherHint("HelloWorld!");
