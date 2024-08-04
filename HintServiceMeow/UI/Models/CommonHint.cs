@@ -1,16 +1,14 @@
-﻿using MEC;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using HintService.Config;
-using HintService.Core.Enum;
-using HintService.Core.Models;
-using HintService.Core.Models.Hints;
-using HintService.Core.Utilities;
-using HintService.UI.Utilities;
+using MEC;
+
+using HintServiceMeow.Core.Models.Hints;
+using HintServiceMeow.Core.Utilities;
+using HintServiceMeow.UI.Utilities;
 using PluginAPI.Core;
 
-namespace HintService.UI.Models
+namespace HintServiceMeow.UI.Models
 {
     public class CommonHint
     {
@@ -24,16 +22,83 @@ namespace HintService.UI.Models
         private CoroutineHandle _commonHintUpdateCoroutine;
 
         private DateTime _itemHintTimeToRemove = DateTime.MinValue;
-        private readonly List<DynamicHint> _itemHints = new List<DynamicHint>();
+
+        private readonly List<Hint> _itemHints = new List<Hint>
+        {
+            new Hint()
+            {
+                FontSize = 25
+            },
+            new Hint()
+            {
+                YCoordinate = 725,
+                FontSize = 25
+            }
+        };
 
         private DateTime _mapHintTimeToRemove = DateTime.MinValue;
-        private readonly List<DynamicHint> _mapHints = new List<DynamicHint>();
+        private readonly List<Hint> _mapHints = new List<Hint>{
+            new Hint()
+            {
+                YCoordinate = 200,
+                FontSize = 25
+            },
+            new Hint()
+            {
+                YCoordinate = 225,
+                FontSize = 25
+            }
+        };
 
         private DateTime _roleHintTimeToRemove = DateTime.MinValue;
-        private readonly List<DynamicHint> _roleHints = new List<DynamicHint>();
+        private readonly List<Hint> _roleHints = new List<Hint>{
+            new Hint()
+            {
+                YCoordinate = 100,
+                FontSize = 30
+            },
+            new Hint()
+            {
+                YCoordinate = 130,
+                FontSize = 25
+            },
+            new Hint()
+            {
+                YCoordinate = 155,
+                FontSize = 25
+            },
+            new Hint()
+            {
+                YCoordinate = 180,
+                FontSize = 25
+            }
+        };
 
         private DateTime _otherHintTimeToRemove = DateTime.MinValue;
-        private readonly List<DynamicHint> _otherHints = new List<DynamicHint>();
+
+        private readonly List<Hint> _otherHints = new List<Hint>
+        {
+            new Hint()
+            {
+                YCoordinate = 700,
+                FontSize = 20
+            },
+            new Hint()
+            {
+                YCoordinate = 720,
+                FontSize = 20
+            },
+            new Hint()
+            {
+                YCoordinate = 740,
+                FontSize = 20
+            },
+            new Hint()
+            {
+                YCoordinate = 760,
+                FontSize = 20
+            }
+        };
         #endregion
 
         #region Common Hint Methods
@@ -187,15 +252,14 @@ namespace HintService.UI.Models
         #endregion
 
         # region Private Common Hints Methods
-
         private IEnumerator<float> CommonHintCoroutineMethod()
         {
             while (true)
             {
+                DateTime currentTime = DateTime.Now;
+
                 try
                 {
-                    DateTime currentTime = DateTime.Now;
-
                     if (currentTime > _itemHintTimeToRemove)
                     {
                         _itemHints.ForEach(x => x.Hide = true);
@@ -228,7 +292,7 @@ namespace HintService.UI.Models
                         _mapHintTimeToRemove,
                         _roleHintTimeToRemove,
                         _otherHintTimeToRemove
-                    }.Min() - DateTime.Now;
+                    }.Where(x => x > currentTime).Min() - currentTime;
 
                 if (timeToWait <= TimeSpan.FromMilliseconds(0))
                     timeToWait = TimeSpan.FromMilliseconds(100); //Check every 0.1 second if a new common hint was added

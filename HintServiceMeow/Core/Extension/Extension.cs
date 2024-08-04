@@ -1,8 +1,8 @@
-﻿using HintService.Core.Models;
-using HintService.Core.Models.Hints;
-using HintService.Core.Utilities;
+﻿using HintServiceMeow.Core.Models;
+using HintServiceMeow.Core.Models.Hints;
+using HintServiceMeow.Core.Utilities;
 
-namespace HintService.Core.Extension
+namespace HintServiceMeow.Core.Extension
 {
     public static class ExiledPlayerExtension
     {

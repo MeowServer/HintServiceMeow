@@ -1,6 +1,6 @@
-﻿using HintService.UI.Utilities;
+﻿using HintServiceMeow.UI.Utilities;
 
-namespace HintService.UI.Extension
+namespace HintServiceMeow.UI.Extension
 {
     public static class ExiledPlayerExtension
     {

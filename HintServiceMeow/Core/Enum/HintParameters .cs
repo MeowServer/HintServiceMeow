@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine.AI;
 
-namespace HintService.Core.Enum
+namespace HintServiceMeow.Core.Enum
 {
     public enum HintPriority
     {

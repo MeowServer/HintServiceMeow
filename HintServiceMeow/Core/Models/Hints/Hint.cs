@@ -1,7 +1,7 @@
 ﻿using System;
-using HintService.Core.Enum;
+using HintServiceMeow.Core.Enum;
 
-namespace HintService.Core.Models.Hints
+namespace HintServiceMeow.Core.Models.Hints
 {
     public class Hint : AbstractHint
     {
@@ -25,7 +25,7 @@ namespace HintService.Core.Models.Hints
         /// Represent the Y coordinate of the hint. This value directly related to VOffset tag
         /// Higher Y coordinate means lower position. Select from 0 to 1080
         /// </summary>
-        private float _yCoordinate = 500;
+        private float _yCoordinate = 700;
 
         #region Constructors
         public Hint() : base()

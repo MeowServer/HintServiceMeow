@@ -1,15 +1,15 @@
-﻿using HintService.Core.Models;
-using HintService.Core.Enum;
+﻿using HintServiceMeow.Core.Models;
+using HintServiceMeow.Core.Enum;
 //Plugin API
 using PluginAPI.Core.Attributes;
 using PluginAPI.Enums;
 using PluginAPI.Events;
 //Exiled
 using Exiled.Events.EventArgs.Player;
-using HintService.Core.Utilities;
-using HintService.UI.Utilities;
+using HintServiceMeow.Core.Utilities;
+using HintServiceMeow.UI.Utilities;
 
-namespace HintService
+namespace HintServiceMeow
 {
     internal static class ExiledEventHandler
     {

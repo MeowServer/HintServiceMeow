@@ -1,14 +1,14 @@
-﻿using HintService.Core.Enum;
+﻿using HintServiceMeow.Core.Enum;
 
-namespace HintService.Core.Models.Hints
+namespace HintServiceMeow.Core.Models.Hints
 {
     public class DynamicHint : AbstractHint
     {
         private float _topBoundary = 0;
         private float _bottomBoundary = 1000;
 
-        private float _leftestBoundary = -1200;
-        private float _rightestBoundary = 1200;
+        private float _leftBoundary = -1200;
+        private float _rightBoundary = 1200;
 
         private float _targetY = 700;
         private float _targetX = 0;
@@ -27,8 +27,8 @@ namespace HintService.Core.Models.Hints
             this._topBoundary = hint._topBoundary;
             this._bottomBoundary = hint._bottomBoundary;
 
-            this._leftestBoundary = hint._leftestBoundary;
-            this._rightestBoundary = hint._rightestBoundary;
+            this._leftBoundary = hint._leftBoundary;
+            this._rightBoundary = hint._rightBoundary;
 
             this._priority = hint._priority;
         }
@@ -72,15 +72,15 @@ namespace HintService.Core.Models.Hints
         /// <summary>
         /// The left boundary of the dynamic hint. Should be more than -1200
         /// </summary>
-        public float LeftestBoundary
+        public float LeftBoundary
         {
-            get => _leftestBoundary;
+            get => _leftBoundary;
             set
             {
-                if (_leftestBoundary.Equals(value))
+                if (_leftBoundary.Equals(value))
                     return;
 
-                _leftestBoundary = value;
+                _leftBoundary = value;
 
                 OnHintUpdated();
             }
@@ -89,15 +89,15 @@ namespace HintService.Core.Models.Hints
         /// <summary>
         /// The right boundary of the dynamic hint. Should be less than 1200
         /// </summary>
-        public float RightestBoundary
+        public float RightBoundary
         {
-            get => _rightestBoundary;
+            get => _rightBoundary;
             set
             {
-                if (_rightestBoundary.Equals(value))
+                if (_rightBoundary.Equals(value))
                     return;
 
-                _rightestBoundary = value;
+                _rightBoundary = value;
 
                 OnHintUpdated();
             }

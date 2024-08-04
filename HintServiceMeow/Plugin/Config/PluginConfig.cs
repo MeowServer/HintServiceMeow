@@ -3,7 +3,7 @@
 //Exiled
 using Exiled.API.Interfaces;
 
-namespace HintService.Config
+namespace HintServiceMeow
 {
     internal interface IPluginConfig
     {

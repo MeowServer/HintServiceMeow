@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-using HintService.Core.Enum;
-using HintService.Core.Models.Hints;
-using HintService.Core.Utilities;
+using HintServiceMeow.Core.Enum;
+using HintServiceMeow.Core.Models.Hints;
+using UnityEngine.UIElements;
 
 namespace HintServiceMeow.Core.Utilities
 {
@@ -52,8 +52,8 @@ namespace HintServiceMeow.Core.Utilities
                 var hasIntersectedHint = hintList.Any(hint =>
                 {
                     float widthA = FontTool.GetTextWidth(hint);
-                    float leftA = hint.XCoordinate - widthA / 2;
-                    float rightA = hint.XCoordinate + widthA / 2;
+                    float leftA = GetActualXCoordinate(hint) - widthA / 2;
+                    float rightA = GetActualXCoordinate(hint) + widthA / 2;
                     float topA = hint.YCoordinate + hint.FontSize;
                     float bottomA = hint.YCoordinate;
 
@@ -72,9 +72,9 @@ namespace HintServiceMeow.Core.Utilities
                     return;
                 }
 
-                if (x + 1 < dynamicHint.RightestBoundary)
+                if (x + 1 < dynamicHint.RightBoundary)
                     queue.Enqueue(Tuple.Create(x + 1, y));
-                if (x - 1 > dynamicHint.LeftestBoundary)
+                if (x - 1 > dynamicHint.LeftBoundary)
                     queue.Enqueue(Tuple.Create(x - 1, y));
                 if(y+1 < dynamicHint.BottomBoundary)
                     queue.Enqueue(Tuple.Create(x, y + 1));
@@ -166,6 +166,34 @@ namespace HintServiceMeow.Core.Utilities
 
             return 700 - hint.YCoordinate + sizeOffset;
         }
+
+        private static float GetActualXCoordinate(Hint hint)
+        {
+            return GetActualXCoordinate(hint, hint.Alignment);
+        }
+
+        private static float GetActualXCoordinate(Hint hint, HintAlignment alignment)
+        {
+            float alignOffset;
+
+            switch (alignment)
+            {
+                case HintAlignment.Left:
+                    alignOffset = -1200;
+                    break;
+                case HintAlignment.Right:
+                    alignOffset = 1200;
+                    break;
+                case HintAlignment.Center:
+                    alignOffset = 0;
+                    break;
+                default:
+                    alignOffset = 0;
+                    break;
+            }
+
+            return hint.XCoordinate + alignOffset;
+        }
     }
 }
 
@@ -197,9 +225,9 @@ namespace HintServiceMeow.Core.Utilities
 //        //Define Usable Area
 //        var usableArea = new Rectangle()
 //        {
-//            LeftX = dynamicHint.LeftestBoundary,
+//            LeftX = dynamicHint.LeftBoundary,
 //            TopY = dynamicHint.TopBoundary,
-//            Width = dynamicHint.RightestBoundary - dynamicHint.LeftestBoundary,
+//            Width = dynamicHint.RightBoundary - dynamicHint.LeftBoundary,
 //            Height = dynamicHint.BottomBoundary - dynamicHint.TopBoundary,
 //        };
 

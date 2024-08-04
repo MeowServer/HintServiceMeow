@@ -2,9 +2,8 @@
 using System.Reflection;
 
 using HarmonyLib;
-using HintService.Config;
-using HintService.Core.Utilities;
-using HintService.UI.Utilities;
+using HintServiceMeow.Core.Utilities;
+using HintServiceMeow.UI.Utilities;
 
 //PluginAPI
 using PluginAPI.Core.Attributes;
@@ -55,13 +54,11 @@ using PluginAPI.Core.Attributes;
 // *        Add sync speed and auto text and several new properties to hint
 // *        Standardized code style
 // *        Add NW API support
-// *        Remove hint config templates
+// *        Remove hint config template
 // *        Separate PlayerUI and CommonHint
 
-namespace HintService
+namespace HintServiceMeow
 {
-    using PluginConfig = Config.PluginConfig;
-
     internal class ExiledPlugin : Exiled.API.Features.Plugin<ExiledPluginConfig>
     {
         public override string Name => Plugin.Name;

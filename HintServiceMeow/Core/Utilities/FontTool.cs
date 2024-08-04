@@ -4,13 +4,12 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using UnityEngine;
-
-using HintService.Core.Models.Hints;
+using HintServiceMeow.Core.Models.Hints;
 
 //NW API
 using PluginAPI.Core;
 
-namespace HintService.Core.Utilities
+namespace HintServiceMeow.Core.Utilities
 {
     internal static class FontTool
     {

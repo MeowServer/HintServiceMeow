@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using Hints;
 
-namespace HintService.Core.Utilities
+namespace HintServiceMeow.Core.Utilities
 {
     [HarmonyPatch(typeof(HintDisplay), nameof(HintDisplay.Show))]
     internal static class HintDisplayPatch

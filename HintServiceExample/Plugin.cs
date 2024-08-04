@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using Exiled.API.Features;
 using Exiled.API.Interfaces;
 using Exiled.Events.EventArgs.Player;
-using HintService.Core.Enum;
-using HintService.Core.Extension;
-using HintService.Core.Models.Hints;
-using HintService.Core.Utilities;
-using Hint = HintService.Core.Models.Hints.Hint;
+using HintServiceMeow.Core.Enum;
+using HintServiceMeow.Core.Extension;
+using HintServiceMeow.Core.Models.Hints;
+using HintServiceMeow.Core.Utilities;
+using HintServiceMeow.UI.Extension;
+using Hint = HintServiceMeow.Core.Models.Hints.Hint;
 
 using MEC;
 
@@ -37,7 +38,7 @@ namespace HintServiceExample
     {
         public static void OnVerified(VerifiedEventArgs ev)
         {
-            var NameHint = new Hint()
+            var nameHint = new Hint()
             {
                 Text = $"Hello, {ev.Player.Nickname}",
                 YCoordinateAlign = HintVerticalAlign.Top,
@@ -55,7 +56,7 @@ namespace HintServiceExample
                 FontSize = 20
             };
 
-            var TPSHint = new Hint()
+            var tPSHint = new Hint()
             {
                 AutoText = GetTPS,
                 YCoordinateAlign = HintVerticalAlign.Top,
@@ -63,11 +64,12 @@ namespace HintServiceExample
                 XCoordinate = 0,
                 FontSize = 20
             };
+            ev.Player.GetPlayerUi().CommonHint.ShowItemHint("AN Item");
 
             var pd = ev.Player.GetPlayerDisplay();
-            pd.AddHint(NameHint);
+            pd.AddHint(nameHint);
             pd.AddHint(currentTimeHint);
-            pd.AddHint(TPSHint);
+            pd.AddHint(tPSHint);
 
             var roleHint = new Hint()
             {

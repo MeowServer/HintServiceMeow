@@ -1,9 +1,8 @@
-﻿using HintService.Core.Enum;
-using HintService.Core.Utilities;
+﻿using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Models.HintContent.HintContent;
 using HintServiceMeow.Core.Utilities;
 
-namespace HintService.Core.Models.Hints
+namespace HintServiceMeow.Core.Models.Hints
 {
     public abstract class AbstractHint
     {

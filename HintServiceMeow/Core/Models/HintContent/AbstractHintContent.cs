@@ -1,5 +1,5 @@
 ﻿using System;
-using HintService.Core.Models.Hints;
+using HintServiceMeow.Core.Models.Hints;
 using PluginAPI.Core;
 
 namespace HintServiceMeow.Core.Models.HintContent.HintContent

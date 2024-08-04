@@ -1,9 +1,6 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel;
-using HintService.Core.Enum;
-using HintService.Core.Models;
+﻿using System.ComponentModel;
 
-namespace HintService.Config
+namespace HintServiceMeow
 {
     internal class PlayerUIConfig
     {

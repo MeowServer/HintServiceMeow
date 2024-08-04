@@ -1,28 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml.Linq;
-using HintService.Config;
+
 using Hints;
-using HintService.Core;
 
 using MEC;
 using Mirror;
-
-using HintService.Core.Enum;
-using HintService.Core.Models.Hints;
-using HintServiceMeow.Core.Utilities;
+using HintServiceMeow.Core.Enum;
+using HintServiceMeow.Core.Models.Hints;
 
 //Plugin API
-using PluginAPI.Core;
-using Hint = HintService.Core.Models.Hints.Hint;
 using Log = PluginAPI.Core.Log;
 
 //Exiled
 using Player = Exiled.API.Features.Player;
-//using Log = Exiled.API.Features.Log;
 
-namespace HintService.Core.Utilities
+namespace HintServiceMeow.Core.Utilities
 {
     public class PlayerDisplay
     {

@@ -3,10 +3,10 @@ using System.Linq;
 
 //Exiled
 using Exiled.API.Features;
-using HintService.Core.Utilities;
-using HintService.UI.Models;
+using HintServiceMeow.Core.Utilities;
+using HintServiceMeow.UI.Models;
 
-namespace HintService.UI.Utilities
+namespace HintServiceMeow.UI.Utilities
 {
     public class PlayerUI
     {
