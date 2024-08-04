@@ -1,8 +1,3 @@
-
-  
-### Designed for Meow Servers~
-- [English](https://github.com/MeowServer/HintServiceMeow/blob/main/README.md)
-- [中文](https://github.com/MeowServer/HintServiceMeow/blob/main/README_zh.md)
 ## Introduction
 HintServiceMeow is a plugin based on the Exiled framework that allows plugins to display multiple hints on a player's screen simultaneously. It also gives you a simple way to fix your hint onto a specific position on the player's screen.
 
