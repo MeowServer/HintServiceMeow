@@ -51,7 +51,7 @@ using PluginAPI.Core.Attributes;
 // *        Improve code quality
 // *    V5.0.0  Rework
 // *        Rewrite core code
-// *        Add sync speed and auto text and several new properties to hint
+// *        Add sync speed, auto text, and several new properties to hint
 // *        Standardized code style
 // *        Add NW API support
 // *        Remove hint config template
