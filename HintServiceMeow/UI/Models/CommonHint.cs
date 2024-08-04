@@ -22,7 +22,6 @@ namespace HintServiceMeow.UI.Models
         private CoroutineHandle _commonHintUpdateCoroutine;
 
         private DateTime _itemHintTimeToRemove = DateTime.MinValue;
-
         private readonly List<Hint> _itemHints = new List<Hint>
         {
             new Hint()
@@ -75,7 +74,6 @@ namespace HintServiceMeow.UI.Models
         };
 
         private DateTime _otherHintTimeToRemove = DateTime.MinValue;
-
         private readonly List<Hint> _otherHints = new List<Hint>
         {
             new Hint()
@@ -285,19 +283,7 @@ namespace HintServiceMeow.UI.Models
                     Log.Error(ex.ToString());
                 }
 
-                var timeToWait =
-                    new[]
-                    {
-                        _itemHintTimeToRemove,
-                        _mapHintTimeToRemove,
-                        _roleHintTimeToRemove,
-                        _otherHintTimeToRemove
-                    }.Where(x => x > currentTime).Min() - currentTime;
-
-                if (timeToWait <= TimeSpan.FromMilliseconds(0))
-                    timeToWait = TimeSpan.FromMilliseconds(100); //Check every 0.1 second if a new common hint was added
-
-                yield return Timing.WaitForSeconds((float)timeToWait.TotalMilliseconds);
+                yield return Timing.WaitForSeconds(0.1f);
             }
         }
 

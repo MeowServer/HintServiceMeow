@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using Exiled.API.Features;
-using Exiled.API.Interfaces;
 using Exiled.Events.EventArgs.Player;
 using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Extension;
 using HintServiceMeow.Core.Models.Hints;
-using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.UI.Extension;
 using Hint = HintServiceMeow.Core.Models.Hints.Hint;
-
 using MEC;
 
 namespace HintServiceExample
@@ -19,6 +15,8 @@ namespace HintServiceExample
     /// </summary>
     public class Plugin : Plugin<Config>
     {
+        public override string Name => "HintServiceExample";
+
         public override void OnEnabled()
         {
             Exiled.Events.Handlers.Player.Verified += EventHandler.OnVerified;
@@ -64,6 +62,7 @@ namespace HintServiceExample
                 XCoordinate = 0,
                 FontSize = 20
             };
+
             ev.Player.GetPlayerUi().CommonHint.ShowItemHint("AN Item");
 
             var pd = ev.Player.GetPlayerDisplay();

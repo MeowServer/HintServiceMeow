@@ -1,5 +1,8 @@
-﻿using HarmonyLib;
+﻿using System;
+using HarmonyLib;
 using Hints;
+using PluginAPI.Core;
+using Hint = Hints.Hint;
 
 namespace HintServiceMeow.Core.Utilities
 {

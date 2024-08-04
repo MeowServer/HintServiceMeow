@@ -284,35 +284,42 @@ namespace HintServiceMeow.Core.Utilities
 
         private void UpdateHint(bool IsForceUpdate = false)
         {
-            //Check connection
-            if (!NetworkServer.active || ReferenceHub.isLocalPlayer)
-                return;
+            try
+            {
+                //Check connection
+                if (!NetworkServer.active || ReferenceHub.isLocalPlayer)
+                    return;
 
-            string text = HintParser.GetMessage(_hintList, this);
+                string text = HintParser.GetMessage(_hintList, this);
 
-            //Reset CountDown
-            _secondLastTimeUpdate = _lastTimeUpdate;
-            _lastTimeUpdate = DateTime.Now;
+                //Reset CountDown
+                _secondLastTimeUpdate = _lastTimeUpdate;
+                _lastTimeUpdate = DateTime.Now;
 
-            //Reset Update Plan
-            _planUpdateTime = DateTime.MaxValue;
-            _arrangedUpdateTime = DateTime.MaxValue;
+                //Reset Update Plan
+                _planUpdateTime = DateTime.MaxValue;
+                _arrangedUpdateTime = DateTime.MaxValue;
 
-            _updatingHints.Clear();
+                _updatingHints.Clear();
 
-            //Check whether the text had changed since last update or if this is a force update
-            if (text == _lastText && !IsForceUpdate)
-                return;
+                //Check whether the text had changed since last update or if this is a force update
+                if (text == _lastText && !IsForceUpdate)
+                    return;
 
-            //Update text record
-            _lastText = text;
+                //Update text record
+                _lastText = text;
 
-            //Display the hint
-            var parameter = new HintParameter[] { new StringHintParameter(text) };
-            var effect = new HintEffect[] { HintEffectPresets.TrailingPulseAlpha(1, 1, 1) };
-            var hint = new TextHint(text, parameter, effect, float.MaxValue);
+                //Display the hint
+                var parameter = new HintParameter[] { new StringHintParameter(text) };
+                var effect = new HintEffect[] { HintEffectPresets.TrailingPulseAlpha(1, 1, 1) };
+                var hint = new TextHint(text, parameter, effect, float.MaxValue);
 
-            ReferenceHub.connectionToClient.Send(new HintMessage(hint));
+                ReferenceHub.connectionToClient.Send(new HintMessage(hint));
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.ToString());
+            }
         }
         #endregion
 

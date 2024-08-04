@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 
 using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Models.Hints;
+using PluginAPI.Core;
 using UnityEngine.UIElements;
 
 namespace HintServiceMeow.Core.Utilities
@@ -107,18 +108,12 @@ namespace HintServiceMeow.Core.Utilities
 
             string text = hint.Content.GetText(new AbstractHint.TextUpdateArg(hint, playerDisplay))??string.Empty;
 
-            text = Regex.Replace(text, @"<line-height=(\d+(\.\d+)?)>|<voffset=(-?\d+(\.\d+)?)>|<pos=(\d+(\.\d+)?)>|<align=(left|center|right)>", string.Empty);
-
-            text = text
-                .Replace("</voffset>", string.Empty)
-                .Replace("</align>", string.Empty);
+            text = RemoveIllegalTag(text);
 
             if (string.IsNullOrEmpty(text))
                 return null;
 
-            float y;
-            //y= 1340 - hint.YCoordinate;
-            y = GetActualYCoordinate(hint);
+            float y = GetActualYCoordinate(hint);
 
             //Position Tags
             if (hint.XCoordinate != 0) sb.Append($"<pos={hint.XCoordinate:0.#}>");
@@ -137,6 +132,15 @@ namespace HintServiceMeow.Core.Utilities
             sb.Append("</align>");
 
             return sb.ToString();
+        }
+
+        private static string RemoveIllegalTag(string rawText)
+        {
+            rawText = Regex.Replace(rawText, @"<line-height=(\d+(\.\d+)?)>|<voffset=(-?\d+(\.\d+)?)>|<pos=(\d+(\.\d+)?)>|<align=(left|center|right)>", string.Empty);
+
+            return rawText
+                .Replace("</voffset>", string.Empty)
+                .Replace("</align>", string.Empty);
         }
 
         private static float GetActualYCoordinate(Hint hint)
