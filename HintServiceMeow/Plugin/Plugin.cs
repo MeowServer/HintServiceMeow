@@ -59,6 +59,7 @@ using PluginAPI.Core.Attributes;
 // *        Separate PlayerUI and CommonHint
 // *    V5.0.0  Rework
 // *        Fix the bug that cause the font file to place in the TEMP folder
+// *        Fix the bug that NW API cannot load this plugin correctly
 
 namespace HintServiceMeow
 {
@@ -87,20 +88,14 @@ namespace HintServiceMeow
 
     internal class NwapiPlugin
     {
-        [PluginAPI.Core.Attributes.PluginConfig]
-        public PluginConfig Config;
-
         public static NwapiPlugin Instance;
 
-        [PluginEntryPoint("HintServiceMeow", "4.0.0", "A hint framework", "MeowServerOwner")]
+        [PluginEntryPoint("HintServiceMeow", "5.0.0", "A hint framework", "MeowServerOwner")]
         public void LoadPlugin()
         {
-            if (!Config.IsEnabled)
-                return;
-
             Instance = this;
 
-            Plugin.OnEnabled(Config, false);
+            Plugin.OnEnabled(null, false);
         }
     }
 
@@ -110,13 +105,13 @@ namespace HintServiceMeow
         public static string Author => "MeowServer";
         public static Version Version => new Version(5, 0, 0);
 
-        public static IPluginConfig Config;
+        public static PluginConfig Config = new PluginConfig();//Initialize if fail to initialize
 
         private static Harmony _harmony;
 
         private static bool _hasInitiated = false;
         
-        public static void OnEnabled(IPluginConfig config, bool isExiled)
+        public static void OnEnabled(PluginConfig config, bool isExiled)
         {
             //Check initiated status
             if (_hasInitiated)
@@ -125,7 +120,8 @@ namespace HintServiceMeow
             //Set initiated status
             _hasInitiated = true;
 
-            Config = config;
+            if(config != null)
+                Config = config;
 
             _harmony = new Harmony("HintServiceMeowHarmony" + Version);
             _harmony.PatchAll();
@@ -135,8 +131,7 @@ namespace HintServiceMeow
             //Register events
             if (isExiled)
             {
-                Exiled.Events.Handlers.Player.Verified += ExiledEventHandler.OnVerified;
-                Exiled.Events.Handlers.Player.Left += ExiledEventHandler.OnLeft;
+                RegisterExiledEvent();
             }
             else
             {
@@ -159,14 +154,25 @@ namespace HintServiceMeow
             //Unregister events
             if (!(Assembly.GetExecutingAssembly().GetType("Exiled.Events.Handlers.Player") is null))
             {
-                Exiled.Events.Handlers.Player.Verified -= ExiledEventHandler.OnVerified;
-                Exiled.Events.Handlers.Player.Left -= ExiledEventHandler.OnLeft;
+                UnregisterExiledEvent();
             }
 
             PluginAPI.Events.EventManager.UnregisterAllEvents(NwapiPlugin.Instance);
 
             PlayerUI.ClearInstance();
             PlayerDisplay.ClearInstance();
+        }
+
+        private static void RegisterExiledEvent()
+        {
+            Exiled.Events.Handlers.Player.Verified += ExiledEventHandler.OnVerified;
+            Exiled.Events.Handlers.Player.Left += ExiledEventHandler.OnLeft;
+        }
+
+        private static void UnregisterExiledEvent()
+        {
+            Exiled.Events.Handlers.Player.Verified -= ExiledEventHandler.OnVerified;
+            Exiled.Events.Handlers.Player.Left -= ExiledEventHandler.OnLeft;
         }
     }
 }

@@ -21,10 +21,7 @@ namespace HintServiceMeow.Core.Utilities
 
         private static Font _font;
 
-        private static Font Font
-        {
-            get => _font;
-        }
+        private static Font Font => _font;
 
         public static void CheckFontFile()
         {

@@ -5,17 +5,9 @@ using Exiled.API.Interfaces;
 
 namespace HintServiceMeow
 {
-    internal interface IPluginConfig
+    internal class PluginConfig
     {
-        bool IsEnabled { get; set; }
-        bool Debug { get; set; }
-
-        PlayerUIConfig PlayerUIConfig { get; set; }
-    }
-
-    internal class PluginConfig : IPluginConfig
-    {
-        public static IPluginConfig Instance => Plugin.Config;
+        public static PluginConfig Instance => Plugin.Config;
 
         public bool IsEnabled { get; set; } = true;
         public bool Debug { get; set; } = false;
@@ -25,12 +17,7 @@ namespace HintServiceMeow
     }
 
     //Exiled Only
-    internal class ExiledPluginConfig: IConfig, IPluginConfig
+    internal class ExiledPluginConfig: PluginConfig, IConfig
     {
-        public bool IsEnabled { get; set; } = true;
-        public bool Debug { get; set; } = false;
-
-        [Description("The for CommonHint. CommonHint contains commonly used hints")]
-        public PlayerUIConfig PlayerUIConfig { get; set; } = new PlayerUIConfig();
     }
 }
