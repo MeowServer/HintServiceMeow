@@ -4,7 +4,8 @@ HintServiceMeow 是一款基于Exiled框架的插件，用于向玩家同时展�
 ### 安装
 如果希望安装这个插件
 1. 进入发行（Release）页面并下载最新的HintServiceMeow.dll文件。
-2. 将这个文件粘贴于插件文件夹中，并重启服务器即可安装。
+2. 如果您正在使用PluginAPI（默认的API），请将Harmony.dll放入dependencies文件夹
+3. 将这个文件粘贴于插件文件夹中，并重启服务器即可安装。
 
 ### 致开发者
 这里是一个简单的指导：

@@ -3,8 +3,9 @@ HintServiceMeow is a plugin based on the Exiled framework that allows plugins to
 
 ## Installation
 To install this plugin, please 
-1. go to the release page and download the newest HintServiceMeow.dll. Then, paste it into the plugin folder. 
-2. Restart your server.
+1. go to the release page and download the newest HintServiceMeow.dll. Then, paste it into the plugin folder.
+2. If you are using PluginAPI (The default API), put Harmony.dll into dependencies folder.
+3. Restart your server.
 
 ## To Developers
 Here's an easy documentary of this plugin:
