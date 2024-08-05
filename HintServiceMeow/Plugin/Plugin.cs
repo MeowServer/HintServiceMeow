@@ -4,6 +4,7 @@ using System.Reflection;
 using HarmonyLib;
 using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.UI.Utilities;
+using PluginAPI.Core;
 
 //PluginAPI
 using PluginAPI.Core.Attributes;
@@ -71,7 +72,7 @@ namespace HintServiceMeow
 
         public override void OnEnabled()
         {
-            Plugin.OnEnabled(this.Config);
+            Plugin.OnEnabled(this.Config, true);
 
             base.OnEnabled();
         }
@@ -99,7 +100,7 @@ namespace HintServiceMeow
 
             Instance = this;
 
-            Plugin.OnEnabled(Config);
+            Plugin.OnEnabled(Config, false);
         }
     }
 
@@ -115,7 +116,7 @@ namespace HintServiceMeow
 
         private static bool _hasInitiated = false;
         
-        public static void OnEnabled(IPluginConfig config)
+        public static void OnEnabled(IPluginConfig config, bool isExiled)
         {
             //Check initiated status
             if (_hasInitiated)
@@ -132,7 +133,7 @@ namespace HintServiceMeow
             FontTool.CheckFontFile();
 
             //Register events
-            if (!(Assembly.GetExecutingAssembly().GetType("Exiled.Events.Handlers.Player") != null))
+            if (isExiled)
             {
                 Exiled.Events.Handlers.Player.Verified += ExiledEventHandler.OnVerified;
                 Exiled.Events.Handlers.Player.Left += ExiledEventHandler.OnLeft;
@@ -141,6 +142,8 @@ namespace HintServiceMeow
             {
                 PluginAPI.Events.EventManager.RegisterEvents<NwapiEventHandler>(NwapiPlugin.Instance);
             }
+
+            Log.Info("HintServiceMeow has been enabled!");
         }
 
         public static void OnDisabled()
