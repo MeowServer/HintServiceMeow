@@ -1,6 +1,5 @@
 ### 简介
-HintServiceMeow 是一款基于Exiled框架的插件，用于向玩家同时展示多个Hint，并让每一条Hint固定在特定的位置。
-
+HintServiceMeow 是一款基于Exiled框架的插件，用于向玩家同时展示多条Hint。
 ### 安装
 如果希望安装这个插件
 1. 进入发行（Release）页面并下载最新的HintServiceMeow.dll文件。
