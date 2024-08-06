@@ -2,7 +2,6 @@
 using System.Reflection;
 
 using HarmonyLib;
-using HintServiceMeow.Core.Integration;
 using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.UI.Utilities;
 using PluginAPI.Core;
@@ -61,8 +60,6 @@ using PluginAPI.Core.Attributes;
 // *    V5.0.0  Rework
 // *        Fix the bug that cause the font file to place in the TEMP folder
 // *        Fix the bug that NW API cannot load this plugin correctly
-// *    V5.1.0
-// *        Add Scripted Event integration
 
 namespace HintServiceMeow
 {
@@ -93,7 +90,7 @@ namespace HintServiceMeow
     {
         public static NwapiPlugin Instance;
 
-        [PluginEntryPoint("HintServiceMeow", "5.1.0", "A hint framework", "MeowServerOwner")]
+        [PluginEntryPoint("HintServiceMeow", "5.0.0", "A hint framework", "MeowServerOwner")]
         public void LoadPlugin()
         {
             Instance = this;
@@ -106,7 +103,7 @@ namespace HintServiceMeow
     {
         public static string Name => "HintServiceMeow";
         public static string Author => "MeowServer";
-        public static Version Version => new Version(5, 1, 0);
+        public static Version Version => new Version(5, 0, 0);
 
         public static PluginConfig Config = new PluginConfig();//Initialize if fail to initialize
 
@@ -135,8 +132,6 @@ namespace HintServiceMeow
             if (isExiled)
             {
                 RegisterExiledEvent();
-
-                ScriptedEventsIntegration.AddAllMethods();
             }
             else
             {
@@ -160,16 +155,12 @@ namespace HintServiceMeow
             if (!(Assembly.GetExecutingAssembly().GetType("Exiled.Events.Handlers.Player") is null))
             {
                 UnregisterExiledEvent();
-
-                ScriptedEventsIntegration.RemoveAllMethods();
             }
 
             PluginAPI.Events.EventManager.UnregisterAllEvents(NwapiPlugin.Instance);
 
             PlayerUI.ClearInstance();
             PlayerDisplay.ClearInstance();
-
-            Log.Info("HintServiceMeow has been disabled!");
         }
 
         private static void RegisterExiledEvent()
