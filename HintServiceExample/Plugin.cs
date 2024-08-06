@@ -63,8 +63,6 @@ namespace HintServiceExample
                 FontSize = 20
             };
 
-            ev.Player.GetPlayerUi().CommonHint.ShowItemHint("AN Item");
-
             var pd = ev.Player.GetPlayerDisplay();
             pd.AddHint(nameHint);
             pd.AddHint(currentTimeHint);
