@@ -15,7 +15,7 @@ HintServiceMeow 是一款基于Exiled框架的插件，用于向玩家同时展�
 ```csharp
 var hint = new Hint() 
 {
-    Text = "Hello World!"
+    Text = "Hello World!",
     YCoordinateAlign = HintVerticalAlign.Top,//Means that Y coordinate represent the top side of the hint
     YCoordinate = 0, //Higher the Y coordinate, lower it is on the screen
     Alignment = HintAlignment.Right,

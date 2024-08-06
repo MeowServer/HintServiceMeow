@@ -16,7 +16,7 @@ There are 2 ways to show a hint to a player.
 ```csharp
 var hint = new Hint() 
 {
-    Text = "Hello World!"
+    Text = "Hello World!",
     YCoordinateAlign = HintVerticalAlign.Top,//Means that Y coordinate represent the top side of the hint
     YCoordinate = 0, //Higher the Y coordinate, lower it is on the screen
     Alignment = HintAlignment.Right,
