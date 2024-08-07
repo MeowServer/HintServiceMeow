@@ -17,29 +17,56 @@ namespace HintServiceMeow.Core.Utilities
 {
     internal static class FontTool
     {
-        private static Dictionary<Tuple<string, int>, float> _textWidthCache = new Dictionary<Tuple<string, int>, float>();
+        private static readonly Dictionary<Tuple<string, int>, float> _textWidthCache = new Dictionary<Tuple<string, int>, float>();
 
         private static Font _font;
 
         private static Font Font => _font;
 
-        public static void CheckFontFile()
+        public static void LoadFontFile()
         {
-            string fontName = "Araboto-Light";
-
-            bool isFontInstalled = new InstalledFontCollection().Families.Any(fontFamily => fontFamily.Name.Equals(fontName, StringComparison.OrdinalIgnoreCase));
-            if (!isFontInstalled)
+            try
             {
-                Log.Error("Did not found required font in system.");
-                Log.Error("The required font file will be place on the desktop. Please install it manually.");
+                string fontName = "Roboto Light";
 
-                CopyEmbeddedFont();
+                bool isFontInstalled = new InstalledFontCollection().Families.Any(fontFamily =>
+                    fontFamily.Name.Equals(fontName, StringComparison.OrdinalIgnoreCase));
+
+                if (!isFontInstalled)
+                {
+                    var fontFile = Path.Combine(Path.GetTempPath(), "HintServiceMeowRequiredFont");
+
+                    CopyEmbeddedFont(fontFile);
+
+                    if (File.Exists(fontFile))
+                        _font = new Font(fontFile);
+                    else
+                        Log.Error("Error while loading the font file! Cannot find the font file ");
+
+                    if (_font == null || GetTextWidth("abc") == 0) //Check if the font is loaded correctly
+                    {
+                        _font = null;
+
+                        Log.Warning("Failed to load font file. You can install the font manually. Font: Roboto Light");
+                        Log.Warning("A font file will be put onto your server's folder. Please install it and restart the server");
+                        Log.Warning("If you cannot install the font, you can ignore this message");
+
+                        var path = Path.Combine(Environment.CurrentDirectory, "Required Font.ttf");
+                        CopyEmbeddedFont(path);
+                    }
+                }
+                else
+                {
+                    _font = Font.CreateDynamicFontFromOSFont(fontName, 20);
+                }
             }
-
-            _font = Font.CreateDynamicFontFromOSFont(fontName, 20);
+            catch(Exception ex)
+            {
+                Log.Error("Error loading font file：" + ex);
+            }
         }
 
-        private static void CopyEmbeddedFont()
+        private static void CopyEmbeddedFont(string path)
         {
             try
             {
@@ -53,8 +80,7 @@ namespace HintServiceMeow.Core.Utilities
                         throw new InvalidOperationException(resourceName + " not found.");
                     }
 
-                    string desktopPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Required Font.ttf");
-                    using (FileStream tempFile = new FileStream(desktopPath, FileMode.Create))
+                    using (FileStream tempFile = new FileStream(path, FileMode.Create))
                     {
                         stream.CopyTo(tempFile);
                     }
@@ -74,34 +100,42 @@ namespace HintServiceMeow.Core.Utilities
         public static float GetTextWidth(string text, int size = 20)
         {
             float width;
-            var tuple = Tuple.Create(text, size);
 
-            if (!_textWidthCache.TryGetValue(tuple, out width))
+            if (Font != null)
             {
-                TextGenerationSettings settings = new TextGenerationSettings()
+                var tuple = Tuple.Create(text, size);
+
+                if (!_textWidthCache.TryGetValue(tuple, out width))
                 {
-                    font = Font,
-                    fontSize = size,
-                    fontStyle = FontStyle.Normal,
-                    richText = true,
-                    scaleFactor = 2f,
-                    color = Color.black,
-                    lineSpacing = 1.0f,
-                    textAnchor = TextAnchor.MiddleCenter,
-                    alignByGeometry = false,
-                    resizeTextForBestFit = false,
-                    updateBounds = true,
-                    verticalOverflow = VerticalWrapMode.Overflow,
-                    horizontalOverflow = HorizontalWrapMode.Overflow
-                };
+                    TextGenerationSettings settings = new TextGenerationSettings()
+                    {
+                        font = Font,
+                        fontSize = size,
+                        fontStyle = FontStyle.Normal,
+                        richText = true,
+                        scaleFactor = 2f,
+                        color = Color.black,
+                        lineSpacing = 1.0f,
+                        textAnchor = TextAnchor.MiddleCenter,
+                        alignByGeometry = false,
+                        resizeTextForBestFit = false,
+                        updateBounds = true,
+                        verticalOverflow = VerticalWrapMode.Overflow,
+                        horizontalOverflow = HorizontalWrapMode.Overflow
+                    };
 
-                text = GetSmallCapsText(text, size);
+                    text = GetSmallCapsText(text, size);
 
-                var textGenerator = new TextGenerator();
-                textGenerator.Populate(text, settings);
-                width = textGenerator.GetPreferredWidth(text, settings);
+                    var textGenerator = new TextGenerator();
+                    textGenerator.Populate(text, settings);
+                    width = textGenerator.GetPreferredWidth(text, settings);
 
-                _textWidthCache.Add(tuple, width);
+                    _textWidthCache.Add(tuple, width);
+                }
+            }
+            else
+            {
+                width = text.Length * size;
             }
 
             return width;

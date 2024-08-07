@@ -183,10 +183,10 @@ namespace HintServiceMeow.Core.Utilities
             switch (alignment)
             {
                 case HintAlignment.Left:
-                    alignOffset = -1200;
+                    alignOffset = -1200 + FontTool.GetTextWidth(hint) / 2;
                     break;
                 case HintAlignment.Right:
-                    alignOffset = 1200;
+                    alignOffset = 1200 - FontTool.GetTextWidth(hint) / 2;
                     break;
                 case HintAlignment.Center:
                     alignOffset = 0;

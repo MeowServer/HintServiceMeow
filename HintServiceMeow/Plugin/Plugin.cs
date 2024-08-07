@@ -60,6 +60,9 @@ using PluginAPI.Core.Attributes;
 // *    V5.0.0  Rework
 // *        Fix the bug that cause the font file to place in the TEMP folder
 // *        Fix the bug that NW API cannot load this plugin correctly
+// *    V5.0.1
+// *        Improve experience in font installation
+// *        Fix the bug in Dynamic Hint arranging
 
 namespace HintServiceMeow
 {
@@ -90,7 +93,7 @@ namespace HintServiceMeow
     {
         public static NwapiPlugin Instance;
 
-        [PluginEntryPoint("HintServiceMeow", "5.0.0", "A hint framework", "MeowServerOwner")]
+        [PluginEntryPoint("HintServiceMeow", "5.0.1", "A hint framework", "MeowServerOwner")]
         public void LoadPlugin()
         {
             Instance = this;
@@ -103,7 +106,7 @@ namespace HintServiceMeow
     {
         public static string Name => "HintServiceMeow";
         public static string Author => "MeowServer";
-        public static Version Version => new Version(5, 0, 0);
+        public static Version Version => new Version(5, 0, 1);
 
         public static PluginConfig Config = new PluginConfig();//Initialize if fail to initialize
 
@@ -126,7 +129,7 @@ namespace HintServiceMeow
             _harmony = new Harmony("HintServiceMeowHarmony" + Version);
             _harmony.PatchAll();
 
-            FontTool.CheckFontFile();
+            FontTool.LoadFontFile();
 
             //Register events
             if (isExiled)
@@ -138,7 +141,7 @@ namespace HintServiceMeow
                 PluginAPI.Events.EventManager.RegisterEvents<NwapiEventHandler>(NwapiPlugin.Instance);
             }
 
-            Log.Info("HintServiceMeow has been enabled!");
+            Log.Info($"HintServiceMeow {Version} has been enabled!");
         }
 
         public static void OnDisabled()
