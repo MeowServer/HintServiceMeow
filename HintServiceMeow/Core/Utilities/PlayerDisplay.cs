@@ -432,7 +432,7 @@ namespace HintServiceMeow.Core.Utilities
             if (string.IsNullOrEmpty(id))
                 throw new Exception("A null or a empty ID had been passed to RemoveHint");
 
-            var toRemove = _hintList.Where(x => x.Id.Equals(id));
+            var toRemove = _hintList.Where(x => x.Id.Equals(id)).ToList();
 
             foreach (var hint in toRemove)
             {
