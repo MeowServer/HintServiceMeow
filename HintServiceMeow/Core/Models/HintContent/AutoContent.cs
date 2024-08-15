@@ -23,7 +23,7 @@ namespace HintServiceMeow.Core.Models.HintContent.HintContent
             set => _autoText = value;
         }
 
-        public override string GetText(AbstractHint.TextUpdateArg ev)
+        public override string GetText()
         {
             return _text;
         }

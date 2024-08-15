@@ -42,6 +42,7 @@ namespace HintServiceMeow.Core.Models.Hints
         {
             this.YCoordinate = y;
             this.XCoordinate = x;
+            _yCoordinateAlign = HintVerticalAlign.Bottom;
         }
         #endregion
 

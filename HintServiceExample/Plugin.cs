@@ -7,6 +7,7 @@ using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.UI.Extension;
 using Hint = HintServiceMeow.Core.Models.Hints.Hint;
 using MEC;
+using System.Collections.Generic;
 
 namespace HintServiceExample
 {
@@ -36,9 +37,20 @@ namespace HintServiceExample
     {
         public static void OnVerified(VerifiedEventArgs ev)
         {
+            ShowHintA(ev.Player);
+            ShowHintB(ev.Player);
+            ShowDynamicHintA(ev.Player);
+            ShowCommonHintA(ev.Player);
+        }
+
+        //How to use Hint
+        private static void ShowHintA(Player player)
+        {
+            var pd = player.GetPlayerDisplay();
+
             var nameHint = new Hint()
             {
-                Text = $"Hello, {ev.Player.Nickname}",
+                Text = $"Hello, {player.Nickname}",
                 YCoordinateAlign = HintVerticalAlign.Top,
                 YCoordinate = 0,
                 Alignment = HintAlignment.Left,
@@ -47,7 +59,7 @@ namespace HintServiceExample
 
             var currentTimeHint = new Hint()
             {
-                AutoText = GetCurrentTime,
+                AutoText = GetCurrentTime, //Use delegate to get text instead of static text
                 YCoordinateAlign = HintVerticalAlign.Top,
                 YCoordinate = 0,
                 Alignment = HintAlignment.Right,
@@ -63,10 +75,15 @@ namespace HintServiceExample
                 FontSize = 20
             };
 
-            var pd = ev.Player.GetPlayerDisplay();
             pd.AddHint(nameHint);
             pd.AddHint(currentTimeHint);
             pd.AddHint(tPSHint);
+        }
+
+        //Advanced Hint skills
+        private static void ShowHintB(Player player)
+        {
+            var pd = player.GetPlayerDisplay();
 
             var roleHint = new Hint()
             {
@@ -89,29 +106,30 @@ namespace HintServiceExample
 
             pd.AddHint(roleHint);
             pd.AddHint(itemHint);
+        }
 
-            var dynamicHint = new DynamicHint()
+        //How to use Dynamic Hint
+        private static void ShowDynamicHintA(Player player)
+        {
+            for(var i = 0; i < 10; i++)
             {
-                Text = "Welcome To HintServiceMeow",
-                TargetX = 0,
-                TargetY = 700,
-            };
+                //Each dynamic hint will automatically find the position that does not overlaps with other hints
+                player.GetPlayerDisplay().AddHint(new DynamicHint()
+                {
+                    Id = $"DynamicHint{i}",
+                    Text = "Welcome \nTo HintServiceMeow",
+                    TargetX = 0,
+                    TargetY = 700,
+                });
+            }
+        }
 
-            var blocker = new Hint()
-            {
-                Text = "Hope you enjoy it!",
-                XCoordinate = 0,
-                YCoordinate = 700,
-                FontSize = 40,
-            };
+        //How to use Common Hint
+        private static void ShowCommonHintA(Player player)
+        {
+            var ui = player.GetPlayerUi();
 
-            Timing.CallDelayed(10f, () =>
-            {
-                pd.RemoveHint(blocker);
-            });
-
-            pd.AddHint(dynamicHint);
-            pd.AddHint(blocker);
+            ui.CommonHint.ShowRoleHint(player.Role.Name, "This is a decription of your role", 20f);
         }
 
         private static string GetCurrentTime(AbstractHint.TextUpdateArg ev)

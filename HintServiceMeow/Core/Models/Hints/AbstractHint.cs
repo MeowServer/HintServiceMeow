@@ -113,7 +113,7 @@ namespace HintServiceMeow.Core.Models.Hints
             {
                 if (Content is StringContent)
                 {
-                    return Content.GetText(new TextUpdateArg(this, null));
+                    return Content.GetText();
                 }
 
                 return null;

@@ -24,6 +24,6 @@ namespace HintServiceMeow.Core.Models.HintContent.HintContent
 
         public abstract void TryUpdate(AbstractHint.TextUpdateArg ev);
 
-        public abstract string GetText(AbstractHint.TextUpdateArg ev);
+        public abstract string GetText();
     }
 }

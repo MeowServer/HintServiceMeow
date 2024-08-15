@@ -25,7 +25,7 @@ namespace HintServiceMeow.Core.Models.HintContent.HintContent
             this.Text = content;
         }
 
-        public override string GetText(AbstractHint.TextUpdateArg ev)
+        public override string GetText()
         {
             return Text;
         }

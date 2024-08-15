@@ -94,50 +94,53 @@ namespace HintServiceMeow.Core.Utilities
 
         public static float GetTextWidth(AbstractHint hint)
         {
-            return GetTextWidth(hint.Text, hint.FontSize);
+            return GetTextWidth(hint.Content.GetText(), hint.FontSize);
         }
 
         public static float GetTextWidth(string text, int size = 20)
         {
             float width;
 
+            if (string.IsNullOrEmpty(text))
+                return 0;
+
+            var tuple = Tuple.Create(text, size);
+            if (_textWidthCache.TryGetValue(tuple, out width))
+                return width;
+
             if (Font != null)
             {
-                var tuple = Tuple.Create(text, size);
-
-                if (!_textWidthCache.TryGetValue(tuple, out width))
+                TextGenerationSettings settings = new TextGenerationSettings()
                 {
-                    TextGenerationSettings settings = new TextGenerationSettings()
-                    {
-                        font = Font,
-                        fontSize = size,
-                        fontStyle = FontStyle.Normal,
-                        richText = true,
-                        scaleFactor = 2f,
-                        color = Color.black,
-                        lineSpacing = 1.0f,
-                        textAnchor = TextAnchor.MiddleCenter,
-                        alignByGeometry = false,
-                        resizeTextForBestFit = false,
-                        updateBounds = true,
-                        verticalOverflow = VerticalWrapMode.Overflow,
-                        horizontalOverflow = HorizontalWrapMode.Overflow
-                    };
+                    font = Font,
+                    fontSize = size,
+                    fontStyle = FontStyle.Normal,
+                    richText = true,
+                    scaleFactor = 2f,
+                    color = Color.black,
+                    lineSpacing = 1.0f,
+                    textAnchor = TextAnchor.MiddleCenter,
+                    alignByGeometry = false,
+                    resizeTextForBestFit = false,
+                    updateBounds = true,
+                    verticalOverflow = VerticalWrapMode.Overflow,
+                    horizontalOverflow = HorizontalWrapMode.Overflow
+                };
 
-                    text = GetSmallCapsText(text, size);
+                text = GetSmallCapsText(text, size);
 
-                    var textGenerator = new TextGenerator();
-                    textGenerator.Populate(text, settings);
-                    width = textGenerator.GetPreferredWidth(text, settings);
-
-                    _textWidthCache.Add(tuple, width);
-                }
+                var textGenerator = new TextGenerator();
+                textGenerator.Populate(text, settings);
+                width = textGenerator.GetPreferredWidth(text, settings);
             }
             else
             {
-                width = text.Length * size;
+                string noTagText = Regex.Replace(text, "<.*?>", string.Empty);
+                string longestText = noTagText.Split('\n').OrderByDescending(x => x.Length).First();
+                width = longestText.Length * size;
             }
 
+            _textWidthCache.Add(tuple, width);
             return width;
         }
 
