@@ -69,7 +69,7 @@ using PluginAPI.Core.Attributes;
 // *        Add support for \n in text
 // *        Improve DynamicHint's performance
 // *    V5.1.1
-// *        Fix the bug that that cause text length to be calculated incorrectly
+// *        Fix the bug that cause text length to be calculated incorrectly
 
 namespace HintServiceMeow
 {
