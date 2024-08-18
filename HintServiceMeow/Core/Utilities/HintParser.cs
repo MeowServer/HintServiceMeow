@@ -18,12 +18,12 @@ namespace HintServiceMeow.Core.Utilities
         public static string GetMessage(HashSet<AbstractHint> rawHintList, PlayerDisplay pd)
         {
             List<Hint> hintList = rawHintList
-                .Where(x => !x.Hide)
+                .Where( x => !x.Hide && !string.IsNullOrEmpty(x.Content.GetText()) )
                 .OfType<Hint>()
                 .ToList();
 
             List<DynamicHint> dynamicHintList = rawHintList
-                .Where(x => !x.Hide)
+                .Where( x => !x.Hide && !string.IsNullOrEmpty(x.Content.GetText()) )
                 .OfType<DynamicHint>()
                 .ToList();
 

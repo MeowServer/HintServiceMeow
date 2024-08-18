@@ -68,6 +68,8 @@ using PluginAPI.Core.Attributes;
 // *    V5.1.0
 // *        Add support for \n in text
 // *        Improve DynamicHint's performance
+// *    V5.1.1
+// *        Fix the bug that that cause text length to be calculated incorrectly
 
 namespace HintServiceMeow
 {
@@ -98,7 +100,7 @@ namespace HintServiceMeow
     {
         public static NwapiPlugin Instance;
 
-        [PluginEntryPoint("HintServiceMeow", "5.1.0", "A hint framework", "MeowServerOwner")]
+        [PluginEntryPoint("HintServiceMeow", "5.1.1", "A hint framework", "MeowServerOwner")]
         public void LoadPlugin()
         {
             Instance = this;
@@ -111,7 +113,7 @@ namespace HintServiceMeow
     {
         public static string Name => "HintServiceMeow";
         public static string Author => "MeowServer";
-        public static Version Version => new Version(5, 1, 0);
+        public static Version Version => new Version(5, 1, 1);
 
         public static PluginConfig Config = new PluginConfig();//Initialize if fail to initialize
 

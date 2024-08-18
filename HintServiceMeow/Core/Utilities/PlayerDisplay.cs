@@ -14,6 +14,7 @@ using Log = PluginAPI.Core.Log;
 
 //Exiled
 using Player = Exiled.API.Features.Player;
+using UnityEngine;
 
 namespace HintServiceMeow.Core.Utilities
 {
@@ -32,7 +33,7 @@ namespace HintServiceMeow.Core.Utilities
         /// <summary>
         /// The player this instance bind to
         /// </summary>
-        public ReferenceHub ReferenceHub { get; set; }
+        public ReferenceHub ReferenceHub { get; }
 
         /// <summary>
         /// Invoke periodically when ReferenceHub display is ready to update. Default interval is 0.1s (10 times per second)

@@ -87,6 +87,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\Pooling.dll</HintPath>
     </Reference>
+    <Reference Include="ScriptedEvents">
+      <HintPath>F:\Download\ScriptedEvents.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Configuration" />
@@ -364,6 +367,7 @@
     <Compile Include="Core\Utilities\CoordinateTools.cs" />
     <Compile Include="Core\Utilities\HintParser.cs" />
     <Compile Include="Core\Utilities\UpdateAnalyser.cs" />
+    <Compile Include="Integrations\Integrater.cs" />
     <Compile Include="Plugin\Config\PlayerUIConfig.cs" />
     <Compile Include="Core\Extension\Extension.cs" />
     <Compile Include="Core\Utilities\FontTool.cs" />

@@ -149,8 +149,9 @@ namespace HintServiceMeow.Core.Utilities
             if(string.IsNullOrEmpty(text))
                 return string.Empty;
 
+            // Remove all the tags and store them in a dictionary
             Dictionary<string, string> tagPlaceholders = new Dictionary<string, string>();
-            string protectedText = Regex.Replace(text, "<.*?>", m =>
+            text = Regex.Replace(text, "<.*?>", m =>
             {
                 string placeholder = $"{{TAG{tagPlaceholders.Count}}}";
                 tagPlaceholders[placeholder] = m.Value;
@@ -160,6 +161,7 @@ namespace HintServiceMeow.Core.Utilities
             // Use regex to find all sequences of lowercase letters and replace them with tagged uppercase letters
             text = Regex.Replace(text, "[a-z]+", (x) => $"<size={size * 16 / 20}>{x.Value.ToUpper()}</size>");
 
+            // Restore the tags
             foreach (var placeholder in tagPlaceholders)
             {
                 text = text.Replace(placeholder.Key, placeholder.Value);
