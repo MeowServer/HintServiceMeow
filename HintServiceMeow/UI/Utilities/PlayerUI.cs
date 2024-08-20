@@ -4,7 +4,6 @@ using System.Linq;
 //Exiled
 using Exiled.API.Features;
 using HintServiceMeow.Core.Utilities;
-using HintServiceMeow.UI.Models;
 
 namespace HintServiceMeow.UI.Utilities
 {

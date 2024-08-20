@@ -114,7 +114,7 @@ namespace HintServiceMeow.Core.Utilities
 
             //Convert all hints to rich text
             List<string> textList = hintList
-                .Select(hint => ToRichText(hint))
+                .Select(ToRichText)
                 .Where(text => !string.IsNullOrEmpty(text))
                 .ToList();
 
@@ -162,7 +162,7 @@ namespace HintServiceMeow.Core.Utilities
 
                 sb.Append('\n');
 
-                yOffset += hint.FontSize;
+                yOffset += hint.FontSize + hint.LineHeight;
             }
 
             return sb.ToString();

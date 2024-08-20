@@ -87,9 +87,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\Pooling.dll</HintPath>
     </Reference>
-    <Reference Include="ScriptedEvents">
-      <HintPath>F:\Download\ScriptedEvents.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Configuration" />
@@ -368,6 +365,7 @@
     <Compile Include="Core\Utilities\HintParser.cs" />
     <Compile Include="Core\Utilities\UpdateAnalyser.cs" />
     <Compile Include="Integrations\Integrater.cs" />
+    <Compile Include="Integrations\ScriptedEventIntegration.cs" />
     <Compile Include="Plugin\Config\PlayerUIConfig.cs" />
     <Compile Include="Core\Extension\Extension.cs" />
     <Compile Include="Core\Utilities\FontTool.cs" />
@@ -377,7 +375,7 @@
     <Compile Include="Core\Utilities\Patch.cs" />
     <Compile Include="Core\Enum\HintParameters .cs" />
     <Compile Include="UI\Extension\Extension.cs" />
-    <Compile Include="UI\Models\CommonHint.cs" />
+    <Compile Include="UI\Utilities\CommonHint.cs" />
     <Compile Include="UI\Utilities\PlayerUI.cs" />
     <Compile Include="Plugin\Plugin.cs" />
     <Compile Include="Plugin\Config\PluginConfig.cs" />
@@ -389,6 +387,8 @@
     <None Include="packages.config" />
     <EmbeddedResource Include="FontFile" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="UI\Models\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

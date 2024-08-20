@@ -14,6 +14,8 @@ namespace HintServiceMeow.Core.Models.Hints
 
         private int _fontSize = 20;
 
+        private float _lineHeight = 0;
+
         private AbstractHintContent _content = new StringContent("");
 
         private bool _hide = false;
@@ -41,6 +43,7 @@ namespace HintServiceMeow.Core.Models.Hints
             this._id = hint._id;
             this._syncSpeed = hint._syncSpeed;
             this._fontSize = hint._fontSize;
+            this._lineHeight = hint._lineHeight;
             this._content = hint._content;
             this._hide = hint._hide;
         }
@@ -83,6 +86,22 @@ namespace HintServiceMeow.Core.Models.Hints
                     return;
 
                 _fontSize = value;
+                OnHintUpdated();
+            }
+        }
+
+        /// <summary>
+        /// The line height of the hint. Default line height is 0.
+        /// </summary>
+        public float LineHeight
+        {
+            get => _lineHeight;
+            set
+            {
+                if (_lineHeight.Equals(value))
+                    return;
+
+                _lineHeight = value;
                 OnHintUpdated();
             }
         }

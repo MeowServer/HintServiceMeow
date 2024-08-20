@@ -150,9 +150,12 @@ namespace HintServiceMeow.Core.Utilities
                     UpdateWhenAvailable();
                     break;
                 case HintSyncSpeed.Normal:
-                    ArrangeUpdate(TimeSpan.FromSeconds(1f), hint);
+                    ArrangeUpdate(TimeSpan.FromSeconds(0.3f), hint);
                     break;
                 case HintSyncSpeed.Slow:
+                    ArrangeUpdate(TimeSpan.FromSeconds(1f), hint);
+                    break;
+                case HintSyncSpeed.Slowest:
                     ArrangeUpdate(TimeSpan.FromSeconds(3f), hint);
                     break;
                 case HintSyncSpeed.UnSync:
@@ -266,7 +269,7 @@ namespace HintServiceMeow.Core.Utilities
                     Log.Error(ex.ToString());
                 }
 
-                yield return Timing.WaitForSeconds(0.025f);
+                yield return Timing.WaitForOneFrame;
             }
         }
 

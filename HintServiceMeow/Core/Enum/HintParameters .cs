@@ -66,9 +66,14 @@ namespace HintServiceMeow.Core.Enum
         Slow = 96,
 
         /// <summary>
+        /// Will wait for a longer time than Slow mode
+        /// </summary>
+        Slowest = 64,
+
+        /// <summary>
         /// This hint will not automatically sync when updated
         /// It will still be sync when other hints are updated
         /// </summary>
-        UnSync = 64,
+        UnSync = 32,
     }
 }

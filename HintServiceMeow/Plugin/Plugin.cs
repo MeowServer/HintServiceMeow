@@ -3,6 +3,7 @@ using System.Reflection;
 
 using HarmonyLib;
 using HintServiceMeow.Core.Utilities;
+using HintServiceMeow.Integrations;
 using HintServiceMeow.UI.Utilities;
 using PluginAPI.Core;
 
@@ -70,6 +71,9 @@ using PluginAPI.Core.Attributes;
 // *        Improve DynamicHint's performance
 // *    V5.1.1
 // *        Fix the bug that cause text length to be calculated incorrectly
+// *    V5.1.2
+// *        Adjust sync speed to improve display performance
+// *        Add LineHeight property for all hints
 
 namespace HintServiceMeow
 {
@@ -100,7 +104,7 @@ namespace HintServiceMeow
     {
         public static NwapiPlugin Instance;
 
-        [PluginEntryPoint("HintServiceMeow", "5.1.1", "A hint framework", "MeowServerOwner")]
+        [PluginEntryPoint("HintServiceMeow", "5.1.2", "A hint framework", "MeowServerOwner")]
         public void LoadPlugin()
         {
             Instance = this;
@@ -113,7 +117,7 @@ namespace HintServiceMeow
     {
         public static string Name => "HintServiceMeow";
         public static string Author => "MeowServer";
-        public static Version Version => new Version(5, 1, 1);
+        public static Version Version => new Version(5, 1, 2);
 
         public static PluginConfig Config = new PluginConfig();//Initialize if fail to initialize
 
@@ -147,6 +151,9 @@ namespace HintServiceMeow
             {
                 PluginAPI.Events.EventManager.RegisterEvents<NwapiEventHandler>(NwapiPlugin.Instance);
             }
+
+            //Integration
+            Integrater.StartAllIntegration();
 
             Log.Info($"HintServiceMeow {Version} has been enabled!");
         }

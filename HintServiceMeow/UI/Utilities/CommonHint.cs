@@ -8,7 +8,7 @@ using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.UI.Utilities;
 using PluginAPI.Core;
 
-namespace HintServiceMeow.UI.Models
+namespace HintServiceMeow.UI.Utilities
 {
     public class CommonHint
     {
@@ -54,47 +54,26 @@ namespace HintServiceMeow.UI.Models
             new Hint()
             {
                 YCoordinate = 100,
-                FontSize = 30
+                FontSize = 30,
+                Alignment = Core.Enum.HintAlignment.Left
             },
             new Hint()
             {
                 YCoordinate = 130,
-                FontSize = 25
+                FontSize = 25,
+                Alignment = Core.Enum.HintAlignment.Left
             },
             new Hint()
             {
                 YCoordinate = 155,
-                FontSize = 25
+                FontSize = 25,
+                Alignment = Core.Enum.HintAlignment.Left
             },
             new Hint()
             {
                 YCoordinate = 180,
-                FontSize = 25
-            }
-        };
-
-        private DateTime _otherHintTimeToRemove = DateTime.MinValue;
-        private readonly List<Hint> _otherHints = new List<Hint>
-        {
-            new Hint()
-            {
-                YCoordinate = 700,
-                FontSize = 20
-            },
-            new Hint()
-            {
-                YCoordinate = 720,
-                FontSize = 20
-            },
-            new Hint()
-            {
-                YCoordinate = 740,
-                FontSize = 20
-            },
-            new Hint()
-            {
-                YCoordinate = 760,
-                FontSize = 20
+                FontSize = 25,
+                Alignment = Core.Enum.HintAlignment.Left
             }
         };
         #endregion
@@ -193,25 +172,29 @@ namespace HintServiceMeow.UI.Models
         #endregion Common Role Hints Methods
 
         # region Common Other Hints Methods
-        public void ShowOtherHint(string hint) => ShowOtherHint(hint, Config.OtherHintDisplayTime);
+        public void ShowOtherHint(string messages) => ShowOtherHint(messages, Config.OtherHintDisplayTime);
 
-        public void ShowOtherHint(string hint, float time) => ShowOtherHint(new string[] { hint }, time);
+        public void ShowOtherHint(string messages, float time) => ShowOtherHint(new string[] { messages }, time);
 
-        public void ShowOtherHint(string[] hints) => ShowOtherHint(hints, Config.OtherHintDisplayTime * hints.Length);
+        public void ShowOtherHint(string[] messages) => ShowOtherHint(messages, Config.OtherHintDisplayTime * messages.Length);
 
-        public void ShowOtherHint(string[] hints, float time)
+        public void ShowOtherHint(string[] messages, float time)
         {
-            _otherHintTimeToRemove = DateTime.Now + TimeSpan.FromSeconds(time);
-
-            _otherHints.ForEach(x => x.Hide = true);
-
-            for (int i = 0; i < _otherHints.Count; i++)
+            foreach(var message in messages)
             {
-                if (!hints.TryGet(i, out string element))
-                    break;
+                var dynamicHint = new DynamicHint
+                {
+                    Text = message,
+                    TopBoundary = 400,
+                    BottomBoundary = 1000,
+                    TargetY = 700,
+                };
 
-                _otherHints[i].Text = element;
-                _otherHints[i].Hide = false;
+                PlayerDisplay.AddHint(dynamicHint);
+                Timing.CallDelayed(time, () =>
+                {
+                    PlayerDisplay?.RemoveHint(dynamicHint);
+                });
             }
         }
         #endregion Common Other Hints Methods
@@ -228,7 +211,6 @@ namespace HintServiceMeow.UI.Models
             PlayerDisplay.AddHint(_itemHints);
             PlayerDisplay.AddHint(_mapHints);
             PlayerDisplay.AddHint(_roleHints);
-            PlayerDisplay.AddHint(_otherHints);
 
             //Start coroutine
             _commonHintUpdateCoroutine = Timing.RunCoroutine(CommonHintCoroutineMethod());
@@ -244,7 +226,6 @@ namespace HintServiceMeow.UI.Models
             PlayerDisplay.RemoveHint(_itemHints);
             PlayerDisplay.RemoveHint(_mapHints);
             PlayerDisplay.RemoveHint(_roleHints);
-            PlayerDisplay.RemoveHint(_otherHints);
         }
 
         #endregion
@@ -272,22 +253,16 @@ namespace HintServiceMeow.UI.Models
                     {
                         _roleHints.ForEach(x => x.Hide = true);
                     }
-
-                    if (currentTime > _otherHintTimeToRemove)
-                    {
-                        _otherHints.ForEach(x => x.Hide = true);
-                    }
                 }
                 catch (Exception ex)
                 {
                     Log.Error(ex.ToString());
                 }
 
-                yield return Timing.WaitForSeconds(0.1f);
+                yield return Timing.WaitForOneFrame;
             }
         }
 
         #endregion
     }
-
 }

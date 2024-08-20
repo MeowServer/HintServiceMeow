@@ -13,12 +13,12 @@ namespace HintServiceMeow.Core.Utilities
 {
     internal class CoordinateTools
     {
+        //Get the Pos value represented by the y coordinate of the hint
         public static float GetVOffset(Hint hint)
         {
             return GetVOffset(hint, hint.YCoordinateAlign);
         }
 
-        //The the Pos value represented by the y coordinate of the hint
         public static float GetVOffset(Hint hint, HintVerticalAlign align)
         {
             float sizeOffset;
@@ -42,7 +42,7 @@ namespace HintServiceMeow.Core.Utilities
             return 700 - hint.YCoordinate + sizeOffset;
         }
 
-        //Get the Y coordiate without vertical alignment
+        //Get the Y coordinate without vertical alignment's offset
         public static float GetActualYCoordinate(Hint hint, HintVerticalAlign align)
         {
             float sizeOffset;
@@ -106,7 +106,7 @@ namespace HintServiceMeow.Core.Utilities
             if(string.IsNullOrEmpty(content))
                 return 0;
 
-            var height = content.Split('\n').Length * hint.FontSize;
+            var height = content.Split('\n').Length * (hint.FontSize + hint.LineHeight);
 
             return height;
         }
