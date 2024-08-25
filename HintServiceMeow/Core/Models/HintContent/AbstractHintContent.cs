@@ -18,7 +18,7 @@ namespace HintServiceMeow.Core.Models.HintContent.HintContent
             }
             catch (Exception ex)
             {
-                Log.Info(ex.ToString());
+                Log.Error(ex.ToString());
             }
         }
 

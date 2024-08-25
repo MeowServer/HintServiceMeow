@@ -13,29 +13,33 @@ namespace HintServiceMeow.Core.Utilities
 {
     internal static class HintParser
     {
-        private static Dictionary<DynamicHint, ValueTuple<float, float>> _dynamicHintPositionCache = new Dictionary<DynamicHint, ValueTuple<float, float>>();
+        private static readonly StringBuilder MessageBuilder = new StringBuilder(ushort.MaxValue); //Used to build display text
+
+        private static readonly StringBuilder RichTextBuilder = new StringBuilder(500); //Used to build rich text from Hint
+
+        private static readonly List<Hint> HintList = new List<Hint>();
+
+        private static readonly Dictionary<DynamicHint, ValueTuple<float, float>> _dynamicHintPositionCache = new Dictionary<DynamicHint, ValueTuple<float, float>>();
 
         public static string GetMessage(HashSet<AbstractHint> rawHintList, PlayerDisplay pd)
         {
-            List<Hint> hintList = rawHintList
-                .Where( x => !x.Hide && !string.IsNullOrEmpty(x.Content.GetText()) )
-                .OfType<Hint>()
-                .ToList();
+            HintList.Clear();
 
-            List<DynamicHint> dynamicHintList = rawHintList
-                .Where( x => !x.Hide && !string.IsNullOrEmpty(x.Content.GetText()) )
-                .OfType<DynamicHint>()
-                .ToList();
-
-            foreach (var dynamicHint in dynamicHintList)
+            foreach (var item in rawHintList)
             {
-                InsertDynamicHint(dynamicHint, hintList);
+                if (item.Hide || string.IsNullOrEmpty(item.Content.GetText()))
+                    continue;
+
+                if (item is Hint hint)
+                    HintList.Add(hint);
+                else if (item is DynamicHint dynamicHint)
+                    HintList.Add(ConvertDynamicHint(dynamicHint, HintList));
             }
 
-            return GetText(hintList);
+            return GetText(HintList);
         }
 
-        public static void InsertDynamicHint(DynamicHint dynamicHint, List<Hint> hintList)
+        public static Hint ConvertDynamicHint(DynamicHint dynamicHint, List<Hint> hintList)
         {
             bool HasIntersection(float x, float y)
             {
@@ -63,8 +67,7 @@ namespace HintServiceMeow.Core.Utilities
                 //If cached position is not intersected with any hint, use it
                 if(!HasIntersection(cachedPosition.Item1, cachedPosition.Item2))
                 {
-                    hintList.Add(new Hint(dynamicHint, cachedPosition.Item1, cachedPosition.Item2));
-                    return;
+                    return new Hint(dynamicHint, cachedPosition.Item1, cachedPosition.Item2);
                 }
             }
 
@@ -88,8 +91,7 @@ namespace HintServiceMeow.Core.Utilities
                 {
                     //Found a position that does not overlap with any hint. Add into cache
                     _dynamicHintPositionCache[dynamicHint] = ValueTuple.Create(x, y);
-                    hintList.Add(new Hint(dynamicHint, x, y));
-                    return;
+                    return new Hint(dynamicHint, x, y);
                 }
 
                 //For performance, dynamic hint will search 20 by 20 horizontally and 70 by 70 vertically
@@ -104,25 +106,30 @@ namespace HintServiceMeow.Core.Utilities
             }
 
             if (dynamicHint.Strategy == DynamicHintStrategy.StayInPosition)
-                hintList.Add(new Hint(dynamicHint, dynamicHint.TargetX, dynamicHint.TargetY));
+                return new Hint(dynamicHint, dynamicHint.TargetX, dynamicHint.TargetY);
+
+            return null;
         }
 
-        private static string GetText(List<Hint> hintList)
+        private static string GetText(IEnumerable<Hint> hintList)
         {
-            //Sort by Y coordinate
-            hintList.Sort((x, y) => x.YCoordinate.CompareTo(y.YCoordinate));
+            MessageBuilder.Clear();
 
-            //Convert all hints to rich text
-            List<string> textList = hintList
-                .Select(ToRichText)
-                .Where(text => !string.IsNullOrEmpty(text))
-                .ToList();
+            MessageBuilder.AppendLine("<line-height=0><voffset=9999>P</voffset>");//Place Holder
 
-            //Place Holder
-            textList.Insert(0, "<line-height=0><voffset=10000><size=40>PH</voffset></size>");
-            textList.Add("<line-height=0><voffset=-10000><size=40>PH</voffset></size>");
+            foreach (Hint hint in hintList)
+            {
+                var text = ToRichText(hint);
+                if (!string.IsNullOrEmpty(text))
+                    MessageBuilder.AppendLine(text);
+            }
 
-            return string.Join("\n", textList);
+            MessageBuilder.AppendLine("<line-height=0><voffset=-9999>P</voffset>");//Place Holder
+
+            var result = MessageBuilder.ToString();
+            MessageBuilder.Clear();
+
+            return result;
         }
 
         private static string ToRichText(Hint hint)
@@ -131,41 +138,48 @@ namespace HintServiceMeow.Core.Utilities
             string rawText = hint.Content.GetText() ?? string.Empty;
 
             string text = Regex
-                .Replace(rawText, @"<line-height=(\d+(\.\d+)?)>|<voffset=(-?\d+(\.\d+)?)>|<pos=(\d+(\.\d+)?)>|<align=(left|center|right)>|<fontsize=(\d+(\.\d+)?)>", string.Empty)
-                .Replace("</voffset>", string.Empty)
-                .Replace("</align>", string.Empty);
+                .Replace(
+                rawText, 
+                @"<line-height=(\d+(\.\d+)?)>|<voffset=(-?\d+(\.\d+)?)>|<pos=(\d+(\.\d+)?)>|<align=(left|center|right)>|</voffset>|</align>", 
+                string.Empty, 
+                RegexOptions.IgnoreCase | RegexOptions.Compiled
+                );
 
             if (string.IsNullOrEmpty(text))
                 return null;
 
             //Building rich text by lines
-            StringBuilder sb = new StringBuilder();
             var lineList = text.Split('\n');
             float yOffset = 0;
+
+            RichTextBuilder.Clear();
 
             foreach (var line in lineList)
             {
                 float xCoordinate = hint.XCoordinate;
                 float yCoordinate = CoordinateTools.GetVOffset(hint) - yOffset;
 
-                if (xCoordinate != 0) sb.Append($"<pos={xCoordinate:0.#}>");
-                if (hint.Alignment != HintAlignment.Center) sb.Append($"<align={hint.Alignment}>");
-                sb.Append("<Line-height=0>");
-                if (yCoordinate != 0) sb.Append($"<voffset={yCoordinate:0.#}>");
-                sb.Append($"<size={hint.FontSize}>");
+                if (xCoordinate != 0) RichTextBuilder.AppendFormat("<pos={0:0.#}>", xCoordinate);
+                if (hint.Alignment != HintAlignment.Center) RichTextBuilder.AppendFormat("<align={0}>", hint.Alignment);
+                RichTextBuilder.Append("<line-height=0>");
+                if (yCoordinate != 0) RichTextBuilder.AppendFormat("<voffset={0:0.#}>", yCoordinate);
+                RichTextBuilder.AppendFormat("<size={0}>", hint.FontSize);
 
-                sb.Append(line);
+                RichTextBuilder.Append(line);
 
-                sb.Append("</size>");
-                if (yCoordinate != 0) sb.Append("</voffset>");
-                if (hint.Alignment != HintAlignment.Center) sb.Append("</align>");
-
-                sb.Append('\n');
+                RichTextBuilder.Append("</size>");
+                if (yCoordinate != 0) RichTextBuilder.Append("</voffset>");
+                if (hint.Alignment != HintAlignment.Center) RichTextBuilder.Append("</align>");
+                RichTextBuilder.AppendLine();
 
                 yOffset += hint.FontSize + hint.LineHeight;
             }
 
-            return sb.ToString();
+            var result = RichTextBuilder.ToString();
+
+            RichTextBuilder.Clear();
+
+            return result;
         }
     }
 }

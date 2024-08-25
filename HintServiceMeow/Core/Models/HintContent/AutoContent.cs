@@ -36,8 +36,8 @@ namespace HintServiceMeow.Core.Models.HintContent.HintContent
 
                 if(_oldText != _text)
                 {
-                    OnUpdated();
                     _oldText = _text;
+                    OnUpdated();
                 }
             }
             catch(Exception ex)

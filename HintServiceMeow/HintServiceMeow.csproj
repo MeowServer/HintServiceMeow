@@ -18,7 +18,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -361,19 +361,20 @@
     <Compile Include="Core\Models\HintContent\AutoContent.cs" />
     <Compile Include="Core\Models\HintContent\AbstractHintContent.cs" />
     <Compile Include="Core\Models\HintContent\StringContent.cs" />
+    <Compile Include="Core\Utilities\CompatAdapter .cs" />
     <Compile Include="Core\Utilities\CoordinateTools.cs" />
     <Compile Include="Core\Utilities\HintParser.cs" />
     <Compile Include="Core\Utilities\UpdateAnalyser.cs" />
-    <Compile Include="Integrations\Integrater.cs" />
+    <Compile Include="Integrations\Integrator.cs" />
     <Compile Include="Integrations\ScriptedEventIntegration.cs" />
     <Compile Include="Plugin\Config\PlayerUIConfig.cs" />
     <Compile Include="Core\Extension\Extension.cs" />
     <Compile Include="Core\Utilities\FontTool.cs" />
     <Compile Include="Core\Models\Hints\AbstractHint.cs" />
     <Compile Include="Core\Models\Hints\DynamicHint.cs" />
-    <Compile Include="Plugin\EventHandler.cs" />
     <Compile Include="Core\Utilities\Patch.cs" />
     <Compile Include="Core\Enum\HintParameters .cs" />
+    <Compile Include="Plugin\IPlugin.cs" />
     <Compile Include="UI\Extension\Extension.cs" />
     <Compile Include="UI\Utilities\CommonHint.cs" />
     <Compile Include="UI\Utilities\PlayerUI.cs" />

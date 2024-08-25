@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-//Exiled
-using Exiled.API.Features;
 using HintServiceMeow.Core.Utilities;
 
 namespace HintServiceMeow.UI.Utilities
@@ -71,9 +69,11 @@ namespace HintServiceMeow.UI.Utilities
             return ui ?? new PlayerUI(referenceHub);
         }
 
-        public static PlayerUI Get(Player player)
+#if EXILED
+        public static PlayerUI Get(Exiled.API.Features.Player player)
         {
             return Get(player.ReferenceHub);
         }
+#endif
     }
 }

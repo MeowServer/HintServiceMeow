@@ -5,16 +5,11 @@ using System.Linq;
 using Hints;
 
 using MEC;
-using Mirror;
 using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Models.Hints;
 
 //Plugin API
 using Log = PluginAPI.Core.Log;
-
-//Exiled
-using Player = Exiled.API.Features.Player;
-using UnityEngine;
 
 namespace HintServiceMeow.Core.Utilities
 {
@@ -36,7 +31,7 @@ namespace HintServiceMeow.Core.Utilities
         public ReferenceHub ReferenceHub { get; }
 
         /// <summary>
-        /// Invoke periodically when ReferenceHub display is ready to update. Default interval is 0.1s (10 times per second)
+        /// Invoke every frame when ReferenceHub display is ready to update.
         /// </summary>
         public event UpdateAvailableEventHandler UpdateAvailable;
 
@@ -74,27 +69,27 @@ namespace HintServiceMeow.Core.Utilities
         /// <summary>
         /// The time of next update
         /// </summary>
-        private DateTime _planUpdateTime = DateTime.MinValue;
+        private DateTime _planUpdateTime = DateTime.MaxValue;
 
         /// <summary>
         /// The time when the player display will plan for an update
         /// </summary>
-        private DateTime _arrangedUpdateTime = DateTime.MinValue;
+        private DateTime _arrangedUpdateTime = DateTime.MaxValue;
 
         /// <summary>
         /// The minimum interval between a regular update and the last update
         /// </summary>
-        private static TimeSpan UpdateInterval => TimeSpan.FromSeconds(0.5f);
+        private static readonly TimeSpan UpdateInterval = TimeSpan.FromSeconds(0.5f);
 
         /// <summary>
         /// The minimum interval between a force update and the second last update
         /// </summary>
-        private static TimeSpan SecondLastUpdateInterval => TimeSpan.FromSeconds(1f);
+        private static readonly TimeSpan SecondLastUpdateInterval = TimeSpan.FromSeconds(1f);
 
         /// <summary>
         /// The player display will be forced to update when there haven't been any update in this amount of time
         /// </summary>
-        private static TimeSpan PeriodicUpdateInterval => TimeSpan.FromSeconds(5f);
+        private static readonly TimeSpan PeriodicUpdateInterval = TimeSpan.FromSeconds(5f);
 
         /// <summary>
         /// The time left for regular update to cool down.
@@ -122,7 +117,7 @@ namespace HintServiceMeow.Core.Utilities
         /// <summary>
         /// Whether PlayerDisplay need to force update or not
         /// </summary>
-        private bool NeedForceUpdate => PeriodicUpdateCoolDown.Ticks <= 0;
+        private bool NeedPeriodicUpdate => PeriodicUpdateCoolDown.Ticks <= 0;
 
         /// <summary>
         /// Whether regular update is ready
@@ -170,9 +165,7 @@ namespace HintServiceMeow.Core.Utilities
         {
             TimeSpan timeToWait = useFastUpdate ? FastUpdateCoolDown : UpdateCoolDown;
 
-            timeToWait = timeToWait.Milliseconds >= 25f ? timeToWait : TimeSpan.FromMilliseconds(25f);//Having a min delay to make sure that all the changes are done before next update
             var nextStartUpdateTime = DateTime.Now + timeToWait;
-
             if (nextStartUpdateTime < _planUpdateTime)
                 _planUpdateTime = nextStartUpdateTime;
         }
@@ -184,25 +177,16 @@ namespace HintServiceMeow.Core.Utilities
         {
             try
             {
+                var now = DateTime.Now;
+
                 //Find the latest estimated update time within maxDelay
-                List<DateTime> estimatedTime = _hintList
-                    .Where(x => x.SyncSpeed >= hint.SyncSpeed)
-                    .Where(x => x != hint)
+                IEnumerable<DateTime> estimatedTime = _hintList
+                    .Where(x => x.SyncSpeed >= hint.SyncSpeed && x != hint)
                     .Select(x => x.Analyser.EstimateNextUpdate())
-                    .Where(x => x - DateTime.Now >= TimeSpan.Zero)
-                    .Where(x => x - DateTime.Now <= maxDelay)
-                    .ToList();
+                    .Where(x => x - now >= TimeSpan.Zero && x - now <= maxDelay)
+                    .DefaultIfEmpty(DateTime.Now);
 
-                DateTime newTime;
-
-                if (estimatedTime.IsEmpty())
-                {
-                    newTime = DateTime.Now;
-                }
-                else
-                {
-                    newTime = estimatedTime.Max();
-                }
+                DateTime newTime = estimatedTime.Max();
 
                 if (_arrangedUpdateTime > newTime)
                     _arrangedUpdateTime = newTime;
@@ -222,10 +206,8 @@ namespace HintServiceMeow.Core.Utilities
                     foreach (PlayerDisplay pd in PlayerDisplayList)
                     {
                         //Force update
-                        if (pd.NeedForceUpdate)
-                        {
+                        if (pd.NeedPeriodicUpdate)
                             pd.UpdateWhenAvailable(false);
-                        }
 
                         //Invoke UpdateAvailable event
                         if (pd.UpdateReady)
@@ -247,17 +229,19 @@ namespace HintServiceMeow.Core.Utilities
             {
                 try
                 {
+                    DateTime now = DateTime.Now;
+
                     foreach (PlayerDisplay pd in PlayerDisplayList)
                     {
                         //Check arranged update time
-                        if (DateTime.Now > pd._arrangedUpdateTime)
+                        if (now > pd._arrangedUpdateTime)
                         {
                             pd._arrangedUpdateTime = DateTime.MaxValue;
                             pd.UpdateWhenAvailable(false);
                         }
 
                         //Update based on plan
-                        if (DateTime.Now > pd._planUpdateTime)
+                        if (now > pd._planUpdateTime)
                         {
                             pd._planUpdateTime = DateTime.MaxValue;
                             pd.UpdateHint();
@@ -286,32 +270,30 @@ namespace HintServiceMeow.Core.Utilities
             UpdateWhenAvailable(useFastUpdate);
         }
 
-        private void UpdateHint(bool IsForceUpdate = false)
+        private void UpdateHint(bool isForceUpdate = false)
         {
             try
             {
-                //Check connection
-                if (!NetworkServer.active || ReferenceHub.isLocalPlayer)
-                    return;
+                //Reset Update Plan
+                _planUpdateTime = DateTime.MaxValue;
+                _arrangedUpdateTime = DateTime.MaxValue;
 
                 string text = HintParser.GetMessage(_hintList, this);
+
+                //Check whether the text had changed since last update or if this is a force update
+                if (text == _lastText && !isForceUpdate)
+                {
+                    return;
+                }
+
+                //Update text record
+                _lastText = text;
 
                 //Reset CountDown
                 _secondLastTimeUpdate = _lastTimeUpdate;
                 _lastTimeUpdate = DateTime.Now;
 
-                //Reset Update Plan
-                _planUpdateTime = DateTime.MaxValue;
-                _arrangedUpdateTime = DateTime.MaxValue;
-
                 _updatingHints.Clear();
-
-                //Check whether the text had changed since last update or if this is a force update
-                if (text == _lastText && !IsForceUpdate)
-                    return;
-
-                //Update text record
-                _lastText = text;
 
                 //Display the hint
                 var parameter = new HintParameter[] { new StringHintParameter(text) };
@@ -366,29 +348,33 @@ namespace HintServiceMeow.Core.Utilities
         /// <summary>
         /// Get the PlayerDisplay instance of the player
         /// </summary>
-        /// <param name="referenceHub"></param>
-        /// <returns></returns>
         public static PlayerDisplay Get(ReferenceHub referenceHub)
         {
+            if (referenceHub is null)
+                throw new Exception("A null ReferenceHub had been passed to Get method");
+
             var pd = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
 
             return pd ?? new PlayerDisplay(referenceHub);//TryCreate ReferenceHub display if it has not been created yet
         }
 
+#if EXILED
         /// <summary>
-        /// Exiled Only Method. Get the PlayerDisplay instance of the player
+        /// Get the PlayerDisplay instance of the player
         /// </summary>
-        /// <param name="player"></param>
-        /// <returns></returns>
-        public static PlayerDisplay Get(Player player)
+        public static PlayerDisplay Get(Exiled.API.Features.Player player)
         {
+            if(player is null)
+                throw new Exception("A null player had been passed to Get method");
+
             return Get(player.ReferenceHub);
         }
+#endif
 
-        #endregion
+#endregion
 
         #region Hint Methods
-        
+
         public void AddHint(AbstractHint hint)
         {
             if (hint == null)

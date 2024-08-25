@@ -10,9 +10,7 @@ namespace HintServiceMeow.Core.Utilities
 {
     internal class UpdateAnalyser
     {
-        private DateTime _firstUpdate;
-
-        private readonly TimeSpan _leastInterval = TimeSpan.FromMilliseconds(5f);
+        private readonly TimeSpan _leastInterval = TimeSpan.FromMilliseconds(50f);
 
         //For update estimation
         private readonly List<DateTime> _updateTimestamps = new List<DateTime>();
@@ -21,18 +19,11 @@ namespace HintServiceMeow.Core.Utilities
         {
             var now = DateTime.Now;
 
-            if (_firstUpdate == default)
-            {
-                _firstUpdate = now;
-                return;
-            }
-            
-            if (now - _firstUpdate < _leastInterval)
-                return;
-
+            //Check if the interval is too short
             if (!_updateTimestamps.IsEmpty() && now - _updateTimestamps.Last() < _leastInterval)
                 return;
 
+            //Add timestamp and remove outdated ones
             _updateTimestamps.Add(now);
             _updateTimestamps.RemoveAll(x => now - x > TimeSpan.FromSeconds(60));
         }
@@ -90,10 +81,8 @@ namespace HintServiceMeow.Core.Utilities
             {
                 Log.Error(ex.ToString());
             }
-            finally
-            {
-                _updateTimestamps.Remove(now);
-            }
+            
+            _updateTimestamps.Remove(now);
 
             return new DateTime(nextTimestamp);
         }

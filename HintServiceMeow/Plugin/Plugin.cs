@@ -1,19 +1,22 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Reflection;
 
 using HarmonyLib;
 using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.Integrations;
 using HintServiceMeow.UI.Utilities;
-using PluginAPI.Core;
 
 //PluginAPI
+using PluginAPI.Core;
 using PluginAPI.Core.Attributes;
+using PluginAPI.Enums;
+using PluginAPI.Events;
 
 // *    V1.0.0  First Release
 // *    V1.0.1
 // *        Update the display based on hint's content update
-// *
+// * ======================================================================================
 // *    V2.0.0  Dynamic Hint
 // *        Support Dynamic Hint
 // *        Limit maximum update rate to 0.5/second
@@ -24,7 +27,7 @@ using PluginAPI.Core.Attributes;
 // *        Fix some bugs
 // *    V2.2.0
 // *        Use the event to update the ReferenceHub display, increase stability, and decrease costs
-// *
+// * ======================================================================================
 // *    V3.0.0  ReferenceHub UI
 // *        ReferenceHub UI is separated from PlayerDisplay and extended for more methods
 // *    V3.0.1
@@ -44,13 +47,14 @@ using PluginAPI.Core.Attributes;
 // *    V3.3.0
 // *        Separate PlayerUITemplate from PlayerUIConfig
 // *        PlayerUITemplate is now a new plugin called CustomizableUIMeow
-// *
+// * ======================================================================================
 // *    V4.0.0  Customizable
 // *        Add config class for hints
 // *        Add refresh event in PlayerDisplay
 // *        Add hint Priority
 // *        Make common hint customizable
 // *        Improve code quality
+// * ======================================================================================
 // *    V5.0.0  Rework(Pre-release)
 // *        Rewrite core code
 // *        Add sync speed, auto text, and several new properties to hint
@@ -74,11 +78,22 @@ using PluginAPI.Core.Attributes;
 // *    V5.1.2
 // *        Adjust sync speed to improve display performance
 // *        Add LineHeight property for all hints
+// *    V5.2.0
+// *        Add Compatibility Adapter
+// *        Improve performance
+
+
+//TODO: Add auto-text rate setting. Support  NW API. Try fix the issue that cause NetworkIdentity to be null
 
 namespace HintServiceMeow
 {
-    internal class ExiledPlugin : Exiled.API.Features.Plugin<ExiledPluginConfig>
+#if EXILED
+    internal class ExiledPlugin : Exiled.API.Features.Plugin<ExiledPluginConfig>, IPlugin
     {
+        //IPlugin
+        public PluginType Type => PluginType.Exiled;
+        public PluginConfig PluginConfig => this.Config;
+
         public override string Name => Plugin.Name;
         public override string Author => Plugin.Author;
         public override Version Version => Plugin.Version;
@@ -87,37 +102,113 @@ namespace HintServiceMeow
 
         public override void OnEnabled()
         {
-            Plugin.OnEnabled(this.Config, true);
+            Plugin.OnEnabled(this);
 
             base.OnEnabled();
         }
 
         public override void OnDisabled()
         {
-            Plugin.OnDisabled();
+            Plugin.OnDisabled(this);
 
             base.OnDisabled();
         }
-    }
 
-    internal class NwapiPlugin
-    {
-        public static NwapiPlugin Instance;
-
-        [PluginEntryPoint("HintServiceMeow", "5.1.2", "A hint framework", "MeowServerOwner")]
-        public void LoadPlugin()
+        //IPlugin
+        public void BindEvent()
         {
-            Instance = this;
+            Exiled.Events.Handlers.Player.Verified += ExiledEventHandler.OnVerified;
+            Exiled.Events.Handlers.Player.Left += ExiledEventHandler.OnLeft;
+        }
 
-            Plugin.OnEnabled(null, false);
+        public void UnbindEvent()
+        {
+            Exiled.Events.Handlers.Player.Verified -= ExiledEventHandler.OnVerified;
+            Exiled.Events.Handlers.Player.Left -= ExiledEventHandler.OnLeft;
         }
     }
+
+    internal class ExiledPluginConfig : PluginConfig, Exiled.API.Interfaces.IConfig
+    {
+    }
+
+    internal static class ExiledEventHandler
+    {
+
+        // TryCreate PlayerDisplay and PlayerUIConfig for the new ReferenceHub
+        internal static void OnVerified(Exiled.Events.EventArgs.Player.VerifiedEventArgs ev)
+        {
+            if (ev.Player is null)
+                return;
+
+            if (ev.Player.IsNPC || ev.Player.ReferenceHub.isLocalPlayer)
+                return;
+
+            PlayerDisplay.TryCreate(ev.Player.ReferenceHub);
+            PlayerUI.TryCreate(ev.Player.ReferenceHub);
+        }
+
+        internal static void OnLeft(Exiled.Events.EventArgs.Player.LeftEventArgs ev)
+        {
+            PlayerUI.Destruct(ev.Player.ReferenceHub);
+            PlayerDisplay.Destruct(ev.Player.ReferenceHub);
+        }
+    }
+
+#else
+
+    internal class NwapiPlugin : IPlugin
+    {
+        //IPlugin
+        public PluginType Type => PluginType.Exiled;
+        public PluginConfig PluginConfig => null;//NW somehow cannot serialize the config for HintServiceMeow
+
+        [PluginEntryPoint("HintServiceMeow", "5.2.0", "A hint framework", "MeowServerOwner")]
+        public void LoadPlugin()
+        {
+            Plugin.OnEnabled(this);
+        }
+
+        //IPlugin
+        public void BindEvent()
+        {
+            PluginAPI.Events.EventManager.RegisterEvents<NwapiEventHandler>(this);
+        }
+
+        public void UnbindEvent()
+        {
+            PluginAPI.Events.EventManager.UnregisterEvents(this);
+        }
+    }
+
+    
+    internal class NwapiEventHandler 
+    {
+        [PluginEvent(ServerEventType.PlayerJoined)]
+        internal void OnJoin(PlayerJoinedEvent ev)
+        {
+            if (ev.Player is null || ev.Player.ReferenceHub.isLocalPlayer || ev.Player.UserId is null)
+                return;
+
+            PlayerDisplay.TryCreate(ev.Player.ReferenceHub);
+            PlayerUI.TryCreate(ev.Player.ReferenceHub);
+        }
+
+        [PluginEvent(ServerEventType.PlayerLeft)]
+        internal void OnLeft(PlayerLeftEvent ev)
+        {
+            PlayerUI.Destruct(ev.Player.ReferenceHub);
+            PlayerDisplay.Destruct(ev.Player.ReferenceHub);
+        }
+    }
+
+#endif
 
     internal static class Plugin
     {
         public static string Name => "HintServiceMeow";
         public static string Author => "MeowServer";
-        public static Version Version => new Version(5, 1, 2);
+        public static Version Version => new Version(5, 2, 0);
 
         public static PluginConfig Config = new PluginConfig();//Initialize if fail to initialize
 
@@ -125,7 +216,7 @@ namespace HintServiceMeow
 
         private static bool _hasInitiated = false;
         
-        public static void OnEnabled(PluginConfig config, bool isExiled)
+        public static void OnEnabled(IPlugin plugin)
         {
             //Check initiated status
             if (_hasInitiated)
@@ -134,8 +225,8 @@ namespace HintServiceMeow
             //Set initiated status
             _hasInitiated = true;
 
-            if(config != null)
-                Config = config;
+            if(plugin.PluginConfig != null)
+                Config = plugin.PluginConfig;
 
             _harmony = new Harmony("HintServiceMeowHarmony" + Version);
             _harmony.PatchAll();
@@ -143,22 +234,15 @@ namespace HintServiceMeow
             FontTool.LoadFontFile();
 
             //Register events
-            if (isExiled)
-            {
-                RegisterExiledEvent();
-            }
-            else
-            {
-                PluginAPI.Events.EventManager.RegisterEvents<NwapiEventHandler>(NwapiPlugin.Instance);
-            }
+            plugin.BindEvent();
 
             //Integration
-            Integrater.StartAllIntegration();
+            Integrator.StartAllIntegration();
 
             Log.Info($"HintServiceMeow {Version} has been enabled!");
         }
 
-        public static void OnDisabled()
+        public static void OnDisabled(IPlugin plugin)
         {
             //Reset initiated status
             _hasInitiated = false;
@@ -169,27 +253,10 @@ namespace HintServiceMeow
             _harmony = null;
 
             //Unregister events
-            if (!(Assembly.GetExecutingAssembly().GetType("Exiled.Events.Handlers.Player") is null))
-            {
-                UnregisterExiledEvent();
-            }
-
-            PluginAPI.Events.EventManager.UnregisterAllEvents(NwapiPlugin.Instance);
+            plugin.UnbindEvent();
 
             PlayerUI.ClearInstance();
             PlayerDisplay.ClearInstance();
-        }
-
-        private static void RegisterExiledEvent()
-        {
-            Exiled.Events.Handlers.Player.Verified += ExiledEventHandler.OnVerified;
-            Exiled.Events.Handlers.Player.Left += ExiledEventHandler.OnLeft;
-        }
-
-        private static void UnregisterExiledEvent()
-        {
-            Exiled.Events.Handlers.Player.Verified -= ExiledEventHandler.OnVerified;
-            Exiled.Events.Handlers.Player.Left -= ExiledEventHandler.OnLeft;
         }
     }
 }

@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
 using HarmonyLib;
 using Hints;
 using PluginAPI.Core;
@@ -9,9 +13,53 @@ namespace HintServiceMeow.Core.Utilities
     [HarmonyPatch(typeof(HintDisplay), nameof(HintDisplay.Show))]
     internal static class HintDisplayPatch
     {
-        static bool Prefix(ref Hint hint, ref HintDisplay __instance)
+        private static Dictionary<string, List<Hint>> AssemblyHints = new Dictionary<string, List<Hint>>();
+
+        private static bool Prefix(ref Hint hint, ref HintDisplay __instance)
         {
+            try
+            {
+                if(hint is TextHint textHint)
+                    if(ReferenceHub.TryGetHubNetID(__instance.connectionToClient.identity.netId, out var referenceHub))
+                    {
+                        var assemblyName = Assembly.GetCallingAssembly().GetName().Name;
+                        var content = textHint.Text;
+                        var timeToRemove = textHint.DurationScalar;
+
+                        CompatibilityAdapter.ShowHint(referenceHub, assemblyName, content, timeToRemove);
+                    }
+            }
+            catch(Exception ex)
+            {
+                Log.Error(ex.ToString());
+            }
+
             return false;
         }
     }
+
+#if EXILED
+    [HarmonyPatch(typeof(Exiled.API.Features.Player), nameof(Exiled.API.Features.Player.ShowHint))]
+    [HarmonyPatch(new Type[] { typeof(string), typeof(int) })]
+    internal static class ExiledHintPatch
+    {
+        private static Dictionary<string, List<Hint>> AssemblyHints = new Dictionary<string, List<Hint>>();
+
+        private static bool Prefix(ref string message, ref float duration, ref Exiled.API.Features.Player __instance)
+        {
+            try
+            {
+                var assemblyName = Assembly.GetCallingAssembly().GetName().Name;
+
+                CompatibilityAdapter.ShowHint(__instance.ReferenceHub, assemblyName, message, duration);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.ToString());
+            }
+
+            return false;
+        }
+    }
+#endif
 }
