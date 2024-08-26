@@ -17,6 +17,9 @@ namespace HintServiceMeow.Core.Utilities
 
         private static bool Prefix(ref Hint hint, ref HintDisplay __instance)
         {
+            if (!PluginConfig.Instance.UseHintCompatibilityAdapter)
+                return false;
+
             try
             {
                 if(hint is TextHint textHint)
@@ -47,6 +50,9 @@ namespace HintServiceMeow.Core.Utilities
 
         private static bool Prefix(ref string message, ref float duration, ref Exiled.API.Features.Player __instance)
         {
+            if (!PluginConfig.Instance.UseHintCompatibilityAdapter)
+                return false;
+
             try
             {
                 var assemblyName = Assembly.GetCallingAssembly().GetName().Name;
