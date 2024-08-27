@@ -361,6 +361,7 @@
     <Compile Include="Core\Models\HintContent\AutoContent.cs" />
     <Compile Include="Core\Models\HintContent\AbstractHintContent.cs" />
     <Compile Include="Core\Models\HintContent\StringContent.cs" />
+    <Compile Include="Core\Models\Hints\CompatAdapterHint.cs" />
     <Compile Include="Core\Utilities\CompatAdapter .cs" />
     <Compile Include="Core\Utilities\CoordinateTools.cs" />
     <Compile Include="Core\Utilities\HintParser.cs" />

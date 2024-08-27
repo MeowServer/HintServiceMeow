@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Models.Hints;
 using PluginAPI.Core;
+using UnityEngine.Rendering.LookDev;
 using UnityEngine.UIElements;
 
 namespace HintServiceMeow.Core.Utilities
@@ -137,13 +138,30 @@ namespace HintServiceMeow.Core.Utilities
             //Remove Illegal Tags
             string rawText = hint.Content.GetText() ?? string.Empty;
 
-            string text = Regex
-                .Replace(
-                rawText, 
-                @"<line-height=(\d+(\.\d+)?)>|<voffset=(-?\d+(\.\d+)?)>|<pos=(\d+(\.\d+)?)>|<align=(left|center|right)>|</voffset>|</align>|{|}", 
-                string.Empty, 
-                RegexOptions.IgnoreCase | RegexOptions.Compiled
-                );
+            string text = rawText;
+
+            if(hint is CompatAdapterHint)
+            {
+                text = Regex
+                    .Replace(
+                        text,
+                        @"<line-height=\d+>|<voffset=[+-]?\d+>|<pos=[+-]?\d+>|<align=(left|center|right)>|</voffset>|</align>|{|}",
+                        string.Empty,
+                        RegexOptions.IgnoreCase | RegexOptions.Compiled
+                    );
+
+                text += "</size></b></i>"; //Add closing tag for size to make sure it will not affect other hints
+            }
+            else
+            {
+                text = Regex
+                    .Replace(
+                        text,
+                        @"<line-height=\d+>|<voffset=[+-]?\d+>|<pos=[+-]?\d+>|<align=(left|center|right)>|<size=\d+>|</voffset>|</align>|</size>{|}",
+                        string.Empty,
+                        RegexOptions.IgnoreCase | RegexOptions.Compiled
+                    );
+            }
 
             if (string.IsNullOrEmpty(text))
                 return null;

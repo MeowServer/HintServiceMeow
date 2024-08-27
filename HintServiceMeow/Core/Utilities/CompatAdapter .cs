@@ -4,8 +4,10 @@ using MEC;
 using PluginAPI.Core;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using PluginAPI.Helpers;
 using YamlDotNet.Core.Tokens;
 
 namespace HintServiceMeow.Core.Utilities
@@ -36,18 +38,20 @@ namespace HintServiceMeow.Core.Utilities
 
             HeightResult heightResult = new HeightResult
             {
-                DefaultFontSize = 0,
                 HighestHeight = 0,
                 LastingFontSize = 0
             };
+
             AlignmentResult alignmentResult = new AlignmentResult
             {
                 Alignment = HintAlignment.Center,
                 LastingAlignment = HintAlignment.Center
             };
+
             foreach (var text in textList)
             {
-                heightResult = GetHeight(text, heightResult.LastingFontSize);
+                var lastingHeight = heightResult.LastingFontSize;
+                heightResult = GetHeight(text, lastingHeight);
                 alignmentResult = GetAlignment(text, alignmentResult.LastingAlignment);
 
                 Log.Info(heightResult.LastingFontSize.ToString());
@@ -57,7 +61,7 @@ namespace HintServiceMeow.Core.Utilities
                     Text = text,
                     Height = heightResult.HighestHeight,
                     Alignment = alignmentResult.Alignment,
-                    FontSize = heightResult.LastingFontSize
+                    FontSize = lastingHeight == 0 ? 40 : lastingHeight//Apply lasting height from last line
                 });
             }
 
@@ -66,10 +70,10 @@ namespace HintServiceMeow.Core.Utilities
             
             foreach(var textPosition in positions)
             {
-                var hint = new Hint
+                var hint = new CompatAdapterHint
                 {
                     Text = textPosition.Text,
-                    YCoordinate = 780 - totalHeight / 2 + textPosition.Height + accumulatedHeight,
+                    YCoordinate = 700 - totalHeight / 2 + textPosition.Height + accumulatedHeight,
                     YCoordinateAlign = HintVerticalAlign.Bottom,
                     Alignment = textPosition.Alignment,
                     FontSize = (int)textPosition.FontSize,
@@ -97,7 +101,6 @@ namespace HintServiceMeow.Core.Utilities
 
             HeightResult result = new HeightResult
             {
-                DefaultFontSize = LastFontSize,
                 HighestHeight = LastFontSize,
                 LastingFontSize = LastFontSize,
             };
@@ -246,8 +249,6 @@ namespace HintServiceMeow.Core.Utilities
 
         private class HeightResult
         {
-            public float DefaultFontSize { get; set; }
-
             public float HighestHeight { get; set; }
 
             public float LastingFontSize { get; set; }

@@ -22,10 +22,10 @@ namespace HintServiceMeow.Core.Utilities
 
         private static readonly TextHint HintTemplate = new TextHint("", new HintParameter[] { new StringHintParameter("") }, new HintEffect[] { HintEffectPresets.TrailingPulseAlpha(1, 1, 1) }, float.MaxValue);
 
-/// <summary>
-/// List of hints shows to the ReferenceHub
-/// </summary>
-private readonly HashSet<AbstractHint> _hintList = new HashSet<AbstractHint>();//List of hints shows to the ReferenceHub
+        /// <summary>
+        /// List of hints shows to the ReferenceHub
+        /// </summary>
+        private readonly HashSet<AbstractHint> _hintList = new HashSet<AbstractHint>();//List of hints shows to the ReferenceHub
 
         /// <summary>
         /// The player this instance bind to
@@ -51,7 +51,7 @@ private readonly HashSet<AbstractHint> _hintList = new HashSet<AbstractHint>();/
         /// <summary>
         /// The text that was sent to the client in latest sync
         /// </summary>
-        private string _lastText = string.Empty;
+        internal string _lastText = string.Empty;
 
         /// <summary>
         /// Contains all the hints that had been arranged to update. Make sure that a hint's update time will not be calculated for twice
