@@ -19,7 +19,7 @@ namespace HintServiceMeow.Core.Utilities
 
         private static readonly List<Hint> HintList = new List<Hint>();
 
-        private static readonly Dictionary<DynamicHint, ValueTuple<float, float>> _dynamicHintPositionCache = new Dictionary<DynamicHint, ValueTuple<float, float>>();
+        private static readonly Dictionary<Guid, ValueTuple<float, float>> _dynamicHintPositionCache = new Dictionary<Guid, ValueTuple<float, float>>();
 
         public static string GetMessage(HashSet<AbstractHint> rawHintList, PlayerDisplay pd)
         {
@@ -62,7 +62,7 @@ namespace HintServiceMeow.Core.Utilities
                 });
             }
 
-            if (_dynamicHintPositionCache.TryGetValue(dynamicHint, out var cachedPosition))
+            if (_dynamicHintPositionCache.TryGetValue(dynamicHint.Guid, out var cachedPosition))
             {
                 //If cached position is not intersected with any hint, use it
                 if(!HasIntersection(cachedPosition.Item1, cachedPosition.Item2))
@@ -90,7 +90,7 @@ namespace HintServiceMeow.Core.Utilities
                 if (!HasIntersection(x, y))
                 {
                     //Found a position that does not overlap with any hint. Add into cache
-                    _dynamicHintPositionCache[dynamicHint] = ValueTuple.Create(x, y);
+                    _dynamicHintPositionCache[dynamicHint.Guid] = ValueTuple.Create(x, y);
                     return new Hint(dynamicHint, x, y);
                 }
 
@@ -140,7 +140,7 @@ namespace HintServiceMeow.Core.Utilities
             string text = Regex
                 .Replace(
                 rawText, 
-                @"<line-height=(\d+(\.\d+)?)>|<voffset=(-?\d+(\.\d+)?)>|<pos=(\d+(\.\d+)?)>|<align=(left|center|right)>|</voffset>|</align>", 
+                @"<line-height=(\d+(\.\d+)?)>|<voffset=(-?\d+(\.\d+)?)>|<pos=(\d+(\.\d+)?)>|<align=(left|center|right)>|</voffset>|</align>|{|}", 
                 string.Empty, 
                 RegexOptions.IgnoreCase | RegexOptions.Compiled
                 );

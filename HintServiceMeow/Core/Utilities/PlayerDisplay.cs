@@ -20,10 +20,12 @@ namespace HintServiceMeow.Core.Utilities
         /// </summary>
         private static readonly HashSet<PlayerDisplay> PlayerDisplayList = new HashSet<PlayerDisplay>();
 
-        /// <summary>
-        /// List of hints shows to the ReferenceHub
-        /// </summary>
-        private readonly HashSet<AbstractHint> _hintList = new HashSet<AbstractHint>();//List of hints shows to the ReferenceHub
+        private static readonly TextHint HintTemplate = new TextHint("", new HintParameter[] { new StringHintParameter("") }, new HintEffect[] { HintEffectPresets.TrailingPulseAlpha(1, 1, 1) }, float.MaxValue);
+
+/// <summary>
+/// List of hints shows to the ReferenceHub
+/// </summary>
+private readonly HashSet<AbstractHint> _hintList = new HashSet<AbstractHint>();//List of hints shows to the ReferenceHub
 
         /// <summary>
         /// The player this instance bind to
@@ -131,7 +133,7 @@ namespace HintServiceMeow.Core.Utilities
 
         internal void OnHintUpdate(AbstractHint hint)
         {
-            if(_updatingHints.Contains(hint))
+            if (_updatingHints.Contains(hint))
                 return;
 
             _updatingHints.Add(hint);
@@ -165,9 +167,10 @@ namespace HintServiceMeow.Core.Utilities
         {
             TimeSpan timeToWait = useFastUpdate ? FastUpdateCoolDown : UpdateCoolDown;
 
-            var nextStartUpdateTime = DateTime.Now + timeToWait;
-            if (nextStartUpdateTime < _planUpdateTime)
-                _planUpdateTime = nextStartUpdateTime;
+            var newPlanUpdateTime = DateTime.Now + timeToWait;
+
+            if (_planUpdateTime > newPlanUpdateTime)
+                _planUpdateTime = newPlanUpdateTime;
         }
 
         /// <summary>
@@ -207,7 +210,7 @@ namespace HintServiceMeow.Core.Utilities
                     {
                         //Force update
                         if (pd.NeedPeriodicUpdate)
-                            pd.UpdateWhenAvailable(false);
+                            pd.UpdateHint(true);
 
                         //Invoke UpdateAvailable event
                         if (pd.UpdateReady)
@@ -278,13 +281,13 @@ namespace HintServiceMeow.Core.Utilities
                 _planUpdateTime = DateTime.MaxValue;
                 _arrangedUpdateTime = DateTime.MaxValue;
 
+                _updatingHints.Clear();
+
                 string text = HintParser.GetMessage(_hintList, this);
 
                 //Check whether the text had changed since last update or if this is a force update
                 if (text == _lastText && !isForceUpdate)
-                {
                     return;
-                }
 
                 //Update text record
                 _lastText = text;
@@ -293,14 +296,9 @@ namespace HintServiceMeow.Core.Utilities
                 _secondLastTimeUpdate = _lastTimeUpdate;
                 _lastTimeUpdate = DateTime.Now;
 
-                _updatingHints.Clear();
-
                 //Display the hint
-                var parameter = new HintParameter[] { new StringHintParameter(text) };
-                var effect = new HintEffect[] { HintEffectPresets.TrailingPulseAlpha(1, 1, 1) };
-                var hint = new TextHint(text, parameter, effect, float.MaxValue);
-
-                ReferenceHub.connectionToClient.Send(new HintMessage(hint));
+                HintTemplate.Text = text;
+                ReferenceHub.connectionToClient.Send(new HintMessage(HintTemplate));
             }
             catch (Exception ex)
             {

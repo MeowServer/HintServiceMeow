@@ -13,8 +13,6 @@ namespace HintServiceMeow.Core.Utilities
     [HarmonyPatch(typeof(HintDisplay), nameof(HintDisplay.Show))]
     internal static class HintDisplayPatch
     {
-        private static Dictionary<string, List<Hint>> AssemblyHints = new Dictionary<string, List<Hint>>();
-
         private static bool Prefix(ref Hint hint, ref HintDisplay __instance)
         {
             if (!PluginConfig.Instance.UseHintCompatibilityAdapter)
@@ -46,8 +44,6 @@ namespace HintServiceMeow.Core.Utilities
     [HarmonyPatch(new Type[] { typeof(string), typeof(int) })]
     internal static class ExiledHintPatch
     {
-        private static Dictionary<string, List<Hint>> AssemblyHints = new Dictionary<string, List<Hint>>();
-
         private static bool Prefix(ref string message, ref float duration, ref Exiled.API.Features.Player __instance)
         {
             if (!PluginConfig.Instance.UseHintCompatibilityAdapter)

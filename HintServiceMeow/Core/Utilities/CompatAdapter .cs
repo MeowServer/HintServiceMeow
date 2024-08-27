@@ -17,9 +17,6 @@ namespace HintServiceMeow.Core.Utilities
     {
         public static Dictionary<string, List<Hint>> AssemblyHint = new Dictionary<string, List<Hint>>();
 
-        private static readonly Regex SizeRegex = new Regex(@"<size=(\d+)>");
-        private static readonly Regex LineHeightRegex = new Regex(@"<line-height=([0-9\.]+%?)>");
-
         public static void ShowHint(ReferenceHub player, string assembly, string content, float timeToRemove)
         {
             var playerDisplay = PlayerDisplay.Get(player);
@@ -35,36 +32,50 @@ namespace HintServiceMeow.Core.Utilities
             }
 
             var textList = content.Split('\n');
-            var heightList = new List<ValueTuple<string, float>>();
+            var positions = new List<TextPosition>();
 
-            float lastFontSize = 0f;
-
+            HeightResult heightResult = new HeightResult
+            {
+                DefaultFontSize = 0,
+                HighestHeight = 0,
+                LastingFontSize = 0
+            };
+            AlignmentResult alignmentResult = new AlignmentResult
+            {
+                Alignment = HintAlignment.Center,
+                LastingAlignment = HintAlignment.Center
+            };
             foreach (var text in textList)
             {
-                var value = GetHeight(text, lastFontSize);
-                lastFontSize = value.Item2;
-                heightList.Add(ValueTuple.Create(text, value.Item1));
+                heightResult = GetHeight(text, heightResult.LastingFontSize);
+                alignmentResult = GetAlignment(text, alignmentResult.LastingAlignment);
+
+                Log.Info(heightResult.LastingFontSize.ToString());
+
+                positions.Add(new TextPosition
+                {
+                    Text = text,
+                    Height = heightResult.HighestHeight,
+                    Alignment = alignmentResult.Alignment,
+                    FontSize = heightResult.LastingFontSize
+                });
             }
 
-            var totalHeight = heightList.Count > 0 ? heightList.Sum(x => x.Item2) : 0;
+            var totalHeight = positions.Count > 0 ? positions.Sum(x => x.Height) : 0;
             var accumulatedHeight = 0f;
-
-            HintAlignment lastAlignment = HintAlignment.Center;
-
-            foreach(var kvp in heightList)
+            
+            foreach(var textPosition in positions)
             {
-                var alignResult = GetAlignment(kvp.Item1, lastAlignment);
-                lastAlignment = alignResult.Item2;
-
                 var hint = new Hint
                 {
-                    Text = kvp.Item1,
-                    YCoordinate = 700 - totalHeight / 2 + kvp.Item2 + accumulatedHeight,
+                    Text = textPosition.Text,
+                    YCoordinate = 780 - totalHeight / 2 + textPosition.Height + accumulatedHeight,
                     YCoordinateAlign = HintVerticalAlign.Bottom,
-                    Alignment = alignResult.Item1,
+                    Alignment = textPosition.Alignment,
+                    FontSize = (int)textPosition.FontSize,
                 };
 
-                accumulatedHeight += kvp.Item2;
+                accumulatedHeight += textPosition.Height;
 
                 playerDisplay.AddHint(hint);
                 AssemblyHint[assembly].Add(hint);
@@ -80,18 +91,32 @@ namespace HintServiceMeow.Core.Utilities
         }
 
         //Return a value tuple, value 1 is height, value 2 is last font size
-        private static ValueTuple<float, float> GetHeight(string text, float LastFontSize)
+        private static HeightResult GetHeight(string text, float LastFontSize)
         {
-            ValueTuple<float, int> result = ValueTuple.Create(0f, 0);
+            text = text.Replace(" ", "");
 
-            float maxFontSize = LastFontSize;
+            HeightResult result = new HeightResult
+            {
+                DefaultFontSize = LastFontSize,
+                HighestHeight = LastFontSize,
+                LastingFontSize = LastFontSize,
+            };
 
             //Get the max font size
             MatchCollection sizeMatches = Regex.Matches(text, @"<size=(\d+)(px|%)?>", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-            foreach (Match match in sizeMatches)
+
+            //If no size tag is found, set the default value to 40
+            if (sizeMatches.Count == 0)
             {
-                if (match.Success)
+                result.HighestHeight = Math.Max(result.HighestHeight, 40);
+            }
+            else
+            {
+                foreach (Match match in sizeMatches)
                 {
+                    if (!match.Success)
+                        continue;
+                    
                     var value = int.Parse(match.Groups[1].Value);
                     var unit = match.Groups[2].Value;
                     var actualValue = 0f;
@@ -109,19 +134,14 @@ namespace HintServiceMeow.Core.Utilities
                             break;
                     }
 
-                    maxFontSize = Math.Max(maxFontSize, actualValue);
+                    result.HighestHeight = Math.Max(result.HighestHeight, actualValue);
                 }
-            }
-            //If no size tag is found, set the default value to 40
-            if (sizeMatches.Count == 0)
-            {
-                maxFontSize = 40;
             }
 
             //Check and handle lasting font size
             Stack<string> stack = new Stack<string>();
 
-            MatchCollection matches = Regex.Matches(text, @"<size=(\d+)(px|%)?>|<\\size>", RegexOptions.IgnoreCase|RegexOptions.Compiled);
+            MatchCollection matches = Regex.Matches(text, @"<size=(\d+)(px|%)?>|</size>", RegexOptions.IgnoreCase|RegexOptions.Compiled);
 
             foreach (Match match in matches)
             {
@@ -137,7 +157,7 @@ namespace HintServiceMeow.Core.Utilities
                     }
                     else
                     {
-                        LastFontSize = 0;
+                        result.LastingFontSize = 0;
                     }
                 }
             }
@@ -145,12 +165,12 @@ namespace HintServiceMeow.Core.Utilities
             //Find lasting font size
             if(stack.Count > 0)
             {
-                string lastSize = stack.Pop();
-                var lastSizeMatch = Regex.Match(lastSize, @"<size=(\d+)(\w*)>", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-                if (lastSizeMatch.Success)
+                string lastingSize = stack.Pop();
+                var lastingSizeMatch = Regex.Match(lastingSize, @"<size=(\d+)(px|%)?>", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+                if (lastingSizeMatch.Success)
                 {
-                    int value = int.Parse(lastSizeMatch.Groups[1].Value);
-                    var unit = lastSizeMatch.Groups[2].Value;
+                    int value = int.Parse(lastingSizeMatch.Groups[1].Value);
+                    var unit = lastingSizeMatch.Groups[2].Value;
                     var actualValue = 0f;
 
                     switch (unit)
@@ -166,7 +186,7 @@ namespace HintServiceMeow.Core.Utilities
                             break;
                     }
 
-                    result.Item2 = value;
+                    result.LastingFontSize = actualValue;
                 }
             }
 
@@ -180,28 +200,28 @@ namespace HintServiceMeow.Core.Utilities
                 switch (unity)
                 {
                     case "px":
-                        result.Item1 = value;
+                        result.HighestHeight = value;
                         break;
                     case "%":
-                        result.Item1 = maxFontSize * value / 100f;
+                        result.HighestHeight = result.HighestHeight * value / 100f;
                         break;
                     default:
-                        result.Item1 = value;
+                        result.HighestHeight = value;
                         break;
                 }
-            }
-            else//If no line height tag is found, set the result to 0
-            {
-                result.Item1 = maxFontSize;
             }
 
             return result;
         }
 
         //Return a value tuple, value 1 is alignment, value 2 is lasting alignment
-        private static ValueTuple<HintAlignment, HintAlignment> GetAlignment(string text, HintAlignment lastAlignment)
+        private static AlignmentResult GetAlignment(string text, HintAlignment lastAlignment)
         {
-            ValueTuple<HintAlignment, HintAlignment> result = ValueTuple.Create(lastAlignment, lastAlignment);
+            AlignmentResult result = new AlignmentResult
+            {
+                Alignment = lastAlignment,
+                LastingAlignment = lastAlignment
+            };
 
             var matches = Regex.Matches(text, @"<align=(left|center|right)>|</align>", RegexOptions.IgnoreCase|RegexOptions.Compiled);
 
@@ -211,17 +231,44 @@ namespace HintServiceMeow.Core.Utilities
                 {
                     if (match.Value == "</align>")
                     {
-                        result.Item2 = HintAlignment.Center;
+                        result.LastingAlignment = HintAlignment.Center;
                     }
                     else if (System.Enum.TryParse(match.Groups[1].Value, true, out HintAlignment alignment))
                     {
-                        result.Item1 = alignment;
-                        result.Item2 = alignment;
+                        result.Alignment = alignment;
+                        result.LastingAlignment = alignment;
                     }
                 }
             }
 
             return result;
+        }
+
+        private class HeightResult
+        {
+            public float DefaultFontSize { get; set; }
+
+            public float HighestHeight { get; set; }
+
+            public float LastingFontSize { get; set; }
+        }
+
+        private class AlignmentResult
+        {
+            public HintAlignment Alignment { get; set; }
+
+            public HintAlignment LastingAlignment { get; set; }
+        }
+
+        private class TextPosition
+        {
+            public string Text { get; set; }
+
+            public HintAlignment Alignment { get; set; }
+
+            public float Height { get; set; }
+
+            public float FontSize { get; set; }
         }
     }
 }

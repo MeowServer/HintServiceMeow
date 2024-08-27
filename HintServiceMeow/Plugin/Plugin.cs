@@ -83,6 +83,10 @@ using PluginAPI.Events;
 // *        Improve performance
 // *    V5.2.1
 // *        Fix the bug that config might not be apply for compatibility adapter
+// *    V5.2.2
+// *        Bug fixing
+// *        Performance improvement
+// *        Improve code quality
 
 
 //TODO: Add auto-text rate setting. Support  NW API. Try fix the issue that cause NetworkIdentity to be null
@@ -165,7 +169,7 @@ namespace HintServiceMeow
         public PluginType Type => PluginType.Exiled;
         public PluginConfig PluginConfig => null;//NW somehow cannot serialize the config for HintServiceMeow
 
-        [PluginEntryPoint("HintServiceMeow", "5.2.1", "A hint framework", "MeowServerOwner")]
+        [PluginEntryPoint("HintServiceMeow", "5.2.2", "A hint framework", "MeowServerOwner")]
         public void LoadPlugin()
         {
             Plugin.OnEnabled(this);
@@ -210,7 +214,7 @@ namespace HintServiceMeow
     {
         public static string Name => "HintServiceMeow";
         public static string Author => "MeowServer";
-        public static Version Version => new Version(5, 2, 1);
+        public static Version Version => new Version(5, 2, 2);
 
         public static PluginConfig Config = new PluginConfig();//Initialize if fail to initialize
 

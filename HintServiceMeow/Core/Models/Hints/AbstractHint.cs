@@ -1,6 +1,8 @@
-﻿using HintServiceMeow.Core.Enum;
+﻿using Exiled.API.Features;
+using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Models.HintContent.HintContent;
 using HintServiceMeow.Core.Utilities;
+using System;
 
 namespace HintServiceMeow.Core.Models.Hints
 {
@@ -8,6 +10,7 @@ namespace HintServiceMeow.Core.Models.Hints
     {
         internal readonly UpdateAnalyser Analyser = new UpdateAnalyser();
 
+        private readonly Guid _guid = Guid.NewGuid();
         private string _id = string.Empty;
 
         private HintSyncSpeed _syncSpeed = HintSyncSpeed.Normal;
@@ -51,6 +54,11 @@ namespace HintServiceMeow.Core.Models.Hints
         #endregion
 
         #region Properties
+
+        /// <summary>
+        /// A random id created by the system
+        /// </summary>
+        public Guid Guid => _guid;
 
         /// <summary>
         /// The id of the hint, used to indicate the hint in player display
@@ -139,7 +147,15 @@ namespace HintServiceMeow.Core.Models.Hints
             }
             set
             {
-                Content = new StringContent(value);
+                if (Content is StringContent textContent)
+                {
+                    textContent.Text = value;
+                }
+                else
+                {
+                    Content = new StringContent(value);
+                }
+
                 OnHintUpdated();
             }
         }
@@ -179,7 +195,7 @@ namespace HintServiceMeow.Core.Models.Hints
                 _hide = value;
                 OnHintUpdated();
 
-                if(Hide) HintUpdated?.Invoke(this);
+                if(_hide) HintUpdated?.Invoke(this);
             }
         }
 
