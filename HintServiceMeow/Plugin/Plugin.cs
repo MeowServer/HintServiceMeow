@@ -88,7 +88,7 @@ using PluginAPI.Events;
 // *        Performance improvement
 // *        Improve code quality
 // *    V5.2.3
-// *        Improve compatibility adapter's accuracy. Fix font size issue
+// *        Improve compatibility adapter's accuracy. Fix the font size issue
 
 
 //TODO: Add support for color, b, i tags in compatibility adapter.
