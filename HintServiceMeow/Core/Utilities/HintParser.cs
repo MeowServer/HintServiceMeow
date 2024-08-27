@@ -150,7 +150,7 @@ namespace HintServiceMeow.Core.Utilities
                         RegexOptions.IgnoreCase | RegexOptions.Compiled
                     );
 
-                text += "</size></b></i>"; //Add closing tag for size to make sure it will not affect other hints
+                text += "</size></b></i></color>"; //Add closing tag for size to make sure it will not affect other hints
             }
             else
             {

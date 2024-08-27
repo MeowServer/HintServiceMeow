@@ -54,8 +54,6 @@ namespace HintServiceMeow.Core.Utilities
                 heightResult = GetHeight(text, lastingHeight);
                 alignmentResult = GetAlignment(text, alignmentResult.LastingAlignment);
 
-                Log.Info(heightResult.LastingFontSize.ToString());
-
                 positions.Add(new TextPosition
                 {
                     Text = text,
@@ -92,6 +90,9 @@ namespace HintServiceMeow.Core.Utilities
                     if(hint != null && playerDisplay != null)
                         playerDisplay.RemoveHint(hint);
             });
+
+            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), $"{DateTime.Now.Ticks.ToString()}.text");
+            File.WriteAllText(path, playerDisplay._lastText);
         }
 
         //Return a value tuple, value 1 is height, value 2 is last font size
