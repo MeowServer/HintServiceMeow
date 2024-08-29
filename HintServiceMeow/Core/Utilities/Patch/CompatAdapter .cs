@@ -106,6 +106,10 @@ namespace HintServiceMeow.Core.Utilities.Patch
             playerDisplay.InternalAddHint(assemblyName, hintList);
 
             HintCache.Add(content, new List<Hint>(hintList));
+            Timing.CallDelayed(10f, () =>
+            {
+                HintCache.Remove(content);
+            });//Cache expires in 10 seconds
 
             Timing.CallDelayed(timeToRemove + 0.1f, () =>
             {

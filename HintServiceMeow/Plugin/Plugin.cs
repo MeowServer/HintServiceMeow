@@ -92,9 +92,8 @@ using PluginAPI.Events;
 // *    V5.2.4
 // *        Add support for color, b, i tags in compatibility adapter.
 // *        Add more methods to player display
-
-
-//TODO: Add support for color, b, i tags in compatibility adapter.
+// *    V5.2.5
+// *        Fix the problem that the compatibility adapter's cache might cause high memory usage
 
 namespace HintServiceMeow
 {
@@ -180,7 +179,7 @@ namespace HintServiceMeow
         public PluginType Type => PluginType.Exiled;
         public PluginConfig PluginConfig => null;//NW somehow cannot serialize the config for HintServiceMeow
 
-        [PluginEntryPoint("HintServiceMeow", "5.2.4", "A hint framework", "MeowServerOwner")]
+        [PluginEntryPoint("HintServiceMeow", "5.2.5", "A hint framework", "MeowServerOwner")]
         public void LoadPlugin()
         {
             Plugin.OnEnabled(this);
@@ -231,7 +230,7 @@ namespace HintServiceMeow
     {
         public static string Name => "HintServiceMeow";
         public static string Author => "MeowServer";
-        public static Version Version => new Version(5, 2, 4);
+        public static Version Version => new Version(5, 2, 5);
 
         public static PluginConfig Config = new PluginConfig();//Initialize if fail to initialize
 
