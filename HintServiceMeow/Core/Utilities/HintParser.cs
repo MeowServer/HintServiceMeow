@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
 using HintServiceMeow.Core.Enum;
+using HintServiceMeow.Core.Models;
 using HintServiceMeow.Core.Models.Hints;
 using PluginAPI.Core;
 using UnityEngine.Rendering.LookDev;
@@ -18,26 +21,60 @@ namespace HintServiceMeow.Core.Utilities
 
         private static readonly StringBuilder RichTextBuilder = new StringBuilder(500); //Used to build rich text from Hint
 
-        private static readonly List<Hint> HintList = new List<Hint>();
+        private static readonly List<List<Hint>> HintList = new List<List<Hint>>();
 
         private static readonly Dictionary<Guid, ValueTuple<float, float>> _dynamicHintPositionCache = new Dictionary<Guid, ValueTuple<float, float>>();
 
-        public static string GetMessage(HashSet<AbstractHint> rawHintList, PlayerDisplay pd)
+        public static string GetMessage(HintCollection collection)
         {
             HintList.Clear();
 
-            foreach (var item in rawHintList)
+            foreach (var group in collection.AllGroups)
             {
-                if (item.Hide || string.IsNullOrEmpty(item.Content.GetText()))
-                    continue;
+                List<Hint> orderedList = new List<Hint>();
 
-                if (item is Hint hint)
-                    HintList.Add(hint);
-                else if (item is DynamicHint dynamicHint)
-                    HintList.Add(ConvertDynamicHint(dynamicHint, HintList));
+                //Convert to Hint
+                foreach (var item in group)
+                {
+                    if (item.Hide || string.IsNullOrEmpty(item.Content.GetText()))
+                        continue;
+
+                    if (item is Hint hint)
+                        orderedList.Add(hint);
+                    else if (item is DynamicHint dynamicHint)
+                        orderedList.Add(ConvertDynamicHint(dynamicHint, orderedList));
+                }
+
+                //Sort by y coordinate and priority
+                orderedList.Sort((x,y) => x.YCoordinate.CompareTo(y.YCoordinate));
+
+                HintList.Add(orderedList);
             }
 
-            return GetText(HintList);
+            MessageBuilder.Clear();
+            MessageBuilder.AppendLine("<line-height=0><voffset=9999>P</voffset>");//Place Holder
+
+            foreach (List<Hint> hintList in HintList)
+            {
+                foreach(Hint hint in hintList)
+                {
+                    var text = ToRichText(hint);
+                    if (!string.IsNullOrEmpty(text))
+                        MessageBuilder.AppendLine(text);
+                }
+
+                MessageBuilder.Append("</size></b></i>"); //Make sure one group will not affect another group
+            }
+
+            MessageBuilder.AppendLine("<line-height=0><voffset=-9999>P</voffset>");//Place Holder
+
+            var result = MessageBuilder.ToString();
+            MessageBuilder.Clear();
+
+            //var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), $"{DateTime.Now.Ticks}.txt");
+            //File.WriteAllText(path, result);
+
+            return result;
         }
 
         public static Hint ConvertDynamicHint(DynamicHint dynamicHint, List<Hint> hintList)
@@ -112,27 +149,6 @@ namespace HintServiceMeow.Core.Utilities
             return null;
         }
 
-        private static string GetText(IEnumerable<Hint> hintList)
-        {
-            MessageBuilder.Clear();
-
-            MessageBuilder.AppendLine("<line-height=0><voffset=9999>P</voffset>");//Place Holder
-
-            foreach (Hint hint in hintList)
-            {
-                var text = ToRichText(hint);
-                if (!string.IsNullOrEmpty(text))
-                    MessageBuilder.AppendLine(text);
-            }
-
-            MessageBuilder.AppendLine("<line-height=0><voffset=-9999>P</voffset>");//Place Holder
-
-            var result = MessageBuilder.ToString();
-            MessageBuilder.Clear();
-
-            return result;
-        }
-
         private static string ToRichText(Hint hint)
         {
             //Remove Illegal Tags
@@ -149,8 +165,6 @@ namespace HintServiceMeow.Core.Utilities
                         string.Empty,
                         RegexOptions.IgnoreCase | RegexOptions.Compiled
                     );
-
-                text += "</size></b></i></color>"; //Add closing tag for size to make sure it will not affect other hints
             }
             else
             {

@@ -8,7 +8,7 @@ using Hints;
 using PluginAPI.Core;
 using Hint = Hints.Hint;
 
-namespace HintServiceMeow.Core.Utilities
+namespace HintServiceMeow.Core.Utilities.Patch
 {
     [HarmonyPatch(typeof(HintDisplay), nameof(HintDisplay.Show))]
     internal static class HintDisplayPatch
@@ -20,7 +20,7 @@ namespace HintServiceMeow.Core.Utilities
 
             try
             {
-                if(hint is TextHint textHint)
+                if (hint is TextHint textHint)
                     if(ReferenceHub.TryGetHubNetID(__instance.connectionToClient.identity.netId, out var referenceHub))
                     {
                         var assemblyName = Assembly.GetCallingAssembly().GetName().Name;

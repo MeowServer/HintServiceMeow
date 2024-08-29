@@ -10,6 +10,8 @@ using HintServiceMeow.Core.Models.Hints;
 
 //Plugin API
 using Log = PluginAPI.Core.Log;
+using HintServiceMeow.Core.Models;
+using System.Reflection;
 
 namespace HintServiceMeow.Core.Utilities
 {
@@ -23,9 +25,9 @@ namespace HintServiceMeow.Core.Utilities
         private static readonly TextHint HintTemplate = new TextHint("", new HintParameter[] { new StringHintParameter("") }, new HintEffect[] { HintEffectPresets.TrailingPulseAlpha(1, 1, 1) }, float.MaxValue);
 
         /// <summary>
-        /// List of hints shows to the ReferenceHub
+        /// Groups of hints shows to the ReferenceHub. First group is used for regular hints, reset of the groups are used for compatibility hints
         /// </summary>
-        private readonly HashSet<AbstractHint> _hintList = new HashSet<AbstractHint>();//List of hints shows to the ReferenceHub
+        private readonly HintCollection _hints = new HintCollection();
 
         /// <summary>
         /// The player this instance bind to
@@ -183,7 +185,7 @@ namespace HintServiceMeow.Core.Utilities
                 var now = DateTime.Now;
 
                 //Find the latest estimated update time within maxDelay
-                IEnumerable<DateTime> estimatedTime = _hintList
+                IEnumerable<DateTime> estimatedTime = _hints.AllHints
                     .Where(x => x.SyncSpeed >= hint.SyncSpeed && x != hint)
                     .Select(x => x.Analyser.EstimateNextUpdate())
                     .Where(x => x - now >= TimeSpan.Zero && x - now <= maxDelay)
@@ -283,7 +285,7 @@ namespace HintServiceMeow.Core.Utilities
 
                 _updatingHints.Clear();
 
-                string text = HintParser.GetMessage(_hintList, this);
+                string text = HintParser.GetMessage(_hints);
 
                 //Check whether the text had changed since last update or if this is a force update
                 if (text == _lastText && !isForceUpdate)
@@ -377,21 +379,33 @@ namespace HintServiceMeow.Core.Utilities
         {
             if (hint == null)
                 return;
-            
+
+            var name = Assembly.GetCallingAssembly().FullName;
+
             hint.HintUpdated += OnHintUpdate;
             UpdateAvailable += hint.TryUpdateHint;
 
-            _hintList.Add(hint);
+            _hints.AddHint(name, hint);
 
             UpdateWhenAvailable();
         }
 
         public void AddHint(IEnumerable<AbstractHint> hints)
         {
-            foreach(AbstractHint hint in hints)
+            if (hints == null)
+                return;
+
+            var name = Assembly.GetCallingAssembly().FullName;
+
+            foreach (AbstractHint hint in hints)
             {
-                AddHint(hint);
+                hint.HintUpdated += OnHintUpdate;
+                UpdateAvailable += hint.TryUpdateHint;
+
+                _hints.AddHint(name, hint);
             }
+
+            UpdateWhenAvailable();
         }
 
         public void RemoveHint(AbstractHint hint)
@@ -399,33 +413,53 @@ namespace HintServiceMeow.Core.Utilities
             if (hint == null)
                 return;
 
+            var name = Assembly.GetCallingAssembly().FullName;
+
             hint.HintUpdated -= OnHintUpdate;
             UpdateAvailable -= hint.TryUpdateHint;
 
-            _hintList.Remove(hint);
+            _hints.RemoveHint(name, hint);
 
             UpdateWhenAvailable();
         }
 
         public void RemoveHint(IEnumerable<AbstractHint> hints)
         {
+            if (hints == null)
+                return;
+
+            var name = Assembly.GetCallingAssembly().FullName;
+
             foreach (var hint in hints)
             {
-                RemoveHint(hint);
+                hint.HintUpdated -= OnHintUpdate;
+                UpdateAvailable -= hint.TryUpdateHint;
+
+                _hints.RemoveHint(name, hint);
             }
+
+            UpdateWhenAvailable();
         }
 
         public void RemoveHint(string id)
         {
             if (string.IsNullOrEmpty(id))
-                throw new Exception("A null or a empty ID had been passed to RemoveHint");
+                throw new Exception("A null or a empty ID had been passed to RemoveFromHintList");
 
-            var toRemove = _hintList.Where(x => x.Id.Equals(id)).ToList();
+            var name = Assembly.GetCallingAssembly().FullName;
 
-            foreach (var hint in toRemove)
-            {
-                RemoveHint(hint);
-            }
+            _hints.RemoveHint(name, x => x.Id.Equals(id));
+
+            UpdateWhenAvailable();
+        }
+
+        public void ClearHint()
+        {
+            var name = Assembly.GetCallingAssembly().FullName;
+
+            _hints.ClearHints(name);
+
+            UpdateWhenAvailable();
         }
 
         public AbstractHint GetHint(string id)
@@ -433,7 +467,48 @@ namespace HintServiceMeow.Core.Utilities
             if (string.IsNullOrEmpty(id))
                 throw new Exception("A null or a empty name had been passed to GetHint");
 
-            return _hintList.FirstOrDefault(x => x.Id == id);
+            var name = Assembly.GetCallingAssembly().FullName;
+
+            return _hints.GetHints(name).FirstOrDefault(x => x.Id == id);
+        }
+
+        internal void InternalAddHint(string name, AbstractHint hint)
+        {
+            _hints.AddHint(name, hint);
+
+            UpdateWhenAvailable();
+        }
+
+        internal void InternalAddHint(string name, IEnumerable<AbstractHint> hints)
+        {
+            foreach(var hint in hints)
+            {
+                _hints.AddHint(name, hint);
+            }
+
+            UpdateWhenAvailable();
+        }
+
+        internal void InternalRemoveHint(string name, AbstractHint hint)
+        {
+            _hints.RemoveHint(name, hint);
+
+            UpdateWhenAvailable();
+        }
+
+        internal void InternalRemoveHint(string name, IEnumerable<AbstractHint> hints)
+        {
+            foreach (var hint in hints)
+            {
+                _hints.RemoveHint(name, hint);
+            }
+
+            UpdateWhenAvailable();
+        }
+
+        internal void InternalClearHint(string name)
+        {
+            _hints.ClearHints(name);
         }
 
         #endregion

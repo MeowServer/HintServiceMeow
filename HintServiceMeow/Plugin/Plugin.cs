@@ -1,9 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Reflection;
-
 using HarmonyLib;
 using HintServiceMeow.Core.Utilities;
+using HintServiceMeow.Core.Utilities.Patch;
 using HintServiceMeow.Integrations;
 using HintServiceMeow.UI.Utilities;
 
@@ -89,6 +89,9 @@ using PluginAPI.Events;
 // *        Improve code quality
 // *    V5.2.3
 // *        Improve compatibility adapter's accuracy. Fix the font size issue
+// *    V5.2.4
+// *        Add support for color, b, i tags in compatibility adapter.
+// *        Add more methods to player display
 
 
 //TODO: Add support for color, b, i tags in compatibility adapter.
@@ -127,12 +130,14 @@ namespace HintServiceMeow
         {
             Exiled.Events.Handlers.Player.Verified += ExiledEventHandler.OnVerified;
             Exiled.Events.Handlers.Player.Left += ExiledEventHandler.OnLeft;
+            Exiled.Events.Handlers.Server.WaitingForPlayers += ExiledEventHandler.OnWaitingForPlayers;
         }
 
         public void UnbindEvent()
         {
             Exiled.Events.Handlers.Player.Verified -= ExiledEventHandler.OnVerified;
             Exiled.Events.Handlers.Player.Left -= ExiledEventHandler.OnLeft;
+            Exiled.Events.Handlers.Server.WaitingForPlayers -= ExiledEventHandler.OnWaitingForPlayers;
         }
     }
 
@@ -142,7 +147,6 @@ namespace HintServiceMeow
 
     internal static class ExiledEventHandler
     {
-
         // TryCreate PlayerDisplay and PlayerUIConfig for the new ReferenceHub
         internal static void OnVerified(Exiled.Events.EventArgs.Player.VerifiedEventArgs ev)
         {
@@ -161,6 +165,11 @@ namespace HintServiceMeow
             PlayerUI.Destruct(ev.Player.ReferenceHub);
             PlayerDisplay.Destruct(ev.Player.ReferenceHub);
         }
+
+        internal static void OnWaitingForPlayers()
+        {
+            Patcher.Patch();
+        }
     }
 
 #else
@@ -171,7 +180,7 @@ namespace HintServiceMeow
         public PluginType Type => PluginType.Exiled;
         public PluginConfig PluginConfig => null;//NW somehow cannot serialize the config for HintServiceMeow
 
-        [PluginEntryPoint("HintServiceMeow", "5.2.3", "A hint framework", "MeowServerOwner")]
+        [PluginEntryPoint("HintServiceMeow", "5.2.4", "A hint framework", "MeowServerOwner")]
         public void LoadPlugin()
         {
             Plugin.OnEnabled(this);
@@ -208,6 +217,12 @@ namespace HintServiceMeow
             PlayerUI.Destruct(ev.Player.ReferenceHub);
             PlayerDisplay.Destruct(ev.Player.ReferenceHub);
         }
+
+        [PluginEvent(ServerEventType.WaitingForPlayers)]
+        internal void OnWaitingForPlayers(WaitingForPlayersEvent ev)
+        {
+            Patcher.Patch();
+        }
     }
 
 #endif
@@ -216,35 +231,27 @@ namespace HintServiceMeow
     {
         public static string Name => "HintServiceMeow";
         public static string Author => "MeowServer";
-        public static Version Version => new Version(5, 2, 3);
+        public static Version Version => new Version(5, 2, 4);
 
         public static PluginConfig Config = new PluginConfig();//Initialize if fail to initialize
 
-        private static Harmony _harmony;
+        public static bool HasInitiated = false;
 
-        private static bool _hasInitiated = false;
+        public static IPlugin ActivePlugin;
         
         public static void OnEnabled(IPlugin plugin)
         {
-            //Check initiated status
-            if (_hasInitiated)
+            if (HasInitiated)
                 return;
 
-            //Set initiated status
-            _hasInitiated = true;
-
-            if(plugin.PluginConfig != null)
-                Config = plugin.PluginConfig;
-
-            _harmony = new Harmony("HintServiceMeowHarmony" + Version);
-            _harmony.PatchAll();
-
-            FontTool.LoadFontFile();
+            HasInitiated = true;
+            Config = plugin.PluginConfig ?? Config;
+            ActivePlugin = plugin;
 
             //Register events
             plugin.BindEvent();
 
-            //Integration
+            FontTool.LoadFontFile();
             Integrator.StartAllIntegration();
 
             Log.Info($"HintServiceMeow {Version} has been enabled!");
@@ -253,15 +260,14 @@ namespace HintServiceMeow
         public static void OnDisabled(IPlugin plugin)
         {
             //Reset initiated status
-            _hasInitiated = false;
-
+            HasInitiated = false;
             Config = null;
-
-            _harmony.UnpatchAll();
-            _harmony = null;
+            ActivePlugin = null;
 
             //Unregister events
             plugin.UnbindEvent();
+
+            Patcher.Unpatch();
 
             PlayerUI.ClearInstance();
             PlayerDisplay.ClearInstance();
