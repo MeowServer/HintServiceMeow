@@ -1,10 +1,28 @@
 ### 简介
 HintServiceMeow 是一款基于Exiled框架的插件，用于向玩家同时展示多条Hint。
+
 ### 安装
 如果希望安装这个插件
 1. 进入发行（Release）页面并下载最新的HintServiceMeow.dll文件。
 2. 如果您正在使用PluginAPI（默认的API），请将Harmony.dll放入dependencies文件夹
 3. 将这个文件粘贴于插件文件夹中，并重启服务器即可安装。
+
+### 功能
+#### Hint适配器
+HintServiceMeow包含了一个Hint适配器，这个适配器可以将本不适配HintServiceMeow的插件适配HintServiceMeow。通过这样，可以让使用了Hint的插件在没有任何适配的情况下互相兼容。
+
+## 开发者功能
+#### 自更新文字
+可通过AutoText属性自动更新Hint内容
+#### 动态Hint
+一种自动插入到屏幕最佳位置的Hint
+#### 自动更新
+任何对Hint类属性的改变都会自动更新到玩家的屏幕上
+#### 更新预测
+这个框架可以分析并预测每个Hint的更新速度，并根据更新速度规划更新时间。您可以通过改变Hint中的SyncSpeed属性来调整每个Hint的更新延时，可选择从最快到不同步。
+#### 玩家UI
+玩家UI包含了一系列的简化开发的部件。其中的CommonHint部件可以帮助开发者快速的向玩家展示常用的Hint。
+ 
 
 ### 致开发者
 这里是一个简单的指导：
