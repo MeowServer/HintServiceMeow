@@ -8,6 +8,7 @@ using HintServiceMeow.UI.Extension;
 using Hint = HintServiceMeow.Core.Models.Hints.Hint;
 using MEC;
 using System.Collections.Generic;
+using HintServiceMeow.UI.Utilities;
 
 namespace HintServiceExample
 {
@@ -41,6 +42,11 @@ namespace HintServiceExample
             ShowHintB(ev.Player);
             ShowDynamicHintA(ev.Player);
             ShowCommonHintA(ev.Player);
+
+            var ui = ev.Player.GetPlayerUi();
+            ui.Style.SetStyle(-50, 1080, Style.StyleType.Italic);
+            ui.Style.SetColor(-50, 1080, UnityEngine.Color.green);
+
         }
 
         //How to use Hint

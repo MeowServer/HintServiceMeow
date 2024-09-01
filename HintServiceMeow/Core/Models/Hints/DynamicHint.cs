@@ -24,13 +24,21 @@ namespace HintServiceMeow.Core.Models.Hints
 
         public DynamicHint(DynamicHint hint) : base(hint)
         {
-            this._topBoundary = hint._topBoundary;
-            this._bottomBoundary = hint._bottomBoundary;
+            Lock.EnterWriteLock();
+            try
+            {
+                this._topBoundary = hint._topBoundary;
+                this._bottomBoundary = hint._bottomBoundary;
 
-            this._leftBoundary = hint._leftBoundary;
-            this._rightBoundary = hint._rightBoundary;
+                this._leftBoundary = hint._leftBoundary;
+                this._rightBoundary = hint._rightBoundary;
 
-            this._priority = hint._priority;
+                this._priority = hint._priority;
+            }
+            finally
+            {
+                Lock.ExitWriteLock();
+            }
         }
 
         #endregion
@@ -40,15 +48,33 @@ namespace HintServiceMeow.Core.Models.Hints
         /// </summary>
         public float TopBoundary
         {
-            get => _topBoundary;
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return _topBoundary;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
             set
             {
-                if (_topBoundary.Equals(value))
-                    return;
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (_topBoundary.Equals(value))
+                        return;
 
-                _topBoundary = value;
-
-                OnHintUpdated();
+                    _topBoundary = value;
+                    OnHintUpdated();
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
             }
         }
 
@@ -57,15 +83,33 @@ namespace HintServiceMeow.Core.Models.Hints
         /// </summary>
         public float BottomBoundary
         {
-            get => _bottomBoundary;
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return _bottomBoundary;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
             set
             {
-                if (_bottomBoundary.Equals(value))
-                    return;
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (_bottomBoundary.Equals(value))
+                        return;
 
-                _bottomBoundary = value;
-
-                OnHintUpdated();
+                    _bottomBoundary = value;
+                    OnHintUpdated();
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
             }
         }
 
@@ -74,15 +118,33 @@ namespace HintServiceMeow.Core.Models.Hints
         /// </summary>
         public float LeftBoundary
         {
-            get => _leftBoundary;
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return _leftBoundary;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
             set
             {
-                if (_leftBoundary.Equals(value))
-                    return;
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (_leftBoundary.Equals(value))
+                        return;
 
-                _leftBoundary = value;
-
-                OnHintUpdated();
+                    _leftBoundary = value;
+                    OnHintUpdated();
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
             }
         }
 
@@ -91,43 +153,97 @@ namespace HintServiceMeow.Core.Models.Hints
         /// </summary>
         public float RightBoundary
         {
-            get => _rightBoundary;
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return _rightBoundary;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
             set
             {
-                if (_rightBoundary.Equals(value))
-                    return;
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (_rightBoundary.Equals(value))
+                        return;
 
-                _rightBoundary = value;
-
-                OnHintUpdated();
+                    _rightBoundary = value;
+                    OnHintUpdated();
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
             }
         }
 
         public float TargetY
         {
-            get => _targetY;
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return _targetY;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
             set
             {
-                if (_targetY.Equals(value))
-                    return;
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (_targetY.Equals(value))
+                        return;
 
-                _targetY = value;
-
-                OnHintUpdated();
+                    _targetY = value;
+                    OnHintUpdated();
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
             }
         }
 
         public float TargetX
         {
-            get => _targetX;
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return _targetX;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
             set
             {
-                if (_targetX.Equals(value))
-                    return;
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (_targetX.Equals(value))
+                        return;
 
-                _targetX = value;
-
-                OnHintUpdated();
+                    _targetX = value;
+                    OnHintUpdated();
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
             }
         }
 
@@ -136,28 +252,67 @@ namespace HintServiceMeow.Core.Models.Hints
         /// </summary>
         public HintPriority Priority
         {
-            get => _priority;
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return _priority;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
             set
             {
-                if (_priority == value)
-                    return;
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (_priority == value)
+                        return;
 
-                _priority = value;
-                OnHintUpdated();
+                    _priority = value;
+                    OnHintUpdated();
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
             }
         }
 
         public DynamicHintStrategy Strategy
         {
-            get => _strategy;
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return _strategy;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
             set
             {
-                if (_strategy == value)
-                    return;
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (_strategy == value)
+                        return;
 
-                _strategy = value;
-                OnHintUpdated();
+                    _strategy = value;
+                    OnHintUpdated();
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
             }
         }
     }
+
 }

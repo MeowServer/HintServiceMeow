@@ -8,6 +8,5 @@ namespace HintServiceMeow.Core.Models.Hints
 {
     internal class CompatAdapterHint : Hint
     {
-        public CompatAdapterHint(): base() { }
     }
 }

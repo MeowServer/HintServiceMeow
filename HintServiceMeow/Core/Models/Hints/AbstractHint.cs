@@ -3,11 +3,14 @@ using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Models.HintContent.HintContent;
 using HintServiceMeow.Core.Utilities;
 using System;
+using System.Threading;
 
 namespace HintServiceMeow.Core.Models.Hints
 {
     public abstract class AbstractHint
     {
+        protected ReaderWriterLockSlim Lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
+
         internal readonly UpdateAnalyser Analyser = new UpdateAnalyser();
 
         private readonly Guid _guid = Guid.NewGuid();
@@ -43,159 +46,306 @@ namespace HintServiceMeow.Core.Models.Hints
 
         protected AbstractHint(AbstractHint hint)
         {
-            this._id = hint._id;
-            this._syncSpeed = hint._syncSpeed;
-            this._fontSize = hint._fontSize;
-            this._lineHeight = hint._lineHeight;
-            this._content = hint._content;
-            this._hide = hint._hide;
+            Lock.EnterWriteLock();
+            try
+            {
+                this._id = hint._id;
+                this._syncSpeed = hint._syncSpeed;
+                this._fontSize = hint._fontSize;
+                this._lineHeight = hint._lineHeight;
+                this._content = hint._content;
+                this._hide = hint._hide;
+            }
+            finally
+            {
+                Lock.ExitWriteLock();
+            }
         }
 
         #endregion
 
         #region Properties
 
-        /// <summary>
-        /// A random id created by the system
-        /// </summary>
-        public Guid Guid => _guid;
+        public Guid Guid
+        {
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return _guid;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
+        }
 
-        /// <summary>
-        /// The id of the hint, used to indicate the hint in player display
-        /// </summary>
-        public string Id { get => _id; set => _id = value; }
+        public string Id
+        {
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return _id;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
+            set
+            {
+                Lock.EnterWriteLock();
+                try
+                {
+                    _id = value;
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
+            }
+        }
 
-        /// <summary>
-        /// The sync speed of the hint. Higher speed means faster to sync.
-        /// Overly high speed might jam the updater.
-        /// </summary>
         public HintSyncSpeed SyncSpeed
         {
-            get => _syncSpeed;
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return _syncSpeed;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
             set
             {
-                if (_syncSpeed == value)
-                    return;
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (_syncSpeed == value)
+                        return;
 
-                _syncSpeed = value;
-                OnHintUpdated();
+                    _syncSpeed = value;
+                    OnHintUpdated();
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
             }
         }
 
-        /// <summary>
-        /// The height of the Font
-        /// </summary>
         public int FontSize
         {
-            get => _fontSize;
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return _fontSize;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
             set
             {
-                if (_fontSize == value)
-                    return;
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (_fontSize == value)
+                        return;
 
-                _fontSize = value;
-                OnHintUpdated();
+                    _fontSize = value;
+                    OnHintUpdated();
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
             }
         }
 
-        /// <summary>
-        /// The line height of the hint. Default line height is 0.
-        /// </summary>
         public float LineHeight
         {
-            get => _lineHeight;
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return _lineHeight;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
             set
             {
-                if (_lineHeight.Equals(value))
-                    return;
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (_lineHeight.Equals(value))
+                        return;
 
-                _lineHeight = value;
-                OnHintUpdated();
+                    _lineHeight = value;
+                    OnHintUpdated();
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
             }
         }
 
-        /// <summary>
-        /// Get or set the content of the hint
-        /// </summary>
         public AbstractHintContent Content
         {
-            get => _content;
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return _content;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
             set
             {
-                if (_content == value)
-                    return;
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (_content == value)
+                        return;
 
-                _content = value;
-                _content.ContentUpdated += OnHintUpdated;
-                OnHintUpdated();
+                    _content = value;
+                    _content.ContentUpdated += OnHintUpdated;
+                    OnHintUpdated();
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
             }
         }
 
-        /// <summary>
-        /// Set the text displayed by the hint. This will override current content
-        /// </summary>
         public string Text
         {
             get
             {
-                if (Content is StringContent)
+                Lock.EnterReadLock();
+                try
                 {
-                    return Content.GetText();
-                }
+                    if (Content is StringContent)
+                    {
+                        return Content.GetText();
+                    }
 
-                return null;
+                    return null;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
             }
             set
             {
-                if (Content is StringContent textContent)
+                Lock.EnterWriteLock();
+                try
                 {
-                    textContent.Text = value;
-                }
-                else
-                {
-                    Content = new StringContent(value);
-                }
+                    if (Content is StringContent textContent)
+                    {
+                        textContent.Text = value;
+                    }
+                    else
+                    {
+                        Content = new StringContent(value);
+                    }
 
-                OnHintUpdated();
+                    OnHintUpdated();
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
             }
         }
 
-        /// <summary>
-        /// Set the auto text of the hint. This will override current content
-        /// </summary>
         public AutoContent.TextUpdateHandler AutoText
         {
             get
             {
-                if (Content is AutoContent content)
+                Lock.EnterReadLock();
+                try
                 {
-                    return content.AutoText;
-                }
+                    if (Content is AutoContent content)
+                    {
+                        return content.AutoText;
+                    }
 
-                return null;
+                    return null;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
             }
             set
             {
-                Content = new AutoContent(value);
-                OnHintUpdated();
+                Lock.EnterWriteLock();
+                try
+                {
+                    Content = new AutoContent(value);
+                    OnHintUpdated();
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
             }
         }
 
-        /// <summary>
-        /// Whether this hint was hided
-        /// </summary>
         public bool Hide
         {
-            get => _hide;
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return _hide;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
             set
             {
-                if (_hide == value)
-                    return;
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (_hide == value)
+                        return;
 
-                _hide = value;
-                OnHintUpdated();
+                    _hide = value;
+                    OnHintUpdated();
 
-                if(_hide) HintUpdated?.Invoke(this);
+                    if (_hide) HintUpdated?.Invoke(this);
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
             }
         }
 
@@ -212,7 +362,7 @@ namespace HintServiceMeow.Core.Models.Hints
         {
             Analyser.OnUpdate();
 
-            if (!Hide)
+            if (!_hide)
             {
                 HintUpdated?.Invoke(this);
             }
@@ -222,7 +372,7 @@ namespace HintServiceMeow.Core.Models.Hints
 
         public class TextUpdateArg
         {
-            public ReferenceHub Player => PlayerDisplay?.ReferenceHub; 
+            public ReferenceHub Player => PlayerDisplay?.ReferenceHub;
             public AbstractHint Hint { get; }
             public PlayerDisplay PlayerDisplay { get; }
 

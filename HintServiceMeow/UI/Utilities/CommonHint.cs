@@ -7,6 +7,7 @@ using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.UI.Utilities;
 using PluginAPI.Core;
+using System.Diagnostics;
 
 namespace HintServiceMeow.UI.Utilities
 {
@@ -14,10 +15,38 @@ namespace HintServiceMeow.UI.Utilities
     {
         private static PlayerUIConfig Config => PluginConfig.Instance.PlayerUIConfig;
 
-        public readonly ReferenceHub ReferenceHub;
-        public PlayerUI PlayerUI => PlayerUI.Get(ReferenceHub);
-        public PlayerDisplay PlayerDisplay => PlayerDisplay.Get(ReferenceHub);
-            
+        private readonly ReferenceHub ReferenceHub;
+        private PlayerDisplay PlayerDisplay => PlayerDisplay.Get(ReferenceHub);
+
+        #region Constructor and Destructors Methods
+
+        internal CommonHint(ReferenceHub referenceHub)
+        {
+            this.ReferenceHub = referenceHub;
+
+            //Add hint
+            PlayerDisplay.AddHint(_itemHints);
+            PlayerDisplay.AddHint(_mapHints);
+            PlayerDisplay.AddHint(_roleHints);
+
+            //Start coroutine
+            _commonHintUpdateCoroutine = Timing.RunCoroutine(CommonHintCoroutineMethod());
+        }
+
+        internal void Destruct()
+        {
+            if (_commonHintUpdateCoroutine.IsRunning)
+            {
+                Timing.KillCoroutines(_commonHintUpdateCoroutine);
+            }
+
+            PlayerDisplay.RemoveHint(_itemHints);
+            PlayerDisplay.RemoveHint(_mapHints);
+            PlayerDisplay.RemoveHint(_roleHints);
+        }
+
+        #endregion
+
         #region Common Hints
         private CoroutineHandle _commonHintUpdateCoroutine;
 
@@ -197,38 +226,10 @@ namespace HintServiceMeow.UI.Utilities
                 });
             }
         }
+
         #endregion Common Other Hints Methods
 
         #endregion Common Hint Methods
-
-        #region Constructor and Destructors Methods
-
-        internal CommonHint(ReferenceHub referenceHub)
-        {
-            this.ReferenceHub = referenceHub;
-
-            //Add hint
-            PlayerDisplay.AddHint(_itemHints);
-            PlayerDisplay.AddHint(_mapHints);
-            PlayerDisplay.AddHint(_roleHints);
-
-            //Start coroutine
-            _commonHintUpdateCoroutine = Timing.RunCoroutine(CommonHintCoroutineMethod());
-        }
-
-        internal void Destruct()
-        {
-            if (_commonHintUpdateCoroutine.IsRunning)
-            {
-                Timing.KillCoroutines(_commonHintUpdateCoroutine);
-            }
-
-            PlayerDisplay.RemoveHint(_itemHints);
-            PlayerDisplay.RemoveHint(_mapHints);
-            PlayerDisplay.RemoveHint(_roleHints);
-        }
-
-        #endregion
 
         # region Private Common Hints Methods
         private IEnumerator<float> CommonHintCoroutineMethod()

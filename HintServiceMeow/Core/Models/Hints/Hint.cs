@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using HintServiceMeow.Core.Enum;
 
 namespace HintServiceMeow.Core.Models.Hints
@@ -34,15 +35,33 @@ namespace HintServiceMeow.Core.Models.Hints
 
         public Hint(Hint hint) : base(hint)
         {
-            this.YCoordinate = hint.YCoordinate;
-            this.XCoordinate = hint.XCoordinate;
+            Lock.EnterWriteLock();
+            try
+            {
+                this.YCoordinate = hint.YCoordinate;
+                this.XCoordinate = hint.XCoordinate;
+                this.Alignment = hint.Alignment;
+                this.YCoordinateAlign = hint.YCoordinateAlign;
+            }
+            finally
+            {
+                Lock.ExitWriteLock();
+            }
         }
 
         internal Hint(DynamicHint hint, float x, float y) : base(hint)
         {
-            this.YCoordinate = y;
-            this.XCoordinate = x;
-            _yCoordinateAlign = HintVerticalAlign.Bottom;
+            Lock.EnterWriteLock();
+            try
+            {
+                this.YCoordinate = y;
+                this.XCoordinate = x;
+                _yCoordinateAlign = HintVerticalAlign.Bottom;
+            }
+            finally
+            {
+                Lock.ExitWriteLock();
+            }
         }
         #endregion
 
@@ -52,17 +71,36 @@ namespace HintServiceMeow.Core.Models.Hints
         /// </summary>
         public float YCoordinate
         {
-            get => _yCoordinate;
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return _yCoordinate;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
             set
             {
-                if (_yCoordinate.Equals(value))
-                    return;
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (_yCoordinate.Equals(value))
+                        return;
 
-                value = Math.Max(0, value);
-                value = Math.Min(1080, value);
+                    value = Math.Max(0, value);
+                    value = Math.Min(1080, value);
 
-                _yCoordinate = value;
-                OnHintUpdated();
+                    _yCoordinate = value;
+                    OnHintUpdated();
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
             }
         }
 
@@ -72,17 +110,36 @@ namespace HintServiceMeow.Core.Models.Hints
         /// </summary>
         public float XCoordinate
         {
-            get => _xCoordinate;
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return _xCoordinate;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
             set
             {
-                if (_xCoordinate.Equals(value))
-                    return;
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (_xCoordinate.Equals(value))
+                        return;
 
-                value = Math.Max(-1200, value);
-                value = Math.Min(1200, value);
+                    value = Math.Max(-1200, value);
+                    value = Math.Min(1200, value);
 
-                _xCoordinate = value;
-                OnHintUpdated();
+                    _xCoordinate = value;
+                    OnHintUpdated();
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
             }
         }
 
@@ -91,14 +148,33 @@ namespace HintServiceMeow.Core.Models.Hints
         /// </summary>
         public HintAlignment Alignment
         {
-            get => _alignment;
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return _alignment;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
             set
             {
-                if (_alignment == value)
-                    return;
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (_alignment == value)
+                        return;
 
-                _alignment = value;
-                if (!Hide) OnHintUpdated();
+                    _alignment = value;
+                    if (!Hide) OnHintUpdated();
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
             }
         }
 
@@ -107,15 +183,35 @@ namespace HintServiceMeow.Core.Models.Hints
         /// </summary>
         public HintVerticalAlign YCoordinateAlign
         {
-            get => _yCoordinateAlign;
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return _yCoordinateAlign;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
             set
             {
-                if (_yCoordinateAlign == value)
-                    return;
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (_yCoordinateAlign == value)
+                        return;
 
-                _yCoordinateAlign = value;
-                if (!Hide) OnHintUpdated();
+                    _yCoordinateAlign = value;
+                    if (!Hide) OnHintUpdated();
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
             }
         }
     }
+
 }

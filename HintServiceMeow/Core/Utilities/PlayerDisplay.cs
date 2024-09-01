@@ -12,17 +12,22 @@ using HintServiceMeow.Core.Models.Hints;
 using Log = PluginAPI.Core.Log;
 using HintServiceMeow.Core.Models;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace HintServiceMeow.Core.Utilities
 {
     public class PlayerDisplay
     {
+        private static readonly object PlayerDisplayLock = new object();
+
         /// <summary>
         /// Instance Trackers
         /// </summary>
         private static readonly HashSet<PlayerDisplay> PlayerDisplayList = new HashSet<PlayerDisplay>();
 
         private static readonly TextHint HintTemplate = new TextHint("", new HintParameter[] { new StringHintParameter("") }, new HintEffect[] { HintEffectPresets.TrailingPulseAlpha(1, 1, 1) }, float.MaxValue);
+
+        private readonly object _hintLock = new object();
 
         /// <summary>
         /// Groups of hints shows to the ReferenceHub. First group is used for regular hints, reset of the groups are used for compatibility hints
@@ -48,12 +53,18 @@ namespace HintServiceMeow.Core.Utilities
 
         private static CoroutineHandle _updateCoroutine;
 
+        private Task<string> _currentUpdateTask;
+
+        private readonly HintParser _hintParser = new HintParser();
+
         #region Update Rate Management
+
+        private readonly object _rateDataLock = new object();
 
         /// <summary>
         /// The text that was sent to the client in latest sync
         /// </summary>
-        internal string _lastText = string.Empty;
+        private string _lastText = string.Empty;
 
         /// <summary>
         /// Contains all the hints that had been arranged to update. Make sure that a hint's update time will not be calculated for twice
@@ -135,10 +146,13 @@ namespace HintServiceMeow.Core.Utilities
 
         internal void OnHintUpdate(AbstractHint hint)
         {
-            if (_updatingHints.Contains(hint))
-                return;
+            lock (_rateDataLock)
+            {
+                if (_updatingHints.Contains(hint))
+                    return;
 
-            _updatingHints.Add(hint);
+                _updatingHints.Add(hint);
+            }
 
             switch (hint.SyncSpeed)
             {
@@ -149,13 +163,13 @@ namespace HintServiceMeow.Core.Utilities
                     UpdateWhenAvailable();
                     break;
                 case HintSyncSpeed.Normal:
-                    ArrangeUpdate(TimeSpan.FromSeconds(0.3f), hint);
+                    Task.Run(() => ArrangeUpdate(TimeSpan.FromSeconds(0.3f), hint));
                     break;
                 case HintSyncSpeed.Slow:
-                    ArrangeUpdate(TimeSpan.FromSeconds(1f), hint);
+                    Task.Run(() => ArrangeUpdate(TimeSpan.FromSeconds(1f), hint));
                     break;
                 case HintSyncSpeed.Slowest:
-                    ArrangeUpdate(TimeSpan.FromSeconds(3f), hint);
+                    Task.Run(() => ArrangeUpdate(TimeSpan.FromSeconds(3f), hint));
                     break;
                 case HintSyncSpeed.UnSync:
                     break;
@@ -167,12 +181,15 @@ namespace HintServiceMeow.Core.Utilities
         /// </summary>
         private void UpdateWhenAvailable(bool useFastUpdate = false)
         {
-            TimeSpan timeToWait = useFastUpdate ? FastUpdateCoolDown : UpdateCoolDown;
+            lock (_rateDataLock)
+            {
+                TimeSpan timeToWait = useFastUpdate ? FastUpdateCoolDown : UpdateCoolDown;
 
-            var newPlanUpdateTime = DateTime.Now + timeToWait;
+                var newPlanUpdateTime = DateTime.Now + timeToWait;
 
-            if (_planUpdateTime > newPlanUpdateTime)
-                _planUpdateTime = newPlanUpdateTime;
+                if (_planUpdateTime > newPlanUpdateTime)
+                    _planUpdateTime = newPlanUpdateTime;
+            }
         }
 
         /// <summary>
@@ -184,17 +201,25 @@ namespace HintServiceMeow.Core.Utilities
             {
                 var now = DateTime.Now;
 
-                //Find the latest estimated update time within maxDelay
-                IEnumerable<DateTime> estimatedTime = _hints.AllHints
-                    .Where(x => x.SyncSpeed >= hint.SyncSpeed && x != hint)
-                    .Select(x => x.Analyser.EstimateNextUpdate())
-                    .Where(x => x - now >= TimeSpan.Zero && x - now <= maxDelay)
-                    .DefaultIfEmpty(DateTime.Now);
+                DateTime newTime;
 
-                DateTime newTime = estimatedTime.Max();
+                lock (_hintLock)
+                {
+                    //Find the latest estimated update time within maxDelay
+                    newTime = _hints.AllHints
+                        .Where(h => h.SyncSpeed >= hint.SyncSpeed && h != hint)
+                        .Select(h => h.Analyser.EstimateNextUpdate())
+                        .Where(x => x - now >= TimeSpan.Zero && x - now <= maxDelay)
+                        .DefaultIfEmpty(DateTime.Now)
+                        .Max();
 
-                if (_arrangedUpdateTime > newTime)
-                    _arrangedUpdateTime = newTime;
+                }
+
+                lock (_rateDataLock)
+                {
+                    if (_arrangedUpdateTime > newTime)
+                        _arrangedUpdateTime = newTime;
+                }
             }
             catch (Exception ex)
             {
@@ -208,15 +233,21 @@ namespace HintServiceMeow.Core.Utilities
             {
                 try
                 {
-                    foreach (PlayerDisplay pd in PlayerDisplayList)
+                    lock (PlayerDisplayLock)
                     {
-                        //Force update
-                        if (pd.NeedPeriodicUpdate)
-                            pd.UpdateHint(true);
+                        foreach (PlayerDisplay pd in PlayerDisplayList)
+                        {
+                            lock (pd._rateDataLock)
+                            {
+                                //Force update
+                                if (pd.NeedPeriodicUpdate && pd._currentUpdateTask == null)
+                                    pd._currentUpdateTask = Task.Run(() => pd.ParseHint());
 
-                        //Invoke UpdateAvailable event
-                        if (pd.UpdateReady)
-                            pd.UpdateAvailable?.Invoke(new UpdateAvailableEventArg(pd));
+                                //Invoke UpdateAvailable event
+                                if (pd.UpdateReady)
+                                    pd.UpdateAvailable?.Invoke(new UpdateAvailableEventArg(pd));
+                            }
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -236,20 +267,61 @@ namespace HintServiceMeow.Core.Utilities
                 {
                     DateTime now = DateTime.Now;
 
-                    foreach (PlayerDisplay pd in PlayerDisplayList)
+                    lock (PlayerDisplayLock)
                     {
-                        //Check arranged update time
-                        if (now > pd._arrangedUpdateTime)
+                        foreach (PlayerDisplay pd in PlayerDisplayList)
                         {
-                            pd._arrangedUpdateTime = DateTime.MaxValue;
-                            pd.UpdateWhenAvailable(false);
-                        }
+                            lock (pd._rateDataLock)
+                            {
+                                //Check arranged update time
+                                if (now > pd._arrangedUpdateTime)
+                                {
+                                    pd._arrangedUpdateTime = DateTime.MaxValue;
+                                    pd.UpdateWhenAvailable();
+                                }
 
-                        //Update based on plan
-                        if (now > pd._planUpdateTime)
-                        {
-                            pd._planUpdateTime = DateTime.MaxValue;
-                            pd.UpdateHint();
+                                //Update based on plan
+                                if (now > pd._planUpdateTime)
+                                {
+                                    //If last update complete, then start a new update. Otherwise, wait for the last update to complete
+                                    if (pd._currentUpdateTask == null)
+                                    {
+                                        //Reset Update Plan
+                                        pd._planUpdateTime = DateTime.MaxValue;
+                                        pd._updatingHints.Clear();
+
+                                        pd._currentUpdateTask = Task.Run(() => pd.ParseHint());
+                                    }
+                                }
+                            }
+
+                            if (pd._currentUpdateTask != null && pd._currentUpdateTask.IsCompleted)
+                            {
+                                var text = pd._currentUpdateTask.GetAwaiter().GetResult();
+                                bool shouldUpdate = false;
+
+                                lock (pd._rateDataLock)
+                                {
+                                    //Check whether the text had changed since last update or if this is a force update
+                                    if (text != pd._lastText || pd.NeedPeriodicUpdate)
+                                    {
+                                        //Update text record
+                                        pd._lastText = text;
+
+                                        //Reset CountDown
+                                        pd._secondLastTimeUpdate = pd._lastTimeUpdate;
+                                        pd._lastTimeUpdate = DateTime.Now;
+
+                                        shouldUpdate = true;
+                                    }
+                                }
+
+                                if (shouldUpdate)
+                                    pd.SendHint(text);
+
+                                pd._currentUpdateTask.Dispose();
+                                pd._currentUpdateTask = null;
+                            }
                         }
                     }
                 }
@@ -275,32 +347,26 @@ namespace HintServiceMeow.Core.Utilities
             UpdateWhenAvailable(useFastUpdate);
         }
 
-        private void UpdateHint(bool isForceUpdate = false)
+        private string ParseHint()
+        {
+            lock (_hintLock)
+                return _hintParser.GetMessage(_hints);
+        }
+
+        private void SendHint(string text)
         {
             try
             {
-                //Reset Update Plan
-                _planUpdateTime = DateTime.MaxValue;
-                _arrangedUpdateTime = DateTime.MaxValue;
+                HintMessage message;
 
-                _updatingHints.Clear();
+                lock (_rateDataLock)
+                {
+                    //Display the hint
+                    HintTemplate.Text = text;
+                    message = new HintMessage(HintTemplate);
+                }
 
-                string text = HintParser.GetMessage(_hints);
-
-                //Check whether the text had changed since last update or if this is a force update
-                if (text == _lastText && !isForceUpdate)
-                    return;
-
-                //Update text record
-                _lastText = text;
-
-                //Reset CountDown
-                _secondLastTimeUpdate = _lastTimeUpdate;
-                _lastTimeUpdate = DateTime.Now;
-
-                //Display the hint
-                HintTemplate.Text = text;
-                ReferenceHub.connectionToClient.Send(new HintMessage(HintTemplate));
+                ReferenceHub.connectionToClient.Send(message);
             }
             catch (Exception ex)
             {
@@ -321,24 +387,30 @@ namespace HintServiceMeow.Core.Utilities
             if (!_updateCoroutine.IsRunning)
                 _updateCoroutine = Timing.RunCoroutine(UpdateCoroutineMethod());
 
-            PlayerDisplayList.Add(this);
+            lock (PlayerDisplayLock)
+                PlayerDisplayList.Add(this);
         }
 
         internal static PlayerDisplay TryCreate(ReferenceHub referenceHub)
         {
-            var pd = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
+            PlayerDisplay pd;
+
+            lock (PlayerDisplayLock)
+                pd = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
 
             return pd ?? new PlayerDisplay(referenceHub);
         }
 
         internal static void Destruct(ReferenceHub referenceHub)
         {
-            PlayerDisplayList.RemoveWhere(x => x.ReferenceHub == referenceHub);
+            lock (PlayerDisplayLock)
+                PlayerDisplayList.RemoveWhere(x => x.ReferenceHub == referenceHub);
         }
 
         internal static void ClearInstance()
         {
-            PlayerDisplayList.Clear();
+            lock (PlayerDisplayLock)
+                PlayerDisplayList.Clear();
         }
 
         #endregion
@@ -353,7 +425,10 @@ namespace HintServiceMeow.Core.Utilities
             if (referenceHub is null)
                 throw new Exception("A null ReferenceHub had been passed to Get method");
 
-            var pd = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
+            PlayerDisplay pd;
+
+            lock (PlayerDisplayLock)
+                pd = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
 
             return pd ?? new PlayerDisplay(referenceHub);//TryCreate ReferenceHub display if it has not been created yet
         }
@@ -385,7 +460,8 @@ namespace HintServiceMeow.Core.Utilities
             hint.HintUpdated += OnHintUpdate;
             UpdateAvailable += hint.TryUpdateHint;
 
-            _hints.AddHint(name, hint);
+            lock(_hintLock)
+                _hints.AddHint(name, hint);
 
             UpdateWhenAvailable();
         }
@@ -402,7 +478,8 @@ namespace HintServiceMeow.Core.Utilities
                 hint.HintUpdated += OnHintUpdate;
                 UpdateAvailable += hint.TryUpdateHint;
 
-                _hints.AddHint(name, hint);
+                lock (_hintLock)
+                    _hints.AddHint(name, hint);
             }
 
             UpdateWhenAvailable();
@@ -418,7 +495,8 @@ namespace HintServiceMeow.Core.Utilities
             hint.HintUpdated -= OnHintUpdate;
             UpdateAvailable -= hint.TryUpdateHint;
 
-            _hints.RemoveHint(name, hint);
+            lock (_hintLock)
+                _hints.RemoveHint(name, hint);
 
             UpdateWhenAvailable();
         }
@@ -435,7 +513,8 @@ namespace HintServiceMeow.Core.Utilities
                 hint.HintUpdated -= OnHintUpdate;
                 UpdateAvailable -= hint.TryUpdateHint;
 
-                _hints.RemoveHint(name, hint);
+                lock (_hintLock)
+                    _hints.RemoveHint(name, hint);
             }
 
             UpdateWhenAvailable();
@@ -448,7 +527,8 @@ namespace HintServiceMeow.Core.Utilities
 
             var name = Assembly.GetCallingAssembly().FullName;
 
-            _hints.RemoveHint(name, x => x.Id.Equals(id));
+            lock (_hintLock)
+                _hints.RemoveHint(name, x => x.Id.Equals(id));
 
             UpdateWhenAvailable();
         }
@@ -457,7 +537,8 @@ namespace HintServiceMeow.Core.Utilities
         {
             var name = Assembly.GetCallingAssembly().FullName;
 
-            _hints.ClearHints(name);
+            lock (_hintLock)
+                _hints.ClearHints(name);
 
             UpdateWhenAvailable();
         }
@@ -469,21 +550,26 @@ namespace HintServiceMeow.Core.Utilities
 
             var name = Assembly.GetCallingAssembly().FullName;
 
-            return _hints.GetHints(name).FirstOrDefault(x => x.Id == id);
+            lock (_hintLock)
+                return _hints.GetHints(name).FirstOrDefault(x => x.Id == id);
         }
 
         internal void InternalAddHint(string name, AbstractHint hint)
         {
-            _hints.AddHint(name, hint);
+            lock (_hintLock)
+                _hints.AddHint(name, hint);
 
             UpdateWhenAvailable();
         }
 
         internal void InternalAddHint(string name, IEnumerable<AbstractHint> hints)
         {
-            foreach(var hint in hints)
+            lock (_hintLock)
             {
-                _hints.AddHint(name, hint);
+                foreach (var hint in hints)
+                {
+                    _hints.AddHint(name, hint);
+                }
             }
 
             UpdateWhenAvailable();
@@ -491,7 +577,8 @@ namespace HintServiceMeow.Core.Utilities
 
         internal void InternalRemoveHint(string name, AbstractHint hint)
         {
-            _hints.RemoveHint(name, hint);
+            lock (_hintLock)
+                _hints.RemoveHint(name, hint);
 
             UpdateWhenAvailable();
         }
@@ -500,7 +587,8 @@ namespace HintServiceMeow.Core.Utilities
         {
             foreach (var hint in hints)
             {
-                _hints.RemoveHint(name, hint);
+                lock (_hintLock)
+                    _hints.RemoveHint(name, hint);
             }
 
             UpdateWhenAvailable();
@@ -508,7 +596,8 @@ namespace HintServiceMeow.Core.Utilities
 
         internal void InternalClearHint(string name)
         {
-            _hints.ClearHints(name);
+            lock (_hintLock)
+                _hints.ClearHints(name);
         }
 
         #endregion

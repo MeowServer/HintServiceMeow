@@ -94,6 +94,10 @@ using PluginAPI.Events;
 // *        Add more methods to player display
 // *    V5.2.5
 // *        Fix the problem that the compatibility adapter's cache might cause high memory usage
+// *    V5.3.0
+// *        Add multi-thread support for Core functions
+// *        Add pos tag support in compatibility adapter
+// *        Add Style component in PlayerUI
 
 namespace HintServiceMeow
 {
@@ -179,7 +183,7 @@ namespace HintServiceMeow
         public PluginType Type => PluginType.Exiled;
         public PluginConfig PluginConfig => null;//NW somehow cannot serialize the config for HintServiceMeow
 
-        [PluginEntryPoint("HintServiceMeow", "5.2.5", "A hint framework", "MeowServerOwner")]
+        [PluginEntryPoint("HintServiceMeow", "5.3.0", "A hint framework", "MeowServerOwner")]
         public void LoadPlugin()
         {
             Plugin.OnEnabled(this);
@@ -230,7 +234,7 @@ namespace HintServiceMeow
     {
         public static string Name => "HintServiceMeow";
         public static string Author => "MeowServer";
-        public static Version Version => new Version(5, 2, 5);
+        public static Version Version => new Version(5, 3, 0);
 
         public static PluginConfig Config = new PluginConfig();//Initialize if fail to initialize
 

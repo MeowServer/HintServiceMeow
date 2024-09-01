@@ -5,7 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
-
+using System.Threading.Tasks;
 using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Models;
 using HintServiceMeow.Core.Models.Hints;
@@ -15,69 +15,74 @@ using UnityEngine.UIElements;
 
 namespace HintServiceMeow.Core.Utilities
 {
-    internal static class HintParser
+    internal class HintParser
     {
-        private static readonly StringBuilder MessageBuilder = new StringBuilder(ushort.MaxValue); //Used to build display text
+        private object _lock = new object();
 
-        private static readonly StringBuilder RichTextBuilder = new StringBuilder(500); //Used to build rich text from Hint
+        private readonly StringBuilder _messageBuilder = new StringBuilder(ushort.MaxValue); //Used to build display text
 
-        private static readonly List<List<Hint>> HintList = new List<List<Hint>>();
+        private readonly StringBuilder _richTextBuilder = new StringBuilder(500); //Used to build rich text from Hint
 
-        private static readonly Dictionary<Guid, ValueTuple<float, float>> _dynamicHintPositionCache = new Dictionary<Guid, ValueTuple<float, float>>();
+        private readonly List<List<Hint>> _hintList = new List<List<Hint>>();
 
-        public static string GetMessage(HintCollection collection)
+        private readonly Dictionary<Guid, ValueTuple<float, float>> _dynamicHintPositionCache = new Dictionary<Guid, ValueTuple<float, float>>();
+
+        public string GetMessage(HintCollection collection)
         {
-            HintList.Clear();
-
-            foreach (var group in collection.AllGroups)
+            lock (_lock)
             {
-                List<Hint> orderedList = new List<Hint>();
+                _hintList.Clear();
 
-                //Convert to Hint
-                foreach (var item in group)
+                foreach (var group in collection.AllGroups)
                 {
-                    if (item.Hide || string.IsNullOrEmpty(item.Content.GetText()))
-                        continue;
+                    List<Hint> orderedList = new List<Hint>();
 
-                    if (item is Hint hint)
-                        orderedList.Add(hint);
-                    else if (item is DynamicHint dynamicHint)
-                        orderedList.Add(ConvertDynamicHint(dynamicHint, orderedList));
+                    //Convert to Hint
+                    foreach (var item in group)
+                    {
+                        if (item.Hide || string.IsNullOrEmpty(item.Content.GetText()))
+                            continue;
+
+                        if (item is Hint hint)
+                            orderedList.Add(hint);
+                        else if (item is DynamicHint dynamicHint)
+                            orderedList.Add(ConvertDynamicHint(dynamicHint, orderedList));
+                    }
+
+                    //Sort by y coordinate and priority
+                    orderedList.Sort((x, y) => CoordinateTools.GetActualYCoordinate(x, x.YCoordinateAlign).CompareTo(CoordinateTools.GetActualYCoordinate(y, y.YCoordinateAlign)));
+
+                    _hintList.Add(orderedList);
                 }
 
-                //Sort by y coordinate and priority
-                orderedList.Sort((x,y) => x.YCoordinate.CompareTo(y.YCoordinate));
+                _messageBuilder.Clear();
+                _messageBuilder.AppendLine("<line-height=0><voffset=9999>P</voffset>");//Place Holder
 
-                HintList.Add(orderedList);
-            }
-
-            MessageBuilder.Clear();
-            MessageBuilder.AppendLine("<line-height=0><voffset=9999>P</voffset>");//Place Holder
-
-            foreach (List<Hint> hintList in HintList)
-            {
-                foreach(Hint hint in hintList)
+                foreach (List<Hint> hintList in _hintList)
                 {
-                    var text = ToRichText(hint);
-                    if (!string.IsNullOrEmpty(text))
-                        MessageBuilder.AppendLine(text);
+                    foreach (Hint hint in hintList)
+                    {
+                        var text = ToRichText(hint);
+                        if (!string.IsNullOrEmpty(text))
+                            _messageBuilder.Append(text);//ToRichText already added \n at the end
+                    }
+
+                    _messageBuilder.AppendLine("</size></b></i>"); //Make sure one group will not affect another group
                 }
 
-                MessageBuilder.Append("</size></b></i>"); //Make sure one group will not affect another group
+                _messageBuilder.AppendLine("<line-height=0><voffset=-9999>P</voffset>");//Place Holder
+
+                var result = _messageBuilder.ToString();
+                _messageBuilder.Clear();
+
+                //var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), $"{DateTime.Now.Ticks}.txt");
+                //File.WriteAllText(path, result);
+
+                return result;
             }
-
-            MessageBuilder.AppendLine("<line-height=0><voffset=-9999>P</voffset>");//Place Holder
-
-            var result = MessageBuilder.ToString();
-            MessageBuilder.Clear();
-
-            //var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), $"{DateTime.Now.Ticks}.txt");
-            //File.WriteAllText(path, result);
-
-            return result;
         }
 
-        public static Hint ConvertDynamicHint(DynamicHint dynamicHint, List<Hint> hintList)
+        public Hint ConvertDynamicHint(DynamicHint dynamicHint, List<Hint> hintList)
         {
             bool HasIntersection(float x, float y)
             {
@@ -149,7 +154,7 @@ namespace HintServiceMeow.Core.Utilities
             return null;
         }
 
-        private static string ToRichText(Hint hint)
+        private string ToRichText(Hint hint)
         {
             //Remove Illegal Tags
             string rawText = hint.Content.GetText() ?? string.Empty;
@@ -161,7 +166,7 @@ namespace HintServiceMeow.Core.Utilities
                 text = Regex
                     .Replace(
                         text,
-                        @"<line-height=\d+>|<voffset=[+-]?\d+>|<pos=[+-]?\d+>|<align=(left|center|right)>|</voffset>|</align>|{|}",
+                        @"<line-height=[^>]*>|<voffset=[^>]*>|<pos=[^>]*>|<align=[^>]*>|</voffset>|</align>|{|}",
                         string.Empty,
                         RegexOptions.IgnoreCase | RegexOptions.Compiled
                     );
@@ -171,7 +176,7 @@ namespace HintServiceMeow.Core.Utilities
                 text = Regex
                     .Replace(
                         text,
-                        @"<line-height=\d+>|<voffset=[+-]?\d+>|<pos=[+-]?\d+>|<align=(left|center|right)>|<size=\d+>|</voffset>|</align>|</size>{|}",
+                        @"<line-height=[^>]*>|<voffset=[^>]*>|<pos=[^>]*>|<align=[^>]*>|<size=\d+>|</voffset>|</align>|</size>{|}",
                         string.Empty,
                         RegexOptions.IgnoreCase | RegexOptions.Compiled
                     );
@@ -184,32 +189,32 @@ namespace HintServiceMeow.Core.Utilities
             var lineList = text.Split('\n');
             float yOffset = 0;
 
-            RichTextBuilder.Clear();
+            _richTextBuilder.Clear();
 
             foreach (var line in lineList)
             {
                 float xCoordinate = hint.XCoordinate;
                 float yCoordinate = CoordinateTools.GetVOffset(hint) - yOffset;
 
-                if (xCoordinate != 0) RichTextBuilder.AppendFormat("<pos={0:0.#}>", xCoordinate);
-                if (hint.Alignment != HintAlignment.Center) RichTextBuilder.AppendFormat("<align={0}>", hint.Alignment);
-                RichTextBuilder.Append("<line-height=0>");
-                if (yCoordinate != 0) RichTextBuilder.AppendFormat("<voffset={0:0.#}>", yCoordinate);
-                RichTextBuilder.AppendFormat("<size={0}>", hint.FontSize);
+                if (xCoordinate != 0) _richTextBuilder.AppendFormat("<pos={0:0.#}>", xCoordinate);
+                if (hint.Alignment != HintAlignment.Center) _richTextBuilder.AppendFormat("<align={0}>", hint.Alignment);
+                _richTextBuilder.Append("<line-height=0>");
+                if (yCoordinate != 0) _richTextBuilder.AppendFormat("<voffset={0:0.#}>", yCoordinate);
+                _richTextBuilder.AppendFormat("<size={0}>", hint.FontSize);
 
-                RichTextBuilder.Append(line);
+                _richTextBuilder.Append(line);
 
-                RichTextBuilder.Append("</size>");
-                if (yCoordinate != 0) RichTextBuilder.Append("</voffset>");
-                if (hint.Alignment != HintAlignment.Center) RichTextBuilder.Append("</align>");
-                RichTextBuilder.AppendLine();
+                _richTextBuilder.Append("</size>");
+                if (yCoordinate != 0) _richTextBuilder.Append("</voffset>");
+                if (hint.Alignment != HintAlignment.Center) _richTextBuilder.Append("</align>");
+                _richTextBuilder.AppendLine();
 
                 yOffset += hint.FontSize + hint.LineHeight;
             }
 
-            var result = RichTextBuilder.ToString();
+            var result = _richTextBuilder.ToString();
 
-            RichTextBuilder.Clear();
+            _richTextBuilder.Clear();
 
             return result;
         }

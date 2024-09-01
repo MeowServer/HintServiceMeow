@@ -358,6 +358,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\GetCompatAssemblyName.cs" />
     <Compile Include="Core\Models\HintCollection.cs" />
     <Compile Include="Core\Models\HintContent\AutoContent.cs" />
     <Compile Include="Core\Models\HintContent\AbstractHintContent.cs" />
@@ -386,6 +387,7 @@
     <Compile Include="Core\Models\Hints\Hint.cs" />
     <Compile Include="Core\Utilities\PlayerDisplay.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UI\Utilities\Style.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

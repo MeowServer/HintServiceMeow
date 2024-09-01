@@ -9,10 +9,14 @@ namespace HintServiceMeow.UI.Utilities
     {
         private static readonly HashSet<PlayerUI> PlayerUIList = new HashSet<PlayerUI>();
 
-        public readonly ReferenceHub ReferenceHub;
-        public readonly PlayerDisplay PlayerDisplay;
+        private object _lock = new object();
 
-        public CommonHint CommonHint { get; private set; }
+        public ReferenceHub ReferenceHub { get; }
+        public PlayerDisplay PlayerDisplay { get; }
+
+        public CommonHint CommonHint { get; }
+
+        public Style Style { get; }
 
         #region Constructor and Destructors Methods
 
@@ -24,6 +28,7 @@ namespace HintServiceMeow.UI.Utilities
 
             //Initialize Components
             CommonHint = new CommonHint(referenceHub);
+            this.Style = new Style(referenceHub);
 
             //Add to list
             PlayerUIList.Add(this);

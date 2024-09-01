@@ -6,15 +6,24 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using PluginAPI.Core;
 
 namespace HintServiceMeow.Core.Utilities.Patch
 {
     /// <summary>
-    /// Compatibility adapter for the other plugins
+    /// Compatibility adaptor design to adapt other plugins' hint system to HintServiceMeow's hint system
     /// </summary>
-    internal static class CompatibilityAdapter
+    internal static class CompatibilityAdaptor
     {
+        private static object _lock = new object();
+
+        internal static readonly HashSet<string> RegisteredAssemblies = new HashSet<string>(); //Include all the assembly names that used this adaptor
+
         private static readonly Dictionary<string, DateTime> RemoveTime = new Dictionary<string, DateTime>();
+
+        private static readonly Dictionary<string, Task> ConvertingTask = new Dictionary<string, Task>();
 
         private static readonly string SizeTagRegex = @"<size=(\d+)(px|%)?>";
 
@@ -22,11 +31,35 @@ namespace HintServiceMeow.Core.Utilities.Patch
 
         private static readonly string AlignTagRegex = @"<align=(left|center|right)>|</align>";
 
+        private static readonly string PosTagRegex = @"<pos=([+-]?\d+(px)?)>";
+
         private static readonly Dictionary<string, List<Hint>> HintCache = new Dictionary<string, List<Hint>>();
+
+        private static readonly Dictionary<string, CancellationTokenSource> CancellationTokens = new Dictionary<string, CancellationTokenSource>();
 
         public static void ShowHint(ReferenceHub player, string assemblyName, string content, float timeToRemove)
         {
-            assemblyName = "CompatibilityAdapter-" + assemblyName;
+            if (CancellationTokens.TryGetValue(assemblyName, out var token))
+            {
+                token.Cancel();
+                token.Dispose();
+            }
+
+            var cancellationTokenSource = new CancellationTokenSource();
+            CancellationTokens[assemblyName] = cancellationTokenSource;
+
+            _ = InternalShowHint(player, assemblyName, content, timeToRemove, cancellationTokenSource.Token);
+        }
+
+        public static async Task InternalShowHint(ReferenceHub player, string assemblyName, string content, float timeToRemove, CancellationToken cancellationToken)
+        {
+            if (Plugin.Config.DisabledCompatAdapter.Contains(assemblyName))
+                return;
+
+            lock(_lock)
+                RegisteredAssemblies.Add(assemblyName);
+
+            assemblyName = "CompatibilityAdaptor-" + assemblyName;
 
             var playerDisplay = PlayerDisplay.Get(player);
 
@@ -37,85 +70,109 @@ namespace HintServiceMeow.Core.Utilities.Patch
             playerDisplay.InternalClearHint(assemblyName);
 
             //Set the time to remove
-            RemoveTime[assemblyName] = DateTime.Now.AddSeconds(timeToRemove);
+            lock (_lock)
+                RemoveTime[assemblyName] = DateTime.Now.AddSeconds(timeToRemove);
 
             //Check if the hint is already cached
-            if (HintCache.TryGetValue(content, out var cachedHintList))
+            List<Hint> cachedHintList;
+
+            lock (_lock)
+                HintCache.TryGetValue(content, out cachedHintList);
+            
+            if(cachedHintList != null)
             {
                 playerDisplay.InternalAddHint(assemblyName, cachedHintList);
 
-                Timing.CallDelayed(timeToRemove + 0.1f, () =>
+                try
                 {
-                    if(playerDisplay != null && RemoveTime[assemblyName] <= DateTime.Now)
+                    await Task.Delay(TimeSpan.FromSeconds(timeToRemove + 0.1f), cancellationToken);
+
+                    if (!cancellationToken.IsCancellationRequested && RemoveTime[assemblyName] <= DateTime.Now)
                         playerDisplay.InternalClearHint(assemblyName);
-                });
+                }
+                catch (TaskCanceledException) { }
 
                 return;
             }
 
-            var textList = content.Split('\n');
-            var positions = new List<TextPosition>();
-
-            HeightResult heightResult = new HeightResult
+            var hintList = await Task.Run(() =>
             {
-                Height = 0,
-                LastingFontTags = new Stack<string>()
-            };
+                var textList = content.Split('\n');
+                var positions = new List<TextPosition>();
 
-            AlignmentResult alignmentResult = new AlignmentResult
-            {
-                Alignment = HintAlignment.Center,
-                LastingAlignment = HintAlignment.Center
-            };
-
-            foreach (var text in textList)
-            {
-                int lastingHeight = heightResult.LastingFontTags.Count == 0 ? 40 : (int)ParseSizeTag(Regex.Match(heightResult.LastingFontTags.Peek(), SizeTagRegex));
-                heightResult = GetHeight(text, heightResult.LastingFontTags);
-                alignmentResult = GetAlignment(text, alignmentResult.LastingAlignment);
-
-                positions.Add(new TextPosition
+                HeightResult heightResult = new HeightResult
                 {
-                    Text = text,
-                    Height = heightResult.Height,
-                    Alignment = alignmentResult.Alignment,
-                    FontSize = lastingHeight //Apply lasting height from last line
-                });
-            }
-
-            var totalHeight = positions.Count > 0 ? positions.Sum(x => x.Height) : 0;
-            var accumulatedHeight = 0f;
-            
-            List<Hint> hintList = new List<Hint>();
-
-            foreach(var textPosition in positions)
-            {
-                var hint = new CompatAdapterHint
-                {
-                    Text = textPosition.Text,
-                    YCoordinate = 700 - totalHeight / 2 + textPosition.Height + accumulatedHeight,
-                    YCoordinateAlign = HintVerticalAlign.Bottom,
-                    Alignment = textPosition.Alignment,
-                    FontSize = (int)textPosition.FontSize,
+                    Height = 0,
+                    LastingFontTags = new Stack<string>()
                 };
 
-                accumulatedHeight += textPosition.Height;
-                hintList.Add(hint);
-            }
+                AlignmentResult alignmentResult = new AlignmentResult
+                {
+                    Alignment = HintAlignment.Center,
+                    LastingAlignment = HintAlignment.Center
+                };
+
+                foreach (var text in textList)
+                {
+                    int lastingHeight = heightResult.LastingFontTags.Count == 0 ? 40 : (int)ParseSizeTag(Regex.Match(heightResult.LastingFontTags.Peek(), SizeTagRegex));
+                    heightResult = GetHeight(text, heightResult.LastingFontTags);
+                    alignmentResult = GetAlignment(text, alignmentResult.LastingAlignment);
+
+                    positions.Add(new TextPosition
+                    {
+                        Text = text,
+                        Alignment = alignmentResult.Alignment,
+                        Pos = GetPos(text),
+                        Height = heightResult.Height,
+                        FontSize = lastingHeight,
+                    });
+                }
+
+                var totalHeight = positions.Count > 0 ? positions.Sum(x => x.Height) : 0;
+                var accumulatedHeight = 0f;
+
+                List<Hint> generatedHintList = new List<Hint>();
+
+                foreach (var textPosition in positions)
+                {
+                    var hint = new CompatAdapterHint
+                    {
+                        Text = textPosition.Text,
+                        YCoordinate = 700 - totalHeight / 2 + textPosition.Height + accumulatedHeight,
+                        YCoordinateAlign = HintVerticalAlign.Bottom,
+                        Alignment = textPosition.Alignment,
+                        FontSize = (int)textPosition.FontSize,
+                    };
+
+                    accumulatedHeight += textPosition.Height;
+                    generatedHintList.Add(hint);
+                }
+
+                return generatedHintList;
+            }, cancellationToken);
+
+            if(cancellationToken.IsCancellationRequested)
+                return;
 
             playerDisplay.InternalAddHint(assemblyName, hintList);
+            
+            lock (_lock)
+                HintCache.Add(content, new List<Hint>(hintList));
 
-            HintCache.Add(content, new List<Hint>(hintList));
-            Timing.CallDelayed(10f, () =>
+            _ = Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ =>
             {
-                HintCache.Remove(content);
+                lock (_lock)
+                    HintCache.Remove(content);
             });//Cache expires in 10 seconds
 
-            Timing.CallDelayed(timeToRemove + 0.1f, () =>
+            try
             {
-                if(playerDisplay != null && RemoveTime[assemblyName] <= DateTime.Now)
-                     playerDisplay.InternalClearHint(assemblyName);
-            });
+                await Task.Delay(TimeSpan.FromSeconds(timeToRemove + 0.1f), cancellationToken);
+
+                if (playerDisplay != null && RemoveTime[assemblyName] <= DateTime.Now)
+                    playerDisplay.InternalClearHint(assemblyName);
+            }
+            catch (TaskCanceledException) { }
         }
 
         //Return a value tuple, value 1 is height, value 2 is last font size
@@ -221,6 +278,18 @@ namespace HintServiceMeow.Core.Utilities.Patch
             return result;
         }
 
+        private static float GetPos(string text)
+        {
+            var match = Regex.Match(text, PosTagRegex, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+            if (match.Success)
+            {
+                return float.Parse(match.Groups[1].Value);
+            }
+
+            return 0;
+        }
+
         private static float ParseSizeTag(Match match)
         {
             var value = int.Parse(match.Groups[1].Value);
@@ -279,6 +348,8 @@ namespace HintServiceMeow.Core.Utilities.Patch
             public string Text { get; set; }
 
             public HintAlignment Alignment { get; set; }
+
+            public float Pos { get; set; }
 
             public float Height { get; set; }
 

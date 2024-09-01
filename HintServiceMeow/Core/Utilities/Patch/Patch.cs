@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using Hints;
@@ -10,10 +7,9 @@ using Hint = Hints.Hint;
 
 namespace HintServiceMeow.Core.Utilities.Patch
 {
-    [HarmonyPatch(typeof(HintDisplay), nameof(HintDisplay.Show))]
     internal static class HintDisplayPatch
     {
-        private static bool Prefix(ref Hint hint, ref HintDisplay __instance)
+        public static bool Prefix(ref Hint hint, ref HintDisplay __instance)
         {
             if (!PluginConfig.Instance.UseHintCompatibilityAdapter)
                 return false;
@@ -27,7 +23,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
                         var content = textHint.Text;
                         var timeToRemove = textHint.DurationScalar;
 
-                        CompatibilityAdapter.ShowHint(referenceHub, assemblyName, content, timeToRemove);
+                        CompatibilityAdaptor.ShowHint(referenceHub, assemblyName, content, timeToRemove);
                     }
             }
             catch(Exception ex)
@@ -39,12 +35,9 @@ namespace HintServiceMeow.Core.Utilities.Patch
         }
     }
 
-#if EXILED
-    [HarmonyPatch(typeof(Exiled.API.Features.Player), nameof(Exiled.API.Features.Player.ShowHint))]
-    [HarmonyPatch(new Type[] { typeof(string), typeof(int) })]
-    internal static class ExiledHintPatch
+    internal static class NWAPIHintPatch
     {
-        private static bool Prefix(ref string message, ref float duration, ref Exiled.API.Features.Player __instance)
+        public static bool Prefix(ref string text, ref float duration, ref ReferenceHub __instance)
         {
             if (!PluginConfig.Instance.UseHintCompatibilityAdapter)
                 return false;
@@ -53,7 +46,30 @@ namespace HintServiceMeow.Core.Utilities.Patch
             {
                 var assemblyName = Assembly.GetCallingAssembly().GetName().Name;
 
-                CompatibilityAdapter.ShowHint(__instance.ReferenceHub, assemblyName, message, duration);
+                CompatibilityAdaptor.ShowHint(__instance, assemblyName, text, duration);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.ToString());
+            }
+
+            return false;
+        }
+    }
+
+#if EXILED
+    internal static class ExiledHintPatch
+    {
+        public static bool Prefix(ref string message, ref float duration, ref Exiled.API.Features.Player __instance)
+        {
+            if (!PluginConfig.Instance.UseHintCompatibilityAdapter)
+                return false;
+
+            try
+            {
+                var assemblyName = Assembly.GetCallingAssembly().GetName().Name;
+
+                CompatibilityAdaptor.ShowHint(__instance.ReferenceHub, assemblyName, message, duration);
             }
             catch (Exception ex)
             {
