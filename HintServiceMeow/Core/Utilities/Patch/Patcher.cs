@@ -41,8 +41,10 @@ namespace HintServiceMeow.Core.Utilities.Patch
             Harmony.Unpatch(showHintMethod1, HarmonyPatchType.All);
             Harmony.Unpatch(showHintMethod2, HarmonyPatchType.All);
 
-            var exiledHintPatch = typeof(ExiledHintPatch).GetMethod(nameof(ExiledHintPatch.Prefix));
-            Harmony.Patch(showHintMethod1, new HarmonyMethod(exiledHintPatch));
+            var exiledHintPatch1 = typeof(ExiledHintPatch).GetMethod(nameof(ExiledHintPatch.Prefix1));
+            var exiledHintPatch2 = typeof(ExiledHintPatch).GetMethod(nameof(ExiledHintPatch.Prefix2));
+            Harmony.Patch(showHintMethod1, new HarmonyMethod(exiledHintPatch1));
+            Harmony.Patch(showHintMethod2, new HarmonyMethod(exiledHintPatch2));
 #endif
         }
 

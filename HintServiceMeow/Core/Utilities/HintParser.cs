@@ -17,7 +17,7 @@ namespace HintServiceMeow.Core.Utilities
 {
     internal class HintParser
     {
-        private object _lock = new object();
+        private readonly object _lock = new object();
 
         private readonly StringBuilder _messageBuilder = new StringBuilder(ushort.MaxValue); //Used to build display text
 
@@ -75,8 +75,8 @@ namespace HintServiceMeow.Core.Utilities
                 var result = _messageBuilder.ToString();
                 _messageBuilder.Clear();
 
-                //var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), $"{DateTime.Now.Ticks}.txt");
-                //File.WriteAllText(path, result);
+                var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), $"{DateTime.Now.Ticks}.txt");
+                File.WriteAllText(path, result);
 
                 return result;
             }

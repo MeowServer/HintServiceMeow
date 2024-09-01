@@ -47,6 +47,8 @@ namespace HintServiceExample
             ui.Style.SetStyle(-50, 1080, Style.StyleType.Italic);
             ui.Style.SetColor(-50, 1080, UnityEngine.Color.green);
 
+            ev.Player.ShowHint("<pos=400>Hello, this is a hint", 20f);
+
         }
 
         //How to use Hint

@@ -11,7 +11,7 @@ namespace HintServiceMeow.UI.Utilities
 {
     public class Style
     {
-        private Dictionary<string, List<Hint>> _currentStyleHints = new Dictionary<string, List<Hint>>();
+        private readonly Dictionary<string, List<Hint>> _currentStyleHints = new Dictionary<string, List<Hint>>();
 
         private const string StyleHintSuffix = "BoldGroup";
 
@@ -49,7 +49,7 @@ namespace HintServiceMeow.UI.Utilities
         private readonly Dictionary<string, List<Area>> _boldArea = new Dictionary<string, List<Area>>();
         private readonly Dictionary<string, List<Area>> _italicArea = new Dictionary<string, List<Area>>();
 
-        private readonly Dictionary<string, List<ColorArea>> _colorArea = new Dictionary<string, List<ColorArea>>();
+        private readonly Dictionary<string, List<Area>> _colorArea = new Dictionary<string, List<Area>>();
 
         [Flags]
         public enum StyleType
@@ -111,8 +111,8 @@ namespace HintServiceMeow.UI.Utilities
                 Color = color
             };
 
-            RemoveArea(area, _colorArea[name].Select(x => (Area)x).ToList());
-            AddArea(area, _colorArea[name].Select(x => (Area)x).ToList());
+            RemoveArea(area, _colorArea[name]);
+            AddArea(area, _colorArea[name]);
 
             UpdateHint(name);
         }
@@ -131,7 +131,7 @@ namespace HintServiceMeow.UI.Utilities
 
             if(!_colorArea.ContainsKey(name))
             {
-                _colorArea.Add(name, new List<ColorArea>());
+                _colorArea.Add(name, new List<Area>());
             }
 
             if(!_currentStyleHints.ContainsKey(name))
@@ -223,7 +223,7 @@ namespace HintServiceMeow.UI.Utilities
 
             foreach(var area in _colorArea[assemblyName])
             {
-                var startHint = GetColorStartHint(area.Color);
+                var startHint = GetColorStartHint(((ColorArea)area).Color);
                 var stopHint = GetColorEndHint();
 
                 startHint.YCoordinate = area.TopY - 0.01f;
@@ -241,7 +241,7 @@ namespace HintServiceMeow.UI.Utilities
         {
             return new Hint()
             {
-                Text = $"<color=#{color.ToHex()}>",
+                Text = $"<color={color.ToHex()}>",
                 FontSize = 0,
                 YCoordinateAlign = Core.Enum.HintVerticalAlign.Bottom
             };

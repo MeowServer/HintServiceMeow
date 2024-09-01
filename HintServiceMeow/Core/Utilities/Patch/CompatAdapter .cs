@@ -1,6 +1,5 @@
 ﻿using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Models.Hints;
-using MEC;
 
 using System;
 using System.Collections.Generic;
@@ -8,7 +7,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using PluginAPI.Core;
 
 namespace HintServiceMeow.Core.Utilities.Patch
 {
@@ -23,11 +21,9 @@ namespace HintServiceMeow.Core.Utilities.Patch
 
         private static readonly Dictionary<string, DateTime> RemoveTime = new Dictionary<string, DateTime>();
 
-        private static readonly Dictionary<string, Task> ConvertingTask = new Dictionary<string, Task>();
-
         private static readonly string SizeTagRegex = @"<size=(\d+)(px|%)?>";
 
-        private static readonly string LineHeightTagRegex = @"<line-height=([\d\.]+)(px|%)?>";
+        private static readonly string LineHeightTagRegex = @"<line-height=([\d\.]+)(px|%|em)?>";
 
         private static readonly string AlignTagRegex = @"<align=(left|center|right)>|</align>";
 
@@ -39,6 +35,12 @@ namespace HintServiceMeow.Core.Utilities.Patch
 
         public static void ShowHint(ReferenceHub player, string assemblyName, string content, float timeToRemove)
         {
+            if (Plugin.Config.DisabledCompatAdapter.Contains(assemblyName))
+                return;
+
+            lock (_lock)
+                RegisteredAssemblies.Add(assemblyName);
+
             if (CancellationTokens.TryGetValue(assemblyName, out var token))
             {
                 token.Cancel();
@@ -53,12 +55,6 @@ namespace HintServiceMeow.Core.Utilities.Patch
 
         public static async Task InternalShowHint(ReferenceHub player, string assemblyName, string content, float timeToRemove, CancellationToken cancellationToken)
         {
-            if (Plugin.Config.DisabledCompatAdapter.Contains(assemblyName))
-                return;
-
-            lock(_lock)
-                RegisteredAssemblies.Add(assemblyName);
-
             assemblyName = "CompatibilityAdaptor-" + assemblyName;
 
             var playerDisplay = PlayerDisplay.Get(player);
@@ -138,6 +134,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
                     var hint = new CompatAdapterHint
                     {
                         Text = textPosition.Text,
+                        XCoordinate = textPosition.Pos,
                         YCoordinate = 700 - totalHeight / 2 + textPosition.Height + accumulatedHeight,
                         YCoordinateAlign = HintVerticalAlign.Bottom,
                         Alignment = textPosition.Alignment,
@@ -169,7 +166,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
             {
                 await Task.Delay(TimeSpan.FromSeconds(timeToRemove + 0.1f), cancellationToken);
 
-                if (playerDisplay != null && RemoveTime[assemblyName] <= DateTime.Now)
+                if (RemoveTime[assemblyName] <= DateTime.Now)
                     playerDisplay.InternalClearHint(assemblyName);
             }
             catch (TaskCanceledException) { }
@@ -236,14 +233,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
             Match lineHeightMatch = Regex.Match(text, LineHeightTagRegex, RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             var lineHeight = ParseLineHeightTag(lineHeightMatch, currentFontSize);
-            if (lineHeight >= 0)
-            {
-                result.Height = lineHeight;
-            }
-            else
-            {
-                result.Height = currentFontSize;
-            }
+            result.Height = lineHeight >= 0? lineHeight : currentFontSize;
 
             return result;
         }
@@ -295,7 +285,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
             var value = int.Parse(match.Groups[1].Value);
             var unit = match.Groups[2].Value;
 
-            switch (unit)
+            switch (unit.ToLower())
             {
                 case "px":
                     return value;
@@ -304,8 +294,6 @@ namespace HintServiceMeow.Core.Utilities.Patch
                 default:
                     return value;
             }
-
-            return -1;
         }
 
         private static float ParseLineHeightTag(Match lineHeightMatch, float fontSize)
@@ -313,14 +301,16 @@ namespace HintServiceMeow.Core.Utilities.Patch
             if (lineHeightMatch.Success)
             {
                 var value = float.Parse(lineHeightMatch.Groups[1].Value);
-                var unity = lineHeightMatch.Groups[2].Value;
+                var unit = lineHeightMatch.Groups[2].Value;
 
-                switch (unity)
+                switch (unit.ToLower())
                 {
                     case "px":
                         return value;
                     case "%":
                         return fontSize * value / 100f;
+                    case "em":
+                            return fontSize * value;
                     default:
                         return value;
                 }

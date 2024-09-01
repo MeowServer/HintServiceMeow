@@ -94,10 +94,13 @@ using PluginAPI.Events;
 // *        Add more methods to player display
 // *    V5.2.5
 // *        Fix the problem that the compatibility adapter's cache might cause high memory usage
-// *    V5.3.0
+// *    V5.3.0 Pre-release 1.0
 // *        Add multi-thread support for Core functions
 // *        Add pos tag support in compatibility adapter
 // *        Add Style component in PlayerUI
+// *    V5.3.0 Pre-release 1.1
+// *        Fix the bug that cause the color of Style component not working.
+// *        Fix the bug that cause Pos tag in compatibility adapter not working.
 
 namespace HintServiceMeow
 {

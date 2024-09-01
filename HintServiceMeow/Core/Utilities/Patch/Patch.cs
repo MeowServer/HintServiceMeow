@@ -3,7 +3,6 @@ using System.Reflection;
 using HarmonyLib;
 using Hints;
 using PluginAPI.Core;
-using Hint = Hints.Hint;
 
 namespace HintServiceMeow.Core.Utilities.Patch
 {
@@ -60,7 +59,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
 #if EXILED
     internal static class ExiledHintPatch
     {
-        public static bool Prefix(ref string message, ref float duration, ref Exiled.API.Features.Player __instance)
+        public static bool Prefix1(ref string message, ref float duration, ref Exiled.API.Features.Player __instance)
         {
             if (!PluginConfig.Instance.UseHintCompatibilityAdapter)
                 return false;
@@ -70,6 +69,28 @@ namespace HintServiceMeow.Core.Utilities.Patch
                 var assemblyName = Assembly.GetCallingAssembly().GetName().Name;
 
                 CompatibilityAdaptor.ShowHint(__instance.ReferenceHub, assemblyName, message, duration);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.ToString());
+            }
+
+            return false;
+        }
+
+        public static bool Prefix2(ref Exiled.API.Features.Hint hint, ref Exiled.API.Features.Player __instance)
+        {
+            if (!PluginConfig.Instance.UseHintCompatibilityAdapter)
+                return false;
+
+            if (!hint.Show)
+                return false;
+
+            try
+            {
+                var assemblyName = Assembly.GetCallingAssembly().GetName().Name;
+
+                CompatibilityAdaptor.ShowHint(__instance.ReferenceHub, assemblyName, hint.Content, hint.Duration);
             }
             catch (Exception ex)
             {
