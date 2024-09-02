@@ -18,7 +18,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;EXILED</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -30,6 +30,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony, Version=2.3.3.0, Culture=neutral, processorArchitecture=MSIL">
@@ -373,7 +374,7 @@
     <Compile Include="Integrations\ScriptedEventIntegration.cs" />
     <Compile Include="Plugin\Config\PlayerUIConfig.cs" />
     <Compile Include="Core\Extension\Extension.cs" />
-    <Compile Include="Core\Utilities\FontTool.cs" />
+    <Compile Include="Core\Utilities\TextTool.cs" />
     <Compile Include="Core\Models\Hints\AbstractHint.cs" />
     <Compile Include="Core\Models\Hints\DynamicHint.cs" />
     <Compile Include="Core\Utilities\Patch\Patch.cs" />
@@ -391,7 +392,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <EmbeddedResource Include="FontFile" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="UI\Models\" />

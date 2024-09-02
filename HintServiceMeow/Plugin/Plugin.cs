@@ -101,6 +101,10 @@ using PluginAPI.Events;
 // *    V5.3.0 Pre-release 1.1
 // *        Fix the bug that cause the color of Style component not working.
 // *        Fix the bug that cause Pos tag in compatibility adapter not working.
+// *        Support em unit in line-height of compatibility adapter
+// *    V5.3.0 Pre-release 1.2
+// *        Improve HintParser's behavior
+// *        Improve thread safety
 
 namespace HintServiceMeow
 {
@@ -257,7 +261,6 @@ namespace HintServiceMeow
             //Register events
             plugin.BindEvent();
 
-            FontTool.LoadFontFile();
             Integrator.StartAllIntegration();
 
             Log.Info($"HintServiceMeow {Version} has been enabled!");

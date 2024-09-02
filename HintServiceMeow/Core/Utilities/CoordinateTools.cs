@@ -13,57 +13,44 @@ namespace HintServiceMeow.Core.Utilities
 {
     internal class CoordinateTools
     {
-        //Get the Pos value represented by the y coordinate of the hint
-        public static float GetVOffset(Hint hint)
+        //return 700 - actualYCoordinate;
+
+        public static float GetActualYCoordinate(Hint hint, HintVerticalAlign to)
         {
-            return GetVOffset(hint, hint.YCoordinateAlign);
-        }
-
-        public static float GetVOffset(Hint hint, HintVerticalAlign align)
-        {
-            float sizeOffset;
-
-            switch (align)
-            {
-                case HintVerticalAlign.Top:
-                    sizeOffset = - GetTextHeight(hint);
-                    break;
-                case HintVerticalAlign.Middle:
-                    sizeOffset = - GetTextHeight(hint) / 2;
-                    break;
-                case HintVerticalAlign.Bottom:
-                    sizeOffset = 0;
-                    break;
-                default:
-                    sizeOffset = 0;
-                    break;
-            }
-
-            return 700 - hint.YCoordinate + sizeOffset;
+            return GetActualYCoordinate(hint, hint.YCoordinateAlign, to);
         }
 
         //Get the Y coordinate without vertical alignment's offset
-        public static float GetActualYCoordinate(Hint hint, HintVerticalAlign align)
+        public static float GetActualYCoordinate(Hint hint, HintVerticalAlign from, HintVerticalAlign to)
         {
-            float sizeOffset;
+            return GetActualYCoordinate(hint.YCoordinate, GetTextHeight(hint), from, to);
+        }
 
-            switch (align)
+        public static float GetActualYCoordinate(float rawYCoordinate, float textHeight, HintVerticalAlign from, HintVerticalAlign to)
+        {
+            float offset = 0;
+
+            switch (from)
             {
                 case HintVerticalAlign.Top:
-                    sizeOffset = -GetTextHeight(hint);
+                    offset += textHeight;
                     break;
                 case HintVerticalAlign.Middle:
-                    sizeOffset = -GetTextHeight(hint) / 2;
-                    break;
-                case HintVerticalAlign.Bottom:
-                    sizeOffset = 0;
-                    break;
-                default:
-                    sizeOffset = 0;
+                    offset += textHeight / 2;
                     break;
             }
 
-            return hint.YCoordinate + sizeOffset;
+            switch (to)
+            {
+                case HintVerticalAlign.Top:
+                    offset -= textHeight;
+                    break;
+                case HintVerticalAlign.Middle:
+                    offset -= textHeight / 2;
+                    break;
+            }
+
+            return rawYCoordinate + offset;
         }
 
         public static float GetXCoordinateWithAlignment(Hint hint)
@@ -78,10 +65,10 @@ namespace HintServiceMeow.Core.Utilities
             switch (alignment)
             {
                 case HintAlignment.Left:
-                    alignOffset = -1200 + FontTool.GetTextWidth(hint) / 2;
+                    alignOffset = -1200 + GetTextWidth(hint) / 2;
                     break;
                 case HintAlignment.Right:
-                    alignOffset = 1200 - FontTool.GetTextWidth(hint) / 2;
+                    alignOffset = 1200 - GetTextWidth(hint) / 2;
                     break;
                 case HintAlignment.Center:
                     alignOffset = 0;
@@ -96,19 +83,22 @@ namespace HintServiceMeow.Core.Utilities
 
         public static float GetTextWidth(AbstractHint hint)
         {
-            return FontTool.GetTextWidth(hint);
+            return TextTool.GetTextWidth(hint.Content.GetText(), hint.FontSize);
+        }
+
+        public static float GetTextWidth(string text, int fontSize)
+        {
+            return TextTool.GetTextWidth(text, fontSize);
         }
 
         public static float GetTextHeight(AbstractHint hint)
         {
-            var content = hint.Content.GetText();
+            return TextTool.GetTextHeight(hint.Content.GetText(), hint.FontSize, hint.LineHeight);
+        }
 
-            if(string.IsNullOrEmpty(content))
-                return 0;
-
-            var height = content.Split('\n').Length * (hint.FontSize + hint.LineHeight);
-
-            return height;
+        public static float GetTextHeight(string text, int fontSize, float lineHeight)
+        {
+            return TextTool.GetTextHeight(text, fontSize, lineHeight);
         }
     }
 }

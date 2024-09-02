@@ -75,8 +75,8 @@ namespace HintServiceMeow.Core.Utilities
                 var result = _messageBuilder.ToString();
                 _messageBuilder.Clear();
 
-                var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), $"{DateTime.Now.Ticks}.txt");
-                File.WriteAllText(path, result);
+                //var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), $"{DateTime.Now.Ticks}.txt");
+                //File.WriteAllText(path, result);
 
                 return result;
             }
@@ -185,16 +185,23 @@ namespace HintServiceMeow.Core.Utilities
             if (string.IsNullOrEmpty(text))
                 return null;
 
+            var lineList = SplitIntoLines(text, hint.FontSize);
+
+            var splitText = string.Join("\n", lineList);
+            var newTextHeight = CoordinateTools.GetTextHeight(splitText, hint.FontSize, hint.LineHeight);
+
+            lineList.Reverse();
+
             //Building rich text by lines
-            var lineList = text.Split('\n');
             float yOffset = 0;
+            float yCoordinate = 700 - CoordinateTools.GetActualYCoordinate(hint.YCoordinate, newTextHeight, hint.YCoordinateAlign, HintVerticalAlign.Bottom); //Get the top coordinate as pivot
 
             _richTextBuilder.Clear();
 
             foreach (var line in lineList)
             {
                 float xCoordinate = hint.XCoordinate;
-                float yCoordinate = CoordinateTools.GetVOffset(hint) - yOffset;
+                yCoordinate += yOffset;
 
                 if (xCoordinate != 0) _richTextBuilder.AppendFormat("<pos={0:0.#}>", xCoordinate);
                 if (hint.Alignment != HintAlignment.Center) _richTextBuilder.AppendFormat("<align={0}>", hint.Alignment);
@@ -203,13 +210,14 @@ namespace HintServiceMeow.Core.Utilities
                 _richTextBuilder.AppendFormat("<size={0}>", hint.FontSize);
 
                 _richTextBuilder.Append(line);
-
+                 
                 _richTextBuilder.Append("</size>");
                 if (yCoordinate != 0) _richTextBuilder.Append("</voffset>");
                 if (hint.Alignment != HintAlignment.Center) _richTextBuilder.Append("</align>");
+
                 _richTextBuilder.AppendLine();
 
-                yOffset += hint.FontSize + hint.LineHeight;
+                yOffset += CoordinateTools.GetTextHeight(line, hint.FontSize, hint.LineHeight);
             }
 
             var result = _richTextBuilder.ToString();
@@ -217,6 +225,54 @@ namespace HintServiceMeow.Core.Utilities
             _richTextBuilder.Clear();
 
             return result;
+        }
+
+        private List<string> SplitIntoLines(string text, int fontSize)//Split based on \n and width
+        {
+            List<string> lines = new List<string>();
+
+            foreach (var line in text.Split('\n'))
+            {
+                if(line == string.Empty)
+                {
+                    lines.Add(string.Empty);
+                    continue;
+                }
+
+                string currentPart = string.Empty;
+                Regex tagRegex = new Regex(@"<[^>]+>");
+
+                int i = 0;
+                while (i < line.Length)
+                {
+                    Match tagMatch;
+                    if (line[i] == '<' && (tagMatch = tagRegex.Match(line, i)).Success)
+                    {
+                        currentPart += tagMatch.Value;
+                        i += tagMatch.Length;
+                    }
+                    else
+                    {
+                        currentPart += line[i];
+                        string partWithoutTags = tagRegex.Replace(currentPart, string.Empty);
+
+                        if (CoordinateTools.GetTextWidth(partWithoutTags, fontSize) > 2400)
+                        {
+                            lines.Add(currentPart.Substring(0, currentPart.Length - 1));
+                            currentPart = line[i].ToString();
+                        }
+
+                        i++;
+                    }
+                }
+
+                if (currentPart.Length > 0)
+                {
+                    lines.Add(currentPart);
+                }
+            }
+
+            return lines;
         }
     }
 }

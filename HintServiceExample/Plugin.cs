@@ -43,10 +43,12 @@ namespace HintServiceExample
             ShowDynamicHintA(ev.Player);
             ShowCommonHintA(ev.Player);
 
+            //Style component
             var ui = ev.Player.GetPlayerUi();
             ui.Style.SetStyle(-50, 1080, Style.StyleType.Italic);
             ui.Style.SetColor(-50, 1080, UnityEngine.Color.green);
 
+            //Compatibility adapter
             ev.Player.ShowHint("<pos=400>Hello, this is a hint", 20f);
 
         }
@@ -77,7 +79,7 @@ namespace HintServiceExample
             var tPSHint = new Hint()
             {
                 AutoText = GetTPS,
-                YCoordinateAlign = HintVerticalAlign.Top,
+                YCoordinateAlign = HintVerticalAlign.Bottom,
                 YCoordinate = 0,
                 XCoordinate = 0,
                 FontSize = 20
