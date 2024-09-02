@@ -55,17 +55,13 @@ namespace HintServiceMeow.Core.Utilities.Patch
 
         public static async Task InternalShowHint(ReferenceHub player, string assemblyName, string content, float timeToRemove, CancellationToken cancellationToken)
         {
-            assemblyName = "CompatibilityAdaptor-" + assemblyName;
-
             var playerDisplay = PlayerDisplay.Get(player);
+            assemblyName = "CompatibilityAdaptor-" + assemblyName;
 
             if (playerDisplay == null)
                 return;
 
-            //Clear previous hints
-            playerDisplay.InternalClearHint(assemblyName);
-
-            //Set the time to remove
+            //Reset the time to remove
             lock (_lock)
                 RemoveTime[assemblyName] = DateTime.Now.AddSeconds(timeToRemove);
 
@@ -77,20 +73,25 @@ namespace HintServiceMeow.Core.Utilities.Patch
             
             if(cachedHintList != null)
             {
+                playerDisplay.InternalClearHint(assemblyName);
                 playerDisplay.InternalAddHint(assemblyName, cachedHintList);
 
+                //Remove after time to remove
                 try
                 {
                     await Task.Delay(TimeSpan.FromSeconds(timeToRemove + 0.1f), cancellationToken);
-
-                    if (!cancellationToken.IsCancellationRequested && RemoveTime[assemblyName] <= DateTime.Now)
-                        playerDisplay.InternalClearHint(assemblyName);
+                    lock (_lock)
+                    {
+                        if (!cancellationToken.IsCancellationRequested && RemoveTime[assemblyName] <= DateTime.Now)
+                            playerDisplay.InternalClearHint(assemblyName);
+                    }
                 }
                 catch (TaskCanceledException) { }
 
                 return;
             }
 
+            //If no cache, then generate hint
             var hintList = await Task.Run(() =>
             {
                 var textList = content.Split('\n');
@@ -151,25 +152,33 @@ namespace HintServiceMeow.Core.Utilities.Patch
             if(cancellationToken.IsCancellationRequested)
                 return;
 
+            //Reset hint
+            playerDisplay.InternalClearHint(assemblyName);
             playerDisplay.InternalAddHint(assemblyName, hintList);
-            
+
+            //Remove hint after time to remove
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(timeToRemove + 0.1f), cancellationToken);
+                lock (_lock)
+                {
+                    if(RemoveTime[assemblyName] <= DateTime.Now)
+                        playerDisplay.InternalClearHint(assemblyName);
+                        
+                }
+            }
+            catch (TaskCanceledException) { }
+
+            //Add generated hint into cache
             lock (_lock)
                 HintCache.Add(content, new List<Hint>(hintList));
 
+            //Set cache expiration
             _ = Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ =>
             {
                 lock (_lock)
                     HintCache.Remove(content);
             });//Cache expires in 10 seconds
-
-            try
-            {
-                await Task.Delay(TimeSpan.FromSeconds(timeToRemove + 0.1f), cancellationToken);
-
-                if (RemoveTime[assemblyName] <= DateTime.Now)
-                    playerDisplay.InternalClearHint(assemblyName);
-            }
-            catch (TaskCanceledException) { }
         }
 
         //Return a value tuple, value 1 is height, value 2 is last font size

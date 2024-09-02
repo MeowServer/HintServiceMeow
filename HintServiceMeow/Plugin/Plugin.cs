@@ -105,6 +105,10 @@ using PluginAPI.Events;
 // *    V5.3.0 Pre-release 1.2
 // *        Improve HintParser's behavior
 // *        Improve thread safety
+// *    V5.3.0 Pre-release 1.3
+// *        Fix the bug that cause the compatibility adapter's hints to glitter
+// *        Fix the bug that cause multi line hints not displayed correctly
+
 
 namespace HintServiceMeow
 {

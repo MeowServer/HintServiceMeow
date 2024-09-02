@@ -8,7 +8,12 @@ using HintServiceMeow.UI.Extension;
 using Hint = HintServiceMeow.Core.Models.Hints.Hint;
 using MEC;
 using System.Collections.Generic;
+using System.IO;
 using HintServiceMeow.UI.Utilities;
+using CustomPlayerEffects;
+using System.Linq;
+using System.Text;
+using HintServiceMeow.Core.Utilities;
 
 namespace HintServiceExample
 {
@@ -50,7 +55,6 @@ namespace HintServiceExample
 
             //Compatibility adapter
             ev.Player.ShowHint("<pos=400>Hello, this is a hint", 20f);
-
         }
 
         //How to use Hint

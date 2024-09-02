@@ -185,7 +185,7 @@ namespace HintServiceMeow.Core.Utilities
             {
                 TimeSpan timeToWait = useFastUpdate ? FastUpdateCoolDown : UpdateCoolDown;
 
-                var newPlanUpdateTime = DateTime.Now + timeToWait;
+                var newPlanUpdateTime = DateTime.Now + timeToWait + TimeSpan.FromMilliseconds(5);
 
                 if (_planUpdateTime > newPlanUpdateTime)
                     _planUpdateTime = newPlanUpdateTime;
@@ -598,6 +598,8 @@ namespace HintServiceMeow.Core.Utilities
         {
             lock (_hintLock)
                 _hints.ClearHints(name);
+
+            UpdateWhenAvailable();
         }
 
         #endregion

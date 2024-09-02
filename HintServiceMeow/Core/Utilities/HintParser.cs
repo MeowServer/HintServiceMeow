@@ -217,7 +217,7 @@ namespace HintServiceMeow.Core.Utilities
 
                 _richTextBuilder.AppendLine();
 
-                yOffset += CoordinateTools.GetTextHeight(line, hint.FontSize, hint.LineHeight);
+                yOffset = CoordinateTools.GetTextHeight(line, hint.FontSize, hint.LineHeight);
             }
 
             var result = _richTextBuilder.ToString();
