@@ -10,7 +10,7 @@ To install this plugin, please
 ## Features
 HintServiceMeow includes following features:
 #### Hint Adapter
-HintServiceMeow includes a hint adapter that can convert other plugins' hints into HintServiceMeow-compatible Hint. This allows people to use any plugin that uses hints, even if they are neither compatible with each other nor with HintServiceMeow. 
+HintServiceMeow includes a hint adapter that can automatically convert other plugins' hints into HintServiceMeow-compatible Hint. This allows people to use any plugin that uses hints, even if they are neither compatible with each other nor with HintServiceMeow. 
 
 ## Developer Features
 #### Auto text
