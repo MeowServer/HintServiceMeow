@@ -22,7 +22,7 @@ namespace HintServiceMeow.Core.Models
                 _lock.EnterReadLock();
                 try
                 {
-                    return _hintGroups.Values.ToList();
+                    return _hintGroups.Values.ToList(); //DO NOT REMOVE TO LIST WITHOUT CONSIDERING THREAD SAFETY
                 }
                 finally
                 {
@@ -38,7 +38,7 @@ namespace HintServiceMeow.Core.Models
                 _lock.EnterReadLock();
                 try
                 {
-                    return _hintGroups.Values.SelectMany(x => x).ToList();
+                    return _hintGroups.Values.SelectMany(x => x).ToList(); //DO NOT REMOVE TO LIST WITHOUT CONSIDERING THREAD SAFETY
                 }
                 finally
                 {

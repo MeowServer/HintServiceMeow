@@ -79,7 +79,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
                 //Remove after time to remove
                 try
                 {
-                    await Task.Delay(TimeSpan.FromSeconds(timeToRemove + 0.1f), cancellationToken);
+                    await Task.Delay(TimeSpan.FromSeconds(timeToRemove + 0.2f), cancellationToken);
                     lock (_lock)
                     {
                         if (!cancellationToken.IsCancellationRequested && RemoveTime[assemblyName] <= DateTime.Now)
@@ -159,7 +159,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
             //Remove hint after time to remove
             try
             {
-                await Task.Delay(TimeSpan.FromSeconds(timeToRemove + 0.1f), cancellationToken);
+                await Task.Delay(TimeSpan.FromSeconds(timeToRemove + 0.2f), cancellationToken);
                 lock (_lock)
                 {
                     if(RemoveTime[assemblyName] <= DateTime.Now)
@@ -178,7 +178,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
             {
                 lock (_lock)
                     HintCache.Remove(content);
-            });//Cache expires in 10 seconds
+            });
         }
 
         //Return a value tuple, value 1 is height, value 2 is last font size

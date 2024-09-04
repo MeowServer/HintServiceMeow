@@ -108,6 +108,10 @@ using PluginAPI.Events;
 // *    V5.3.0 Pre-release 1.3
 // *        Fix the bug that cause the compatibility adapter's hints to glitter
 // *        Fix the bug that cause multi line hints not displayed correctly
+// *    V5.3.0 Pre-release 1.4
+// *        Fix the bug that cause dynamic hint to be displayed incorrectly
+// *        Fix the bug null reference problem in player display
+// *        Fix the bug that cause empty line handled incorrectly 
 
 
 namespace HintServiceMeow

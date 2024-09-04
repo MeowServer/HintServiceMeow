@@ -54,7 +54,7 @@ namespace HintServiceExample
             ui.Style.SetColor(-50, 1080, UnityEngine.Color.green);
 
             //Compatibility adapter
-            ev.Player.ShowHint("<pos=400>Hello, this is a hint", 20f);
+            ev.Player.ShowHint("<Line-Height=500>\n<pos=400>Hello, this is a hint using ShowHint directly", 20f);
         }
 
         //How to use Hint
