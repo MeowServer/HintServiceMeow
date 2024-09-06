@@ -1,6 +1,6 @@
 ﻿using CommandSystem;
-using HintServiceMeow.Core.Utilities;
-using HintServiceMeow.Core.Utilities.Patch;
+using HintServiceMeow.Core.Utilities.Tools;
+using HintServiceMeow.Core.Utilities.Tools.Patch;
 using System;
 
 namespace HintServiceMeow.Commands
@@ -20,11 +20,14 @@ namespace HintServiceMeow.Commands
 
             sb.AppendLine("The following assemblies are using Compatibility Adaptor in HintServiceMeow:");
 
-            foreach(var name in CompatibilityAdaptor.RegisteredAssemblies)
+            lock (CompatibilityAdaptor.RegisteredAssembliesLock)
             {
-                sb.Append("- ");
-                sb.AppendLine(name);
-            }
+                foreach (var name in CompatibilityAdaptor.RegisteredAssemblies)
+                {
+                    sb.Append("- ");
+                    sb.AppendLine(name);
+                }
+            } 
 
             response = sb.ToString();
             return true;

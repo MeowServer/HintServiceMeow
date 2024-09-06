@@ -1,17 +1,12 @@
 ﻿using System;
-using System.ComponentModel;
-using System.Reflection;
-using HarmonyLib;
+
 using HintServiceMeow.Core.Utilities;
-using HintServiceMeow.Core.Utilities.Patch;
+using HintServiceMeow.Core.Utilities.Tools;
+using HintServiceMeow.Core.Utilities.Tools.Patch;
 using HintServiceMeow.Integrations;
 using HintServiceMeow.UI.Utilities;
 
-//PluginAPI
 using PluginAPI.Core;
-using PluginAPI.Core.Attributes;
-using PluginAPI.Enums;
-using PluginAPI.Events;
 
 // *    V1.0.0  First Release
 // *    V1.0.1
@@ -269,6 +264,7 @@ namespace HintServiceMeow
             //Register events
             plugin.BindEvent();
 
+            FontTool.InitializeFont();
             Integrator.StartAllIntegration();
 
             Log.Info($"HintServiceMeow {Version} has been enabled!");

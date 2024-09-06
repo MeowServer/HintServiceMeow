@@ -1,11 +1,11 @@
-﻿using HintServiceMeow.Core.Utilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using HintServiceMeow.Core.Models.Hints;
+
 using UnityEngine;
-using System.Collections.ObjectModel;
-using System.Linq;
+
+using HintServiceMeow.Core.Utilities;
+using HintServiceMeow.Core.Models.Hints;
 
 namespace HintServiceMeow.UI.Utilities
 {

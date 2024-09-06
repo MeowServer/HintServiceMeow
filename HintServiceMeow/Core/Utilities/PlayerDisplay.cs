@@ -1,22 +1,26 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
 using Hints;
-
+using Mirror;
 using MEC;
+
 using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Models.Hints;
+using HintServiceMeow.Core.Models;
 
 //Plugin API
 using Log = PluginAPI.Core.Log;
-using HintServiceMeow.Core.Models;
-using System.Reflection;
-using System.Threading.Tasks;
-using Mirror;
+
 
 namespace HintServiceMeow.Core.Utilities
 {
+    /// <summary>
+    /// Represent a player's display. This class is used to manage hints and update hint to player's display
+    /// </summary>
     public class PlayerDisplay
     {
         private static readonly object PlayerDisplayLock = new object();

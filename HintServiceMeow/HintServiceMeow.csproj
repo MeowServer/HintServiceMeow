@@ -366,15 +366,16 @@
     <Compile Include="Core\Models\HintContent\StringContent.cs" />
     <Compile Include="Core\Models\Hints\CompatAdapterHint.cs" />
     <Compile Include="Core\Utilities\Patch\CompatAdapter .cs" />
-    <Compile Include="Core\Utilities\CoordinateTools.cs" />
-    <Compile Include="Core\Utilities\HintParser.cs" />
+    <Compile Include="Core\Utilities\Tools\CoordinateTools.cs" />
+    <Compile Include="Core\Utilities\Parser\HintParser.cs" />
     <Compile Include="Core\Utilities\Patch\Patcher.cs" />
+    <Compile Include="Core\Utilities\Tools\FontTool.cs" />
     <Compile Include="Core\Utilities\UpdateAnalyser.cs" />
     <Compile Include="Integrations\Integrator.cs" />
     <Compile Include="Integrations\ScriptedEventIntegration.cs" />
     <Compile Include="Plugin\Config\PlayerUIConfig.cs" />
     <Compile Include="Core\Extension\Extension.cs" />
-    <Compile Include="Core\Utilities\TextTool.cs" />
+    <Compile Include="Core\Utilities\Parser\RichTextParser.cs" />
     <Compile Include="Core\Models\Hints\AbstractHint.cs" />
     <Compile Include="Core\Models\Hints\DynamicHint.cs" />
     <Compile Include="Core\Utilities\Patch\Patch.cs" />
@@ -392,6 +393,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <EmbeddedResource Include="Roboto-Light" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="UI\Models\" />

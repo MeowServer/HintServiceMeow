@@ -2,24 +2,28 @@
 using HintServiceMeow.Core.Models.Hints;
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HintServiceMeow.Core.Utilities.Patch
+namespace HintServiceMeow.Core.Utilities.Tools.Patch
 {
     /// <summary>
     /// Compatibility adaptor design to adapt other plugins' hint system to HintServiceMeow's hint system
     /// </summary>
     internal static class CompatibilityAdaptor
     {
-        private static object _lock = new object();
-
         internal static readonly HashSet<string> RegisteredAssemblies = new HashSet<string>(); //Include all the assembly names that used this adaptor
+        internal static readonly object RegisteredAssembliesLock = new object();
 
-        private static readonly Dictionary<string, DateTime> RemoveTime = new Dictionary<string, DateTime>();
+        private static readonly ConcurrentDictionary<string, DateTime> RemoveTime = new ConcurrentDictionary<string, DateTime>();
+
+        private static readonly ConcurrentDictionary<string, List<Hint>> HintCache = new ConcurrentDictionary<string, List<Hint>>();
+
+        private static readonly ConcurrentDictionary<string, CancellationTokenSource> CancellationTokens = new ConcurrentDictionary<string, CancellationTokenSource>();
 
         private static readonly string SizeTagRegex = @"<size=(\d+)(px|%)?>";
 
@@ -29,16 +33,12 @@ namespace HintServiceMeow.Core.Utilities.Patch
 
         private static readonly string PosTagRegex = @"<pos=([+-]?\d+(px)?)>";
 
-        private static readonly Dictionary<string, List<Hint>> HintCache = new Dictionary<string, List<Hint>>();
-
-        private static readonly Dictionary<string, CancellationTokenSource> CancellationTokens = new Dictionary<string, CancellationTokenSource>();
-
         public static void ShowHint(ReferenceHub player, string assemblyName, string content, float timeToRemove)
         {
             if (Plugin.Config.DisabledCompatAdapter.Contains(assemblyName))
                 return;
 
-            lock (_lock)
+            lock(RegisteredAssembliesLock)
                 RegisteredAssemblies.Add(assemblyName);
 
             if (CancellationTokens.TryGetValue(assemblyName, out var token))
@@ -62,14 +62,11 @@ namespace HintServiceMeow.Core.Utilities.Patch
                 return;
 
             //Reset the time to remove
-            lock (_lock)
-                RemoveTime[assemblyName] = DateTime.Now.AddSeconds(timeToRemove);
+            RemoveTime[assemblyName] = DateTime.Now.AddSeconds(timeToRemove);
 
             //Check if the hint is already cached
-            List<Hint> cachedHintList;
 
-            lock (_lock)
-                HintCache.TryGetValue(content, out cachedHintList);
+            HintCache.TryGetValue(content, out var cachedHintList);
             
             if(cachedHintList != null)
             {
@@ -80,11 +77,9 @@ namespace HintServiceMeow.Core.Utilities.Patch
                 try
                 {
                     await Task.Delay(TimeSpan.FromSeconds(timeToRemove + 0.2f), cancellationToken);
-                    lock (_lock)
-                    {
-                        if (!cancellationToken.IsCancellationRequested && RemoveTime[assemblyName] <= DateTime.Now)
-                            playerDisplay.InternalClearHint(assemblyName);
-                    }
+
+                    if (!cancellationToken.IsCancellationRequested && RemoveTime[assemblyName] <= DateTime.Now)
+                        playerDisplay.InternalClearHint(assemblyName);
                 }
                 catch (TaskCanceledException) { }
 
@@ -160,28 +155,23 @@ namespace HintServiceMeow.Core.Utilities.Patch
             try
             {
                 await Task.Delay(TimeSpan.FromSeconds(timeToRemove + 0.2f), cancellationToken);
-                lock (_lock)
-                {
-                    if(RemoveTime[assemblyName] <= DateTime.Now)
-                        playerDisplay.InternalClearHint(assemblyName);
-                        
-                }
+
+                if(RemoveTime[assemblyName] <= DateTime.Now)
+                    playerDisplay.InternalClearHint(assemblyName);
             }
             catch (TaskCanceledException) { }
 
+
             //Add generated hint into cache
-            lock (_lock)
-                HintCache.Add(content, new List<Hint>(hintList));
+            HintCache[content] = new List<Hint>(hintList);
 
             //Set cache expiration
             _ = Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ =>
             {
-                lock (_lock)
-                    HintCache.Remove(content);
+                HintCache.TryRemove(content, out var _);
             });
         }
 
-        //Return a value tuple, value 1 is height, value 2 is last font size
         private static HeightResult GetHeight(string text, Stack<string> stack)
         {
             text = text.Replace(" ", "");
@@ -247,7 +237,6 @@ namespace HintServiceMeow.Core.Utilities.Patch
             return result;
         }
 
-        //Return a value tuple, value 1 is alignment, value 2 is lasting alignment
         private static AlignmentResult GetAlignment(string text, HintAlignment lastAlignment)
         {
             AlignmentResult result = new AlignmentResult

@@ -3,14 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+
 using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Models;
 using HintServiceMeow.Core.Models.Hints;
+using HintServiceMeow.Core.Utilities.Tools;
 
 namespace HintServiceMeow.Core.Utilities
 {
+    /// <summary>
+    /// Used to parse AbstractHint to rich text message
+    /// </summary>
     internal class HintParser
     {
+        private readonly RichTextParser _richTextParser = new RichTextParser();
+
         private readonly StringBuilder _richTextBuilder = new StringBuilder(500); //Used to build rich text from Hint
         private readonly object _richTextLock = new object();
 
@@ -48,7 +55,7 @@ namespace HintServiceMeow.Core.Utilities
                     }
 
                     //Sort by y coordinate and priority
-                    orderedList.Sort((x, y) => CoordinateTools.GetActualYCoordinate(x, HintVerticalAlign.Bottom).CompareTo(CoordinateTools.GetActualYCoordinate(y, HintVerticalAlign.Bottom)));
+                    orderedList.Sort((x, y) => CoordinateTools.GetYCoordinate(_richTextParser, x, HintVerticalAlign.Bottom).CompareTo(CoordinateTools.GetYCoordinate(_richTextParser, y, HintVerticalAlign.Bottom)));
 
                     _hintList.Add(orderedList);
                 }
@@ -82,20 +89,20 @@ namespace HintServiceMeow.Core.Utilities
             return result;
         }
 
-        public Hint ConvertDynamicHint(DynamicHint dynamicHint, IEnumerable<Hint> existingHints)
+        private Hint ConvertDynamicHint(DynamicHint dynamicHint, IEnumerable<Hint> existingHints)
         {
             List<TextArea> textAreas = existingHints.
                 Select(hint =>
                 {
-                    var xCoordinate = CoordinateTools.GetXCoordinateWithAlignment(hint);
-                    var yCoordinate = CoordinateTools.GetActualYCoordinate(hint, HintVerticalAlign.Bottom);
+                    var xCoordinate = CoordinateTools.GetXCoordinateWithAlignment(_richTextParser, hint);
+                    var yCoordinate = CoordinateTools.GetYCoordinate(_richTextParser, hint, HintVerticalAlign.Bottom);
 
                     return new TextArea
                     {
-                        Top = yCoordinate - CoordinateTools.GetTextHeight(hint),
+                        Top = yCoordinate - CoordinateTools.GetTextHeight(_richTextParser, hint),
                         Bottom = yCoordinate,
-                        Left = xCoordinate - CoordinateTools.GetTextWidth(hint) / 2,
-                        Right = xCoordinate + CoordinateTools.GetTextWidth(hint) / 2,
+                        Left = xCoordinate - CoordinateTools.GetTextWidth(_richTextParser, hint) / 2,
+                        Right = xCoordinate + CoordinateTools.GetTextWidth(_richTextParser, hint) / 2,
                     };
                 })
                 .ToList();
@@ -106,9 +113,9 @@ namespace HintServiceMeow.Core.Utilities
                 {
                     var dhArea = new TextArea
                     {
-                        Left = x - CoordinateTools.GetTextWidth(dynamicHint) / 2,
-                        Right = x + CoordinateTools.GetTextWidth(dynamicHint) / 2,
-                        Top = y - CoordinateTools.GetTextHeight(dynamicHint),
+                        Left = x - CoordinateTools.GetTextWidth(_richTextParser, dynamicHint) / 2,
+                        Right = x + CoordinateTools.GetTextWidth(_richTextParser, dynamicHint) / 2,
+                        Top = y - CoordinateTools.GetTextHeight(_richTextParser, dynamicHint),
                         Bottom = y,
                     };
 
@@ -207,12 +214,12 @@ namespace HintServiceMeow.Core.Utilities
             var lineList = SplitIntoLines(text, hint.FontSize);
 
             var splitText = string.Join("\n", lineList);
-            var newTextHeight = CoordinateTools.GetTextHeight(splitText, hint.FontSize, hint.LineHeight);
+            var newTextHeight = CoordinateTools.GetTextHeight(_richTextParser, splitText, hint.FontSize, hint.LineHeight);
 
             lineList.Reverse();
 
             //Building rich text by lines
-            float yCoordinate = 700 - CoordinateTools.GetActualYCoordinate(hint.YCoordinate, newTextHeight, hint.YCoordinateAlign, HintVerticalAlign.Bottom); //Get the top coordinate as pivot
+            float yCoordinate = 700 - CoordinateTools.GetYCoordinate(hint.YCoordinate, newTextHeight, hint.YCoordinateAlign, HintVerticalAlign.Bottom); //Get the top coordinate as pivot
 
             string result;
 
@@ -248,7 +255,7 @@ namespace HintServiceMeow.Core.Utilities
                         _richTextBuilder.AppendLine();
                     }
 
-                    yCoordinate += CoordinateTools.GetTextHeight(lineText, hint.FontSize, hint.LineHeight);
+                    yCoordinate += CoordinateTools.GetTextHeight(_richTextParser, lineText, hint.FontSize, hint.LineHeight);
                 }
 
                 result = _richTextBuilder.ToString();
@@ -288,7 +295,7 @@ namespace HintServiceMeow.Core.Utilities
                         currentPart += line[i];
                         string partWithoutTags = tagRegex.Replace(currentPart, string.Empty);
 
-                        if (CoordinateTools.GetTextWidth(partWithoutTags, fontSize) > 2400)
+                        if (CoordinateTools.GetTextWidth(_richTextParser, partWithoutTags, fontSize) > 2400)
                         {
                             lines.Add(currentPart.Substring(0, currentPart.Length - 1));
                             currentPart = line[i].ToString();

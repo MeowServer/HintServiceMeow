@@ -4,7 +4,7 @@ using HarmonyLib;
 using Hints;
 using PluginAPI.Core;
 
-namespace HintServiceMeow.Core.Utilities.Patch
+namespace HintServiceMeow.Core.Utilities.Tools.Patch
 {
     internal static class HintDisplayPatch
     {

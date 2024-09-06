@@ -1,9 +1,9 @@
-﻿using Exiled.API.Features;
-using HintServiceMeow.Core.Enum;
-using HintServiceMeow.Core.Models.HintContent.HintContent;
-using HintServiceMeow.Core.Utilities;
-using System;
+﻿using System;
 using System.Threading;
+
+using HintServiceMeow.Core.Enum;
+using HintServiceMeow.Core.Utilities;
+using HintServiceMeow.Core.Models.HintContent.HintContent;
 
 namespace HintServiceMeow.Core.Models.Hints
 {

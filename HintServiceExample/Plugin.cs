@@ -13,7 +13,7 @@ using HintServiceMeow.UI.Utilities;
 using CustomPlayerEffects;
 using System.Linq;
 using System.Text;
-using HintServiceMeow.Core.Utilities;
+using HintServiceMeow.Core.Utilities.Tools;
 
 namespace HintServiceExample
 {
@@ -83,7 +83,7 @@ namespace HintServiceExample
             var tPSHint = new Hint()
             {
                 AutoText = GetTPS,
-                YCoordinateAlign = HintVerticalAlign.Bottom,
+                YCoordinateAlign = HintVerticalAlign.Top,
                 YCoordinate = 0,
                 XCoordinate = 0,
                 FontSize = 20

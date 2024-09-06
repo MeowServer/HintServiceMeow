@@ -5,9 +5,12 @@ using PluginAPI.Core;
 
 namespace HintServiceMeow.Core.Utilities
 {
+    /// <summary>
+    /// Used to estimate the next update time.
+    /// </summary>
     internal class UpdateAnalyser
     {
-        private object _lock = new object();
+        private readonly object _lock = new object();
 
         private readonly TimeSpan _leastInterval = TimeSpan.FromMilliseconds(50f);
 

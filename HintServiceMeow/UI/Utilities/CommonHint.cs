@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+
 using MEC;
 
 using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities;
-using HintServiceMeow.UI.Utilities;
+
 using PluginAPI.Core;
-using System.Diagnostics;
 
 namespace HintServiceMeow.UI.Utilities
 {

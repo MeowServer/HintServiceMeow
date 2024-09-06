@@ -4,11 +4,18 @@ using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace HintServiceMeow.Core.Utilities
+namespace HintServiceMeow.Core.Utilities.Tools
 {
-    internal static class TextTool
+    /// <summary>
+    /// Use to calculate the rich text's width and height.
+    /// </summary>
+    internal class RichTextParser
     {
-        public static float GetTextWidth(string text, int size = 20)
+        private Stack<float> _fontSizeStack = new Stack<float>();
+        private bool _bold = false;
+        private bool _italic = false;
+
+        public float GetTextWidth(string text, int size = 20)
         {
             if (string.IsNullOrEmpty(text))
                 return 0;
@@ -23,7 +30,7 @@ namespace HintServiceMeow.Core.Utilities
             return width;
         }
 
-        public static float GetTextHeight(string text, int size = 20, float lineSpacing = 0)
+        public float GetTextHeight(string text, int size = 20, float lineSpacing = 0)
         {
             if (string.IsNullOrEmpty(text))
                 return 0;
@@ -33,5 +40,4 @@ namespace HintServiceMeow.Core.Utilities
             return height;
         }
     }
-
 }
