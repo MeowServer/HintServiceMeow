@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Drawing.Text;
 using System.IO;
 using System.Reflection;
+
 namespace HintServiceMeow.Core.Utilities.Tools
 {
     /// <summary>
@@ -12,39 +13,50 @@ namespace HintServiceMeow.Core.Utilities.Tools
     /// </summary>
     internal static class FontTool
     {
-        public static ConcurrentDictionary<char, SizeF> RegularChSize = new ConcurrentDictionary<char, SizeF>();
-        public static ConcurrentDictionary<char, SizeF> BoldChSize = new ConcurrentDictionary<char, SizeF>();
-        public static ConcurrentDictionary<char, SizeF> ItalicChSize = new ConcurrentDictionary<char, SizeF>();
-        public static ConcurrentDictionary<char, SizeF> BoldItalicChSize = new ConcurrentDictionary<char, SizeF>();
+        private static readonly float BaseFontSize = 1;
+        private static readonly ConcurrentDictionary<char, CharSize> RegularChSize = new ConcurrentDictionary<char, CharSize>();
+        private static readonly ConcurrentDictionary<char, CharSize> BoldChSize = new ConcurrentDictionary<char, CharSize>();
+        private static readonly ConcurrentDictionary<char, CharSize> ItalicChSize = new ConcurrentDictionary<char, CharSize>();
+        private static readonly ConcurrentDictionary<char, CharSize> BoldItalicChSize = new ConcurrentDictionary<char, CharSize>();
 
         public static void InitializeFont()
         {
-            // Create a bitmap and graphics object for drawing.
-            using (var bmp = new Bitmap(1, 1))  // Minimal size since we are not displaying
+            using (var bmp = new Bitmap(1, 1))
             using (var graphics = Graphics.FromImage(bmp))
-            using(var regularFont = GetFont(1, FontStyle.Regular))
-            using(var boldFont = GetFont(1, FontStyle.Bold))
-            using(var italicFont = GetFont(1, FontStyle.Italic))
-            using(var boldItalicFont = GetFont(1, FontStyle.Bold | FontStyle.Italic))
             {
-                for (int i = char.MinValue; i <= char.MaxValue; i++)
+                graphics.PageUnit = GraphicsUnit.Pixel;
+
+                using (var regularFont = GetFont(BaseFontSize, FontStyle.Regular))
+                using (var boldFont = GetFont(BaseFontSize, FontStyle.Bold))
+                using (var italicFont = GetFont(BaseFontSize, FontStyle.Italic))
+                using (var boldItalicFont = GetFont(BaseFontSize, FontStyle.Bold | FontStyle.Italic))
                 {
-                    char c = (char)i;
-                    string text = c.ToString();
-                    RegularChSize[c] = graphics.MeasureString(text, regularFont);
-                    BoldChSize[c] = graphics.MeasureString(text, boldFont);
-                    ItalicChSize[c] = graphics.MeasureString(text, italicFont);
-                    BoldItalicChSize[c] = graphics.MeasureString(text, boldItalicFont);
+                    var format = new StringFormat();
+                    //format.FormatFlags |= StringFormatFlags.MeasureTrailingSpaces;
+
+                    for (int i = char.MinValue; i <= char.MaxValue; i++)
+                    {
+                        char c = (char)i;
+                        string text = c.ToString();
+
+                        var regular = graphics.MeasureString(text, regularFont, PointF.Empty, format);
+                        var bold = graphics.MeasureString(text, boldFont, PointF.Empty, format);
+                        var italic = graphics.MeasureString(text, italicFont, PointF.Empty, format);
+                        var boldItalic = graphics.MeasureString(text, boldItalicFont, PointF.Empty, format);
+
+                        RegularChSize[c] = new CharSize(regular.Width, regular.Height);
+                        BoldChSize[c] = new CharSize(bold.Width, bold.Height);
+                        ItalicChSize[c] = new CharSize(italic.Width, italic.Height);
+                        BoldItalicChSize[c] = new CharSize(boldItalic.Width, boldItalic.Height);
+                    }
                 }
             }
         }
 
         public static Font GetFont(float fontSize, FontStyle style)
         {
-            // Get the current assembly
             Assembly assembly = Assembly.GetExecutingAssembly();
 
-            // Load the embedded font resource into a stream
             using (Stream fontStream = assembly.GetManifestResourceStream("HintServiceMeow.Roboto-Light"))
             {
                 if (fontStream == null)
@@ -52,7 +64,6 @@ namespace HintServiceMeow.Core.Utilities.Tools
                     throw new FileNotFoundException("Embedded font resource not found.");
                 }
 
-                // Copy the stream to a MemoryStream
                 using (MemoryStream memoryStream = new MemoryStream())
                 {
                     fontStream.CopyTo(memoryStream);
@@ -78,14 +89,14 @@ namespace HintServiceMeow.Core.Utilities.Tools
             }
         }
 
-        public static SizeF GetCharSize(char c, float fontSize)
+        public static CharSize GetCharSize(char c, float fontSize)
         {
             var size = RegularChSize[c];
 
-            return new SizeF(size.Width * fontSize, size.Height * fontSize);
+            return new CharSize(size.Width * fontSize / BaseFontSize, size.Height * fontSize / BaseFontSize);
         }
 
-        public static SizeF GetCharSize(char c, float fontSize, FontStyle style)
+        public static CharSize GetCharSize(char c, float fontSize, FontStyle style)
         {
             var size = RegularChSize[c];
 
@@ -100,9 +111,29 @@ namespace HintServiceMeow.Core.Utilities.Tools
                 case FontStyle.Bold | FontStyle.Italic:
                     size = BoldItalicChSize[c];
                     break;
+                default:
+                    size = RegularChSize[c];
+                    break;
             }
 
-            return new SizeF(size.Width * fontSize, size.Height * fontSize);
+            return new CharSize(size.Width * fontSize / BaseFontSize, size.Height * fontSize / BaseFontSize);
+        }
+
+        public struct CharSize
+        {
+            public float Width;
+            public float Height;
+
+            public CharSize(float width, float height)
+            {
+                Width = width;
+                Height = height;
+            }
+
+            public override string ToString()
+            {
+                return $"Width: {Width}, Height: {Height}";
+            }
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using System;
-
+using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.Core.Utilities.Tools;
 using HintServiceMeow.Core.Utilities.Tools.Patch;
@@ -169,7 +169,7 @@ namespace HintServiceMeow
             if (ev.Player.IsNPC || ev.Player.ReferenceHub.isLocalPlayer)
                 return;
 
-            PlayerDisplay.TryCreate(ev.Player.ReferenceHub);
+            var pd = PlayerDisplay.TryCreate(ev.Player.ReferenceHub);
             PlayerUI.TryCreate(ev.Player.ReferenceHub);
         }
 

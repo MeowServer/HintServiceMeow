@@ -8,6 +8,7 @@ using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Models;
 using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities.Tools;
+using PluginAPI.Core;
 
 namespace HintServiceMeow.Core.Utilities
 {
@@ -163,15 +164,14 @@ namespace HintServiceMeow.Core.Utilities
                     return new Hint(dynamicHint, x, y);
                 }
 
-                //For performance, dynamic hint will search 20 by 20 horizontally and 70 by 70 vertically
-                if(y + 20 < dynamicHint.BottomBoundary)
-                    queue.Enqueue(ValueTuple.Create(x, y + 20));
-                if(y - 20 > dynamicHint.TopBoundary)
-                    queue.Enqueue(ValueTuple.Create(x, y - 20));
-                if (x + 70 < dynamicHint.RightBoundary)
-                    queue.Enqueue(ValueTuple.Create(x + 100, y));
-                if (x - 70 > dynamicHint.LeftBoundary)
-                    queue.Enqueue(ValueTuple.Create(x - 100, y));
+                if(y < dynamicHint.BottomBoundary)
+                    queue.Enqueue(ValueTuple.Create(x, y + 10));
+                if(y > dynamicHint.TopBoundary)
+                    queue.Enqueue(ValueTuple.Create(x, y - 10));
+                if (x < dynamicHint.RightBoundary)
+                    queue.Enqueue(ValueTuple.Create(x + 50, y));
+                if (x > dynamicHint.LeftBoundary)
+                    queue.Enqueue(ValueTuple.Create(x - 50, y));
             }
 
             if (dynamicHint.Strategy == DynamicHintStrategy.StayInPosition)

@@ -21,7 +21,7 @@ namespace HintServiceMeow.Core.Utilities.Tools.Patch
 
         private static readonly ConcurrentDictionary<string, DateTime> RemoveTime = new ConcurrentDictionary<string, DateTime>();
 
-        private static readonly ConcurrentDictionary<string, List<Hint>> HintCache = new ConcurrentDictionary<string, List<Hint>>();
+        private static readonly Dictionary<string, List<Hint>> HintCache = new Dictionary<string, List<Hint>>();
 
         private static readonly ConcurrentDictionary<string, CancellationTokenSource> CancellationTokens = new ConcurrentDictionary<string, CancellationTokenSource>();
 
@@ -65,10 +65,7 @@ namespace HintServiceMeow.Core.Utilities.Tools.Patch
             RemoveTime[assemblyName] = DateTime.Now.AddSeconds(timeToRemove);
 
             //Check if the hint is already cached
-
-            HintCache.TryGetValue(content, out var cachedHintList);
-            
-            if(cachedHintList != null)
+            if(HintCache.TryGetValue(content, out var cachedHintList))
             {
                 playerDisplay.InternalClearHint(assemblyName);
                 playerDisplay.InternalAddHint(assemblyName, cachedHintList);
@@ -147,9 +144,20 @@ namespace HintServiceMeow.Core.Utilities.Tools.Patch
             if(cancellationToken.IsCancellationRequested)
                 return;
 
-            //Reset hint
+            //Set hint
             playerDisplay.InternalClearHint(assemblyName);
             playerDisplay.InternalAddHint(assemblyName, hintList);
+
+            //Add generated hint into cache
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(15000, cancellationToken);
+                    HintCache.Remove(content);
+                }
+                catch (TaskCanceledException) { }
+            }, cancellationToken);
 
             //Remove hint after time to remove
             try
@@ -160,16 +168,6 @@ namespace HintServiceMeow.Core.Utilities.Tools.Patch
                     playerDisplay.InternalClearHint(assemblyName);
             }
             catch (TaskCanceledException) { }
-
-
-            //Add generated hint into cache
-            HintCache[content] = new List<Hint>(hintList);
-
-            //Set cache expiration
-            _ = Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ =>
-            {
-                HintCache.TryRemove(content, out var _);
-            });
         }
 
         private static HeightResult GetHeight(string text, Stack<string> stack)

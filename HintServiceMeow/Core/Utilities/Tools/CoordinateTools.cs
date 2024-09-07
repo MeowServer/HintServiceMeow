@@ -94,7 +94,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         public static float GetTextWidth(RichTextParser parser, string text, int fontSize)
         {
-            return parser.GetTextWidth(text, fontSize);
+            return parser.ParseText(text, fontSize)?.Max(x => x.Width) ?? 0;
         }
 
         public static float GetTextHeight(RichTextParser parser, AbstractHint hint)
@@ -104,7 +104,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         public static float GetTextHeight(RichTextParser parser, string text, int fontSize, float lineHeight)
         {
-            return parser.GetTextHeight(text, fontSize, lineHeight);
+            return parser.ParseText(text, fontSize)?.Sum(x => x.Height) ?? 0;
         }
     }
 }
