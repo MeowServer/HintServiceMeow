@@ -18,7 +18,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;EXILED</DefineConstants>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -360,13 +360,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\GetCompatAssemblyName.cs" />
+    <Compile Include="Core\Enum\FontStyle.cs" />
     <Compile Include="Core\Models\HintCollection.cs" />
     <Compile Include="Core\Models\HintContent\AutoContent.cs" />
     <Compile Include="Core\Models\HintContent\AbstractHintContent.cs" />
     <Compile Include="Core\Models\HintContent\StringContent.cs" />
     <Compile Include="Core\Models\Hints\CompatAdapterHint.cs" />
-    <Compile Include="Core\Models\RichTextSize.cs" />
-    <Compile Include="Core\Utilities\Patch\CompatAdapter .cs" />
+    <Compile Include="Core\Utilities\CompatAdapter .cs" />
     <Compile Include="Core\Utilities\Tools\CoordinateTools.cs" />
     <Compile Include="Core\Utilities\Parser\HintParser.cs" />
     <Compile Include="Core\Utilities\Patch\Patcher.cs" />

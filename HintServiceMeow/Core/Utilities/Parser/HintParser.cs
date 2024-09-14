@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -28,7 +30,7 @@ namespace HintServiceMeow.Core.Utilities
         private readonly List<List<Hint>> _hintList = new List<List<Hint>>();
         private readonly object _hintListLock = new object();
 
-        private readonly Dictionary<Guid, ValueTuple<float, float>> _dynamicHintPositionCache = new Dictionary<Guid, ValueTuple<float, float>>();
+        private readonly ConcurrentDictionary<Guid, ValueTuple<float, float>> _dynamicHintPositionCache = new ConcurrentDictionary<Guid, ValueTuple<float, float>>();
         private readonly object _dynamicHintCacheLock = new object();
 
         public string GetMessage(HintCollection collection)
@@ -42,18 +44,26 @@ namespace HintServiceMeow.Core.Utilities
                 foreach (var group in collection.AllGroups)
                 {
                     List<Hint> orderedList = new List<Hint>();
+                    List<Hint> handledDynamicHints = new List<Hint>();
 
                     //Convert to Hint
                     foreach (var item in group)
                     {
-                        if (item.Hide || string.IsNullOrEmpty(item.Content.GetText()))
+                        if (item is null || item.Hide || string.IsNullOrEmpty(item.Content.GetText()))
                             continue;
 
                         if (item is Hint hint)
                             orderedList.Add(hint);
                         else if (item is DynamicHint dynamicHint)
-                            orderedList.Add(ConvertDynamicHint(dynamicHint, collection.AllHints.OfType<Hint>().Concat(orderedList)));
+                        {
+                            var dh = ConvertDynamicHint(dynamicHint, collection.AllHints.OfType<Hint>().Concat(handledDynamicHints));
+
+                            if(dh != null)
+                                handledDynamicHints.Add(dh);
+                        }
                     }
+
+                    orderedList.AddRange(handledDynamicHints);
 
                     //Sort by y coordinate and priority
                     orderedList.Sort((x, y) => CoordinateTools.GetYCoordinate(_richTextParser, x, HintVerticalAlign.Bottom).CompareTo(CoordinateTools.GetYCoordinate(_richTextParser, y, HintVerticalAlign.Bottom)));
@@ -74,7 +84,8 @@ namespace HintServiceMeow.Core.Utilities
                                 _messageBuilder.Append(text);//ToRichText already added \n at the end
                         }
 
-                        _messageBuilder.AppendLine("</size></b></i>"); //Make sure one group will not affect another group
+                        if(!hintList.IsEmpty())
+                            _messageBuilder.AppendLine("</size></b></i>"); //Make sure one group will not affect another group
                     }
 
                     _messageBuilder.AppendLine("<line-height=0><voffset=-9999>P</voffset>");//Place Holder
@@ -92,8 +103,9 @@ namespace HintServiceMeow.Core.Utilities
 
         private Hint ConvertDynamicHint(DynamicHint dynamicHint, IEnumerable<Hint> existingHints)
         {
-            List<TextArea> textAreas = existingHints.
-                Select(hint =>
+            List<TextArea> textAreas = existingHints
+                .Where(hint => hint != null && !hint.Hide && !string.IsNullOrEmpty(hint.Content.GetText()))
+                .Select(hint =>
                 {
                     var xCoordinate = CoordinateTools.GetXCoordinateWithAlignment(_richTextParser, hint);
                     var yCoordinate = CoordinateTools.GetYCoordinate(_richTextParser, hint, HintVerticalAlign.Bottom);
@@ -108,6 +120,7 @@ namespace HintServiceMeow.Core.Utilities
                 })
                 .ToList();
 
+            //Return a value that indicate whether the selected position is valid.
             bool HasIntersection(float x, float y)
             {
                 return textAreas.Any(hintArea =>
@@ -124,16 +137,11 @@ namespace HintServiceMeow.Core.Utilities
                 });
             }
 
-            bool cached;
-            ValueTuple<float, float> cachedPosition;
-
-            lock (_dynamicHintCacheLock)
-                cached = _dynamicHintPositionCache.TryGetValue(dynamicHint.Guid, out cachedPosition);
-
-            if (cached)
+            //Try find cache
+            if (_dynamicHintPositionCache.TryGetValue(dynamicHint.Guid, out var cachedPosition))
             {
                 //If cached position is not intersected with any hint, use it
-                if(!HasIntersection(cachedPosition.Item1, cachedPosition.Item2))
+                if (!HasIntersection(cachedPosition.Item1, cachedPosition.Item2))
                 {
                     return new Hint(dynamicHint, cachedPosition.Item1, cachedPosition.Item2);
                 }
@@ -158,8 +166,7 @@ namespace HintServiceMeow.Core.Utilities
                 if (!HasIntersection(x, y))
                 {
                     //Found a position that does not overlap with any hint. Add into cache
-                    lock(_dynamicHintCacheLock)
-                        _dynamicHintPositionCache[dynamicHint.Guid] = ValueTuple.Create(x, y);
+                    _dynamicHintPositionCache[dynamicHint.Guid] = ValueTuple.Create(x, y);
 
                     return new Hint(dynamicHint, x, y);
                 }
@@ -187,39 +194,25 @@ namespace HintServiceMeow.Core.Utilities
 
             string text = rawText;
 
-            if(hint is CompatAdapterHint)
-            {
-                text = Regex
-                    .Replace(
-                        text,
-                        @"<line-height=[^>]*>|<voffset=[^>]*>|<pos=[^>]*>|<align=[^>]*>|</voffset>|</align>|{|}",
-                        string.Empty,
-                        RegexOptions.IgnoreCase | RegexOptions.Compiled
-                    );
-            }
-            else
-            {
-                text = Regex
-                    .Replace(
-                        text,
-                        @"<line-height=[^>]*>|<voffset=[^>]*>|<pos=[^>]*>|<align=[^>]*>|<size=\d+>|</voffset>|</align>|</size>{|}",
-                        string.Empty,
-                        RegexOptions.IgnoreCase | RegexOptions.Compiled
-                    );
-            }
+            text = Regex
+                .Replace(
+                    text,
+                    @"<line-height=[^>]*>|<voffset=[^>]*>|<pos=[^>]*>|<align=[^>]*>|</voffset>|</align>|{|}",
+                    string.Empty,
+                    RegexOptions.IgnoreCase | RegexOptions.Compiled
+                );
 
             if (string.IsNullOrEmpty(text))
                 return null;
 
-            var lineList = SplitIntoLines(text, hint.FontSize);
+            var lineList = _richTextParser.ParseText(text, hint.FontSize);
+            var textHeight = lineList.Sum(x =>  x.Height);
 
-            var splitText = string.Join("\n", lineList);
-            var newTextHeight = CoordinateTools.GetTextHeight(_richTextParser, splitText, hint.FontSize, hint.LineHeight);
-
-            lineList.Reverse();
+            if(lineList.IsEmpty())
+                return null;
 
             //Building rich text by lines
-            float yCoordinate = 700 - CoordinateTools.GetYCoordinate(hint.YCoordinate, newTextHeight, hint.YCoordinateAlign, HintVerticalAlign.Bottom); //Get the top coordinate as pivot
+            float yCoordinate = 700 - CoordinateTools.GetYCoordinate(hint.YCoordinate, textHeight, hint.YCoordinateAlign, HintVerticalAlign.Top) - lineList.First().Height; //Get the y coordinate of first line
 
             string result;
 
@@ -227,24 +220,30 @@ namespace HintServiceMeow.Core.Utilities
             {
                 _richTextBuilder.Clear();
 
+                int lastingFontSize = hint.FontSize; //To make sure that size from last line will affect next line
+
                 foreach (var line in lineList)
                 {
-                    var lineText = line;
+                    var lineText = line.RawText;
+
+                    if (!line.Characters.IsEmpty() && !line.Characters.First().FontSize.Equals(lastingFontSize))
+                    {
+                        lastingFontSize = (int)line.Characters.Last().FontSize;
+                    }
 
                     if (string.IsNullOrEmpty(lineText))
                     {
                         lineText = " "; // For height calculation
                     }
-                    else
+                    else if(line.Characters.Count > 0)
                     {
                         float xCoordinate = hint.XCoordinate;
-                        
 
                         if (xCoordinate != 0) _richTextBuilder.AppendFormat("<pos={0:0.#}>", xCoordinate);
                         if (hint.Alignment != HintAlignment.Center) _richTextBuilder.AppendFormat("<align={0}>", hint.Alignment);
                         _richTextBuilder.Append("<line-height=0>");
                         if (yCoordinate != 0) _richTextBuilder.AppendFormat("<voffset={0:0.#}>", yCoordinate);
-                        _richTextBuilder.AppendFormat("<size={0}>", hint.FontSize);
+                        _richTextBuilder.AppendFormat("<size={0}>", lastingFontSize);
 
                         _richTextBuilder.Append(lineText);
 
@@ -253,9 +252,9 @@ namespace HintServiceMeow.Core.Utilities
                         if (hint.Alignment != HintAlignment.Center) _richTextBuilder.Append("</align>");
 
                         _richTextBuilder.AppendLine();
-                    }
+                    }  
 
-                    yCoordinate += CoordinateTools.GetTextHeight(_richTextParser, lineText, hint.FontSize, hint.LineHeight);
+                    yCoordinate -= CoordinateTools.GetTextHeight(_richTextParser, lineText, hint.FontSize, hint.LineHeight);
                 }
 
                 result = _richTextBuilder.ToString();
@@ -264,54 +263,6 @@ namespace HintServiceMeow.Core.Utilities
             }
 
             return result;
-        }
-
-        private List<string> SplitIntoLines(string text, int fontSize)//Split based on \n and width
-        {
-            List<string> lines = new List<string>();
-
-            foreach (var line in text.Split('\n'))
-            {
-                if(string.IsNullOrEmpty(line))
-                {
-                    lines.Add(string.Empty);
-                    continue;
-                }
-
-                string currentPart = string.Empty;
-                Regex tagRegex = new Regex(@"<[^>]+>");
-
-                int i = 0;
-                while (i < line.Length)
-                {
-                    Match tagMatch;
-                    if (line[i] == '<' && (tagMatch = tagRegex.Match(line, i)).Success)
-                    {
-                        currentPart += tagMatch.Value;
-                        i += tagMatch.Length;
-                    }
-                    else
-                    {
-                        currentPart += line[i];
-                        string partWithoutTags = tagRegex.Replace(currentPart, string.Empty);
-
-                        if (CoordinateTools.GetTextWidth(_richTextParser, partWithoutTags, fontSize) > 2400)
-                        {
-                            lines.Add(currentPart.Substring(0, currentPart.Length - 1));
-                            currentPart = line[i].ToString();
-                        }
-
-                        i++;
-                    }
-                }
-
-                if (currentPart.Length > 0)
-                {
-                    lines.Add(currentPart);
-                }
-            }
-
-            return lines;
         }
 
         private class TextArea

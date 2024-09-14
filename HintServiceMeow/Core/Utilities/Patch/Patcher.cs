@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HintServiceMeow.Core.Utilities.Tools.Patch
+namespace HintServiceMeow.Core.Utilities.Patch
 {
     internal static class Patcher
     {

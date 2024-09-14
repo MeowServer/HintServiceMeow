@@ -1,12 +1,15 @@
 ﻿using System;
-using HintServiceMeow.Core.Models.Hints;
+using System.Linq;
 using HintServiceMeow.Core.Utilities;
+using HintServiceMeow.Core.Utilities.Patch;
 using HintServiceMeow.Core.Utilities.Tools;
-using HintServiceMeow.Core.Utilities.Tools.Patch;
 using HintServiceMeow.Integrations;
 using HintServiceMeow.UI.Utilities;
 
 using PluginAPI.Core;
+using PluginAPI.Core.Attributes;
+using PluginAPI.Enums;
+using PluginAPI.Events;
 
 // *    V1.0.0  First Release
 // *    V1.0.1
@@ -107,6 +110,10 @@ using PluginAPI.Core;
 // *        Fix the bug that cause dynamic hint to be displayed incorrectly
 // *        Fix the bug null reference problem in player display
 // *        Fix the bug that cause empty line handled incorrectly 
+// *    V5.3.0 Pre-release 2.0
+// *        Fix the bug that causes the server to crash when getting the player display
+// *        Improve the behavior of the compatibility adaptor
+// *        Support size tag in a hint
 
 
 namespace HintServiceMeow
@@ -169,7 +176,7 @@ namespace HintServiceMeow
             if (ev.Player.IsNPC || ev.Player.ReferenceHub.isLocalPlayer)
                 return;
 
-            var pd = PlayerDisplay.TryCreate(ev.Player.ReferenceHub);
+            PlayerDisplay.TryCreate(ev.Player.ReferenceHub);
             PlayerUI.TryCreate(ev.Player.ReferenceHub);
         }
 
@@ -190,7 +197,7 @@ namespace HintServiceMeow
     internal class NwapiPlugin : IPlugin
     {
         //IPlugin
-        public PluginType Type => PluginType.Exiled;
+        public PluginType Type => PluginType.NwAPI;
         public PluginConfig PluginConfig => null;//NW somehow cannot serialize the config for HintServiceMeow
 
         [PluginEntryPoint("HintServiceMeow", "5.3.0", "A hint framework", "MeowServerOwner")]

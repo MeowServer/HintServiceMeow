@@ -6,14 +6,6 @@ using HintServiceMeow.Core.Extension;
 using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.UI.Extension;
 using Hint = HintServiceMeow.Core.Models.Hints.Hint;
-using MEC;
-using System.Collections.Generic;
-using System.IO;
-using HintServiceMeow.UI.Utilities;
-using CustomPlayerEffects;
-using System.Linq;
-using System.Text;
-using HintServiceMeow.Core.Utilities.Tools;
 
 namespace HintServiceExample
 {
@@ -48,13 +40,7 @@ namespace HintServiceExample
             ShowDynamicHintA(ev.Player);
             ShowCommonHintA(ev.Player);
 
-            //Style component
-            var ui = ev.Player.GetPlayerUi();
-            ui.Style.SetStyle(-50, 1080, Style.StyleType.Italic);
-            ui.Style.SetColor(-50, 1080, UnityEngine.Color.green);
-
-            //Compatibility adapter
-            ev.Player.ShowHint("<Line-Height=500>\n<pos=400>Hello, this is a hint using ShowHint directly", 20f);
+            //ev.Player.ShowHint("<Line-Height=500>\n<pos=400>Hello, this is a hint using ShowHint directly", 20f); //Compatibility adapter
         }
 
         //How to use Hint
@@ -64,7 +50,7 @@ namespace HintServiceExample
 
             var nameHint = new Hint()
             {
-                Text = $"Hello, {player.Nickname}",
+                Text = $"<size=100>Hello</size>, {player.Nickname}",
                 YCoordinateAlign = HintVerticalAlign.Top,
                 YCoordinate = 0,
                 Alignment = HintAlignment.Left,
@@ -131,7 +117,7 @@ namespace HintServiceExample
                 player.GetPlayerDisplay().AddHint(new DynamicHint()
                 {
                     Id = $"DynamicHint{i}",
-                    Text = "Welcome \nTo HintServiceMeow",
+                    Text = "Welcome\n<b>To HintServiceMeow</b>",
                     TargetX = 0,
                     TargetY = 700,
                 });

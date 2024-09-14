@@ -16,7 +16,7 @@ namespace HintServiceMeow.UI.Utilities
 
         public CommonHint CommonHint { get; }
 
-        public Style Style { get; }
+        //public Style Style { get; }
 
         #region Constructor and Destructors Methods
 
@@ -28,7 +28,7 @@ namespace HintServiceMeow.UI.Utilities
 
             //Initialize Components
             CommonHint = new CommonHint(referenceHub);
-            this.Style = new Style(referenceHub);
+            //this.Style = new Style(referenceHub);
 
             //Add to list
             PlayerUIList.Add(this);

@@ -3,173 +3,322 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Exiled.API.Features;
-using HintServiceMeow.Core.Enum;
 
+using HintServiceMeow.Core.Enum;
+using PluginAPI.Core;
+using YamlDotNet.Core.Tokens;
 using static HintServiceMeow.Core.Utilities.Tools.FontTool;
 
 namespace HintServiceMeow.Core.Utilities.Tools
 {
+    internal static class Regexs
+    {
+        public static readonly string SizeTagRegex = @"<size=(\d+)(px|%)?>";
+        public static readonly string LineHeightTagRegex = @"<line-height=([\d\.]+)(px|%|em)?>";
+        public static readonly string PosTagRegex = @"<pos=([+-]?\d+(px)?)>";
+        public static readonly string VOffsetTagRegex = @"<voffset=([+-]?\d+(px)?)>";
+        public static readonly string AlignTagRegex = @"<align=(left|center|right)>|</align>";
+    }
+
+    internal static class Tags
+    {
+        private static readonly object Lock = new object();
+
+        private static readonly HashSet<string> AllTags = new HashSet<string>
+        {
+            "align", "allcaps", "alpha", "b", "color", "cspace", "font", "font-weight",
+            "gradient", "i", "indent", "line-height", "line-indent", "link", "lowercase",
+            "margin", "mark", "mspace", "nobr", "noparse", "page", "pos", "rotate", "s",
+            "size", "smallcaps", "space", "sprite", "strikethrough", "style", "sub", "sup",
+            "u", "uppercase", "voffset", "width"
+        };
+
+        public static bool IsTag(string tag)
+        {
+            return IsEndTag(tag) || IsStartTag(tag);
+        }
+
+        public static bool IsEndTag(string tag)
+        {
+            if(string.IsNullOrEmpty(tag.Trim()))
+                return false;
+
+            tag = tag.ToLower();
+
+            lock (Lock)
+            {
+                if (tag.StartsWith("</"))
+                {
+                    string tagName = tag
+                        .Substring(2, tag.Length - 3)
+                        .Split('=')
+                        .First();
+                    return AllTags.Contains(tagName);
+                }
+
+                return false;
+            }
+        }
+
+        public static bool IsStartTag(string tag)
+        {
+            if (string.IsNullOrEmpty(tag.Trim()))
+                return false;
+
+            tag = tag.ToLower();
+
+            lock (Lock)
+            {
+                if (tag.StartsWith("<") && !tag.StartsWith("</"))
+                {
+                    string tagName = tag
+                        .Substring(1, tag.Length - 2)
+                        .Split('=')
+                        .First();
+                    return AllTags.Contains(tagName);
+                }
+
+                return false;
+            }
+        }
+    }
+
     /// <summary>
-    /// Use to calculate the rich text's width and height.
-    /// Get string size, get 
+    /// Use to calculate the rich text's width
     /// </summary>
     internal class RichTextParser
     {
-        private static readonly ConcurrentDictionary<string, List<LineInfo>> _cache = new ConcurrentDictionary<string, List<LineInfo>>();
+        private static readonly ConcurrentDictionary<string, IReadOnlyList<LineInfo>> Cache = new ConcurrentDictionary<string, IReadOnlyList<LineInfo>>();
 
+        //Lock
         private readonly object _lock = new object();
-        private readonly Stack<float> _fontSizeStack = new Stack<float>();
-        private readonly Stack<HintAlignment> _hintAlignmentStack = new Stack<HintAlignment>();
 
+        //Handling
+        private int _index = 0;
+        private readonly StringBuilder _currentRawLineText = new StringBuilder(100);
+
+        //Line status
         private float _pos = 0;
-
         private float _lineHeight = float.MinValue;
         private bool _hasLineHeight = false;
 
+        //Character status
         private float _vOffset = 0;
+        private TextStyle _style = TextStyle.Normal;
+        private readonly Stack<float> _fontSizeStack = new Stack<float>();
+        private readonly Stack<HintAlignment> _hintAlignmentStack = new Stack<HintAlignment>();
 
-        private FontStyle _style = FontStyle.Regular;
-
-        private static readonly string SizeTagRegex = @"<size=(\d+)(px|%)?>";
-        private static readonly string LineHeightTagRegex = @"<line-height=([\d\.]+)(px|%|em)?>";
-        private static readonly string PosTagRegex = @"<pos=([+-]?\d+(px)?)>";
-        private static readonly string VOffsetTagRegex = @"<voffset=([+-]?\d+(px)?)>";
-        private static readonly string AlignTagRegex = @"<align=(left|center|right)>|</align>";
-
-        public List<LineInfo> ParseText(string text, int size = 20)
+        public IReadOnlyList<LineInfo> ParseText(string text, int size = 20)
         {
-            if (string.IsNullOrEmpty(text))
-                return null;
-
-            if(_cache.TryGetValue(text, out var cachedResult))
+            //Check cache
+            if(Cache.TryGetValue(text, out var cachedResult))
             {
-                return new List<LineInfo>(cachedResult);
+                return cachedResult;
             }
 
-            _fontSizeStack.Clear();
-            _pos = 0;
-            _lineHeight = float.MinValue;
-            _hasLineHeight = false;
-            _vOffset = 0;
-            _style = FontStyle.Regular;
+            ClearStatus();
 
             _fontSizeStack.Push(size);
 
             List<LineInfo> lines = new List<LineInfo>();
+            List<CharacterInfo> currentChInfos = new List<CharacterInfo>();
+
+            int lastIndex = 0;
+            
+            bool hasLastingAlign = false;
+            HintAlignment lastingAlign = HintAlignment.Center;//To make sure align from last line will apply when there's a /align tag at the end of the line
 
             lock (_lock)
             {
-                var currentLine = new LineInfo();
+                HintAlignment actualAlign;
 
-                int index = 0;
-                while (index < text.Length)
+                while (_index < text.Length)
                 {
-                    // Check if the character is a tag
-                    if (text[index] == '<')
+                    if(lastIndex <= _index)
                     {
-                        var tagEndIndex = text.IndexOf('>', index);
-
-                        if (tagEndIndex != -1)
-                        {
-                            var tag = text.Substring(index, tagEndIndex - index + 1);
-
-                            if (TryHandleTag(tag))
-                            {
-                                index = tagEndIndex + 1;
-                                continue;
-                            }
-                        }
+                        _currentRawLineText.Append(text.Substring(lastIndex, _index - lastIndex + 1));
+                        lastIndex = _index + 1;
                     }
 
-                    if (text[index] == '\n' || currentLine.Width >= 2400) // if change line to auto change line
+                    // Check if the character is the start of a tag
+                    if (CheckTag(text))
                     {
-                        currentLine.Pos = _pos;
-                        currentLine.LineHeight = _lineHeight;
-                        currentLine.HasLineHeight = _hasLineHeight;
-                        currentLine.Alignment = _hintAlignmentStack.Count > 0 ? _hintAlignmentStack.Peek() : HintAlignment.Center;
+                        continue;
+                    }
 
+                    //Try change line 
+                    if (text[_index] == '\n' || (!currentChInfos.IsEmpty() && currentChInfos.Sum(x => x.Width) >= 2400))
+                    {
+                        actualAlign = hasLastingAlign ? lastingAlign : _hintAlignmentStack.Count > 0 ? _hintAlignmentStack.Peek() : HintAlignment.Center;
+
+                        //Create new line info
+                        lines.Add(GetLineInfo(currentChInfos, actualAlign));
+
+                        //Clear character list
+                        currentChInfos.Clear();
+
+                        //Clear line status
                         _pos = 0;
                         _lineHeight = float.MinValue;
                         _hasLineHeight = false;
 
-                        lines.Add(currentLine);
-                        currentLine = new LineInfo();
-                        index++;
+                        //Goto next character
+                        _index++;
+
+                        hasLastingAlign = _hintAlignmentStack.Count > 0;
+                        lastingAlign = _hintAlignmentStack.Count > 0 ? _hintAlignmentStack.Peek() : HintAlignment.Center;
+
                         continue;
                     }
 
-                    //Parse character into a CharacterInfo
-                    char ch = text[index];
-                    float currentFontSize = _fontSizeStack.Count > 0 ? (int)_fontSizeStack.Peek() : size;
-
-                    if (char.IsLower(ch))
-                    {
-                        currentFontSize = currentFontSize * 16f / 20f;
-                        ch = char.ToUpper(ch);
-                    }
-
-                    var currentSize = GetCharSize(ch, currentFontSize, _style);
-
-                    var chInfo = new CharacterInfo()
-                    {
-                        Character = ch,
-                        FontSize = currentFontSize,
-                        Width = currentSize.Width,
-                        Height = currentFontSize,
-                        VOffset = _vOffset
-                    };
-
-                    currentLine.Characters.Add(chInfo);
-
-                    index++;
+                    currentChInfos.Add(GetChInfo(text[_index]));
+                    _index++;
                 }
 
-                currentLine.Pos = _pos;
-                currentLine.LineHeight = _lineHeight;
-                currentLine.HasLineHeight = _hasLineHeight;
+                if (lastIndex <= _index)
+                {
+                    var cutLength = text.Length - lastIndex;
+                    if(cutLength > 0)
+                        _currentRawLineText.Append(text.Substring(lastIndex, cutLength));
+                }
 
-                lines.Add(currentLine);
+                actualAlign = hasLastingAlign ? lastingAlign : _hintAlignmentStack.Count > 0 ? _hintAlignmentStack.Peek() : HintAlignment.Center;
+                lines.Add(GetLineInfo(currentChInfos, actualAlign));
+                currentChInfos.Clear();
             }
 
-            _cache[text] = new List<LineInfo>(lines);
-            Task.Run(() =>Task.Delay(10000).ContinueWith(_ => _cache.TryRemove(text, out var _)));
+            Cache[text] = new List<LineInfo>(lines).AsReadOnly();
+            Task.Run(() =>Task.Delay(10000).ContinueWith(_ => Cache.TryRemove(text, out var _)));//Remove cache after 10 seconds
 
-            return lines;
+            return new List<LineInfo>(lines).AsReadOnly();
+        }
+
+        private LineInfo GetLineInfo(List<CharacterInfo> chs, HintAlignment align)
+        {
+            var rawText = _currentRawLineText.ToString();
+            _currentRawLineText.Clear();
+
+            var line = new LineInfo(
+                chs,
+                align,
+                _lineHeight,
+                _hasLineHeight,
+                _pos,
+                rawText
+                );
+
+            return line;
+        }
+
+        private CharacterInfo GetChInfo(char ch)
+        {
+            //Get size
+            float currentFontSize = _fontSizeStack.Count > 0 ? (int)_fontSizeStack.Peek() : 40;
+
+            if (char.IsLower(ch))
+            {
+                currentFontSize *= 0.8f;
+                ch = char.ToUpper(ch);
+            }
+
+            //Get height with v-offset
+            float chHeight = currentFontSize + _vOffset;
+
+            //Get character size
+            var chWidth = GetCharSize(ch, currentFontSize, _style);
+
+            var chInfo = new CharacterInfo(
+                ch,
+                currentFontSize,
+                chWidth,
+                chHeight,
+                _vOffset);
+
+            return chInfo;
+        }
+
+        private void ClearStatus()
+        {
+            _index = 0;
+            _currentRawLineText.Clear();
+
+            _pos = 0;
+            _lineHeight = float.MinValue;
+            _hasLineHeight = false;
+
+            _vOffset = 0;
+            _style = TextStyle.Normal;
+            _fontSizeStack.Clear();
+            _hintAlignmentStack.Clear();
+        }
+
+        private bool CheckTag(string text)
+        {
+            string tag = string.Empty;
+            bool isTag = false;
+
+            //Try cut tag
+            if (text[_index] == '<')
+            {
+                var tagEndIndex = text.IndexOf('>', _index);
+
+                if (tagEndIndex != -1)
+                {
+                    tag = text.Substring(_index, tagEndIndex - _index + 1);
+                    isTag = Tags.IsTag(tag);
+
+                    if(isTag)
+                        _index = tagEndIndex + 1;//Move cursor to the end of the tag
+                }
+            }
+
+            //Try handle tag
+            if(tag != string.Empty && isTag)
+                TryHandleTag(tag);
+
+            //Return whether the text is the start of the tag
+            return isTag;
         }
 
         private bool TryHandleTag(string tag)
         {
+            if (string.IsNullOrEmpty(tag))
+                return false;
+
             tag = tag.ToLower();
 
+            //Handle end tag
             if (tag.StartsWith("</"))
             {
                 switch (tag)
                 {
                     case "</b>":
-                        _style &= ~FontStyle.Bold;
-                        break;
+                        _style &= ~TextStyle.Bold;
+                        return true;
                     case "</i>":
-                        _style &= ~FontStyle.Italic;
-                        break;
+                        _style &= ~TextStyle.Italic;
+                        return true;
                     case "</size>":
-                        if(_fontSizeStack.Count > 0)
+                        if (_fontSizeStack.Count > 0)
                             _fontSizeStack.Pop();
-                        break;
+                        return true;
                     case "</voffset>":
                         _vOffset = 0;
-                        break;
+                        return true;
                     case "</align>":
                         if (_hintAlignmentStack.Count > 0)
                             _hintAlignmentStack.Pop();
-                        break;
+                        return true;
                 }
 
-                return true;
+                return false;
             }
 
+            //Handle start tag
             if (tag.StartsWith("<size") && TryParserSize(tag, out var size))
             {
                 _fontSizeStack.Push(size);
@@ -192,14 +341,14 @@ namespace HintServiceMeow.Core.Utilities.Tools
                 return true;
             }
 
-            if(tag.StartsWith("<voffset") && TryParseVOffset(tag, out var vOffset))
+            if (tag.StartsWith("<voffset") && TryParseVOffset(tag, out var vOffset))
             {
                 this._vOffset = vOffset;
 
                 return true;
             }
 
-            if(tag.StartsWith("<align") && TryParseAlign(tag, out var align))
+            if (tag.StartsWith("<align") && TryParseAlign(tag, out var align))
             {
                 _hintAlignmentStack.Push(align);
 
@@ -208,14 +357,14 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
             if (tag == "<b>")
             {
-                _style |= FontStyle.Bold;
+                _style |= TextStyle.Bold;
 
                 return true;
             }
 
             if (tag == "<i>")
             {
-                _style |= FontStyle.Italic;
+                _style |= TextStyle.Italic;
 
                 return true;
             }
@@ -225,7 +374,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         private bool TryParserLineHeight(string tag, out float lineHeight)
         {
-            var lineHeightMatch = Regex.Match(tag, LineHeightTagRegex, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            var lineHeightMatch = Regex.Match(tag, Regexs.LineHeightTagRegex, RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             if (lineHeightMatch.Success)
             {
@@ -257,7 +406,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         private bool TryParserSize(string tag, out float size)
         {
-            var sizeMatch = Regex.Match(tag, SizeTagRegex, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            var sizeMatch = Regex.Match(tag, Regexs.SizeTagRegex, RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             if (sizeMatch.Success)
             {
@@ -286,7 +435,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         private bool TryParsePos(string tag, out float pos)
         {
-            var posMatch = Regex.Match(tag, PosTagRegex, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            var posMatch = Regex.Match(tag, Regexs.PosTagRegex, RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             if (posMatch.Success)
             {
@@ -309,7 +458,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         private bool TryParseVOffset(string tag, out float vOffset)
         {
-            var vOffsetMatch = Regex.Match(tag, VOffsetTagRegex, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            var vOffsetMatch = Regex.Match(tag, Regexs.VOffsetTagRegex, RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             if (vOffsetMatch.Success)
             {
@@ -332,7 +481,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         private bool TryParseAlign(string tag, out HintAlignment align)
         {
-            var match = Regex.Match(tag, AlignTagRegex, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            var match = Regex.Match(tag, Regexs.AlignTagRegex, RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             if (match.Success && System.Enum.TryParse(match.Groups[1].Value, true, out HintAlignment alignment))
             {
@@ -348,33 +497,74 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
     internal class CharacterInfo
     {
-        public char Character { get; set; }
+        public char Character { get; }
+        public float FontSize { get; }
+        public float Width { get; }
+        public float Height { get; }
+        public float VOffset { get; }
 
-        public float FontSize { get; set; }
-
-        public float Width { get; set; }
-        public float Height { get; set; }
-
-        public float VOffset { get; set; }
-
-        public CharacterInfo()
+        public CharacterInfo(char character, float fontSize, float width, float height, float vOffset)
         {
+            Character = character;
+            FontSize = fontSize;
+            Width = width;
+            Height = height;
+            VOffset = vOffset;
         }
     }
 
     internal class LineInfo
     {
-        public List<CharacterInfo> Characters { get; set; } = new List<CharacterInfo>();
+        public IReadOnlyList<CharacterInfo> Characters { get; }
+        public HintAlignment Alignment { get; }
+        public float LineHeight { get; }
+        public bool HasLineHeight { get; }
+        public float Pos { get; }
 
-        public HintAlignment Alignment { get; set; } = HintAlignment.Center;
+        public string RawText { get; }
 
-        public float LineHeight { get; set; } = float.MinValue;
-        public bool HasLineHeight { get; set; } = false;
+        public float Width {
+            get
+            {
+                if (Characters is null || Characters.IsEmpty())
+                    return 0;
 
-        public float Pos { get; set; } = 0;
+                return Characters.Sum(c => c.Width);
+            }
+        }
+        public float Height
+        {
+            get
+            {
+                float height = 0;
 
-        public float Width => Characters.Count != 0 ? Characters.Sum(x => x.Width) : 0;
+                if (Characters is null || Characters.IsEmpty())
+                    return 0;
 
-        public float Height => HasLineHeight ? LineHeight : Characters.Count != 0 ? Characters.Max(x => x.Height) : 0;
+                if (HasLineHeight)
+                {
+                    return LineHeight;
+                }
+                else
+                {
+                    return Characters.Max(c => c.Height);
+                }
+            }
+        }
+
+        public LineInfo(List<CharacterInfo> characters, HintAlignment alignment, float lineHeight, bool hasLineHeight, float pos, string rawText)
+        {
+            if (characters is null)
+                throw new ArgumentNullException(nameof(characters), "Characters cannot be null.");
+
+            Characters = new List<CharacterInfo>(characters).AsReadOnly();
+
+            Alignment = alignment;
+            LineHeight = lineHeight;
+            HasLineHeight = hasLineHeight;
+            Pos = pos;
+
+            RawText = rawText;
+        }
     }
 }

@@ -14,7 +14,7 @@ namespace HintServiceMeow.UI.Utilities
     {
         private static PlayerUIConfig Config => PluginConfig.Instance.PlayerUIConfig;
 
-        private readonly ReferenceHub ReferenceHub;
+        private ReferenceHub ReferenceHub { get; }
         private PlayerDisplay PlayerDisplay => PlayerDisplay.Get(ReferenceHub);
 
         #region Constructor and Destructors Methods

@@ -1,7 +1,7 @@
 ﻿using CommandSystem;
-using HintServiceMeow.Core.Utilities.Tools;
-using HintServiceMeow.Core.Utilities.Tools.Patch;
 using System;
+using HintServiceMeow.Core.Utilities;
+using HintServiceMeow.Core.Utilities.Patch;
 
 namespace HintServiceMeow.Commands
 {

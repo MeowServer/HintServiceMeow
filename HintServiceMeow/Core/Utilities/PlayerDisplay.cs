@@ -407,6 +407,7 @@ namespace HintServiceMeow.Core.Utilities
 
         /// <summary>
         /// Get the PlayerDisplay instance of the player
+        /// Not Thread Safe
         /// </summary>
         public static PlayerDisplay Get(ReferenceHub referenceHub)
         {
@@ -424,6 +425,7 @@ namespace HintServiceMeow.Core.Utilities
 #if EXILED
         /// <summary>
         /// Get the PlayerDisplay instance of the player
+        /// Not Thread Safe
         /// </summary>
         public static PlayerDisplay Get(Exiled.API.Features.Player player)
         {

@@ -72,7 +72,8 @@
     <Reference Include="Exiled.Permissions, Version=8.11.0.0, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\EXILEDOFFICIAL.8.11.0\lib\net48\Exiled.Permissions.dll</HintPath>
     </Reference>
-    <Reference Include="HintServiceMeow">
+    <Reference Include="HintServiceMeow, Version=5.2.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\HintServiceMeow\bin\Debug\HintServiceMeow.dll</HintPath>
     </Reference>
     <Reference Include="Mirror">

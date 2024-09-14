@@ -18,11 +18,23 @@ namespace HintServiceMeow.Core.Utilities.Tools
     {
         public static float GetYCoordinate(RichTextParser parser, Hint hint, HintVerticalAlign to)
         {
+            if (parser == null)
+                throw new ArgumentNullException(nameof(parser), "Parser cannot be null.");
+            if (hint == null)
+                throw new ArgumentNullException(nameof(hint), "Hint cannot be null.");
+
+
             return GetYCoordinate(parser, hint, hint.YCoordinateAlign, to);
         }
 
         public static float GetYCoordinate(RichTextParser parser, Hint hint, HintVerticalAlign from, HintVerticalAlign to)
         {
+            if (parser == null)
+                throw new ArgumentNullException(nameof(parser), "Parser cannot be null.");
+            if (hint == null)
+                throw new ArgumentNullException(nameof(hint), "Hint cannot be null.");
+
+
             return GetYCoordinate(hint.YCoordinate, GetTextHeight(parser, hint), from, to);
         }
 
@@ -58,6 +70,11 @@ namespace HintServiceMeow.Core.Utilities.Tools
         /// </summary>
         public static float GetXCoordinateWithAlignment(RichTextParser parser, Hint hint)
         {
+            if (parser == null)
+                throw new ArgumentNullException(nameof(parser), "Parser cannot be null.");
+            if (hint == null)
+                throw new ArgumentNullException(nameof(hint), "Hint cannot be null.");
+
             return GetXCoordinateWithAlignment(parser, hint, hint.Alignment);
         }
 
@@ -66,6 +83,11 @@ namespace HintServiceMeow.Core.Utilities.Tools
         /// </summary>
         public static float GetXCoordinateWithAlignment(RichTextParser parser, Hint hint, HintAlignment alignment)
         {
+            if (parser == null)
+                throw new ArgumentNullException(nameof(parser), "Parser cannot be null.");
+            if (hint == null)
+                throw new ArgumentNullException(nameof(hint), "Hint cannot be null.");
+
             float alignOffset;
 
             switch (alignment)
@@ -89,22 +111,38 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         public static float GetTextWidth(RichTextParser parser, AbstractHint hint)
         {
+            if (parser == null)
+                throw new ArgumentNullException(nameof(parser), "Parser cannot be null.");
+            if (hint == null)
+                throw new ArgumentNullException(nameof(hint), "Hint cannot be null.");
+
             return GetTextWidth(parser, hint.Content.GetText(), hint.FontSize);
         }
 
         public static float GetTextWidth(RichTextParser parser, string text, int fontSize)
         {
-            return parser.ParseText(text, fontSize)?.Max(x => x.Width) ?? 0;
+            if (parser == null)
+                throw new ArgumentNullException(nameof(parser), "Parser cannot be null.");
+
+            return parser.ParseText(text, fontSize).Max(x => x.Width);;
         }
 
         public static float GetTextHeight(RichTextParser parser, AbstractHint hint)
         {
+            if (parser == null)
+                throw new ArgumentNullException(nameof(parser), "Parser cannot be null.");
+            if (hint == null)
+                throw new ArgumentNullException(nameof(hint), "Hint cannot be null.");
+
             return GetTextHeight(parser, hint.Content.GetText(), hint.FontSize, hint.LineHeight);
         }
 
         public static float GetTextHeight(RichTextParser parser, string text, int fontSize, float lineHeight)
         {
-            return parser.ParseText(text, fontSize)?.Sum(x => x.Height) ?? 0;
+            if (parser == null)
+                throw new ArgumentNullException(nameof(parser), "Parser cannot be null.");
+
+            return parser.ParseText(text, fontSize).Sum(x => x.Height); ;
         }
     }
 }
