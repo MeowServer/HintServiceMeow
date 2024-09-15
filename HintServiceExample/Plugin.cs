@@ -40,7 +40,7 @@ namespace HintServiceExample
             ShowDynamicHintA(ev.Player);
             ShowCommonHintA(ev.Player);
 
-            //ev.Player.ShowHint("<Line-Height=500>\n<pos=400>Hello, this is a hint using ShowHint directly", 20f); //Compatibility adapter
+            ev.Player.ShowHint("<Line-Height=500>\n<pos=400>Hello, this is a hint using ShowHint directly", 20f); //Compatibility adapter
         }
 
         //How to use Hint

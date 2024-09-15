@@ -4,9 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HintServiceMeow.Core.Models.Hints
+namespace HintServiceMeow.Core.Enum
 {
-    internal class CompatAdapterHint : Hint
+    public enum CaseStyle
     {
+        Allcaps,
+        Lowercase,
+        Smallcaps,
+        Uppercase
     }
 }

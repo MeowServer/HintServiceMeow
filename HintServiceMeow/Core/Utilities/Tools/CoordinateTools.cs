@@ -1,13 +1,9 @@
-﻿
-using HintServiceMeow.Core.Enum;
+﻿using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Models.Hints;
-using PluginAPI.Core;
+using HintServiceMeow.Core.Utilities.Parser;
+
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace HintServiceMeow.Core.Utilities.Tools
 {
@@ -124,7 +120,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
             if (parser == null)
                 throw new ArgumentNullException(nameof(parser), "Parser cannot be null.");
 
-            return parser.ParseText(text, fontSize).Max(x => x.Width);;
+            return parser.ParseText(text, fontSize).Max(x => x.Width);
         }
 
         public static float GetTextHeight(RichTextParser parser, AbstractHint hint)
@@ -142,7 +138,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
             if (parser == null)
                 throw new ArgumentNullException(nameof(parser), "Parser cannot be null.");
 
-            return parser.ParseText(text, fontSize).Sum(x => x.Height); ;
+            return parser.ParseText(text, fontSize).Sum(x => x.Height);
         }
     }
 }

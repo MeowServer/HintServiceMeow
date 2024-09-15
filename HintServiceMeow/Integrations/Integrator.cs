@@ -11,11 +11,7 @@ namespace HintServiceMeow.Integrations
     {
         public static void StartAllIntegration()
         {
-            //Non Exiled
-
-
 #if EXILED
-        
 #endif
         }
     }

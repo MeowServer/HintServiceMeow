@@ -1,11 +1,5 @@
 ﻿using HarmonyLib;
 using Hints;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HintServiceMeow.Core.Utilities.Patch
 {
@@ -19,8 +13,8 @@ namespace HintServiceMeow.Core.Utilities.Patch
 
             //Unpatch all other patches
             var hintDisplayMethod = typeof(HintDisplay).GetMethod(nameof(HintDisplay.Show));
-            var receiveHintMethod1 = typeof(PluginAPI.Core.Player).GetMethod(nameof(PluginAPI.Core.Player.ReceiveHint), new Type[] { typeof(string), typeof(float) });
-            var receiveHintMethod2 = typeof(PluginAPI.Core.Player).GetMethod(nameof(PluginAPI.Core.Player.ReceiveHint), new Type[] { typeof(string), typeof(HintEffect[]), typeof(float) });
+            var receiveHintMethod1 = typeof(PluginAPI.Core.Player).GetMethod(nameof(PluginAPI.Core.Player.ReceiveHint), new[] { typeof(string), typeof(float) });
+            var receiveHintMethod2 = typeof(PluginAPI.Core.Player).GetMethod(nameof(PluginAPI.Core.Player.ReceiveHint), new[] { typeof(string), typeof(HintEffect[]), typeof(float) });
             Harmony.Unpatch(hintDisplayMethod, HarmonyPatchType.All);
             Harmony.Unpatch(receiveHintMethod1, HarmonyPatchType.All);
             Harmony.Unpatch(receiveHintMethod2, HarmonyPatchType.All);
@@ -35,8 +29,8 @@ namespace HintServiceMeow.Core.Utilities.Patch
 
             //Exiled methods
 #if EXILED
-            var showHintMethod1 = typeof(Exiled.API.Features.Player).GetMethod(nameof(Exiled.API.Features.Player.ShowHint), new Type[] { typeof(string), typeof(float) });
-            var showHintMethod2 = typeof(Exiled.API.Features.Player).GetMethod(nameof(Exiled.API.Features.Player.ShowHint), new Type[] { typeof(Exiled.API.Features.Hint) });
+            var showHintMethod1 = typeof(Exiled.API.Features.Player).GetMethod(nameof(Exiled.API.Features.Player.ShowHint), new[] { typeof(string), typeof(float) });
+            var showHintMethod2 = typeof(Exiled.API.Features.Player).GetMethod(nameof(Exiled.API.Features.Player.ShowHint), new[] { typeof(Exiled.API.Features.Hint) });
 
             Harmony.Unpatch(showHintMethod1, HarmonyPatchType.All);
             Harmony.Unpatch(showHintMethod2, HarmonyPatchType.All);

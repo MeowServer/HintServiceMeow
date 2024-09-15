@@ -1,6 +1,5 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
-
 using HintServiceMeow.Core.Utilities;
 
 namespace HintServiceMeow.UI.Utilities

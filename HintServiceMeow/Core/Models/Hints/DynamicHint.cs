@@ -13,6 +13,11 @@ namespace HintServiceMeow.Core.Models.Hints
         private float _targetY = 700;
         private float _targetX = 0;
 
+        private float _topMargin = 5;
+        private float _bottomMargin = 5;
+        private float _leftMargin = 100;
+        private float _rightMargin = 100;
+
         private HintPriority _priority = HintPriority.Medium;
         private DynamicHintStrategy _strategy = DynamicHintStrategy.Hide;
 
@@ -33,7 +38,16 @@ namespace HintServiceMeow.Core.Models.Hints
                 this._leftBoundary = hint._leftBoundary;
                 this._rightBoundary = hint._rightBoundary;
 
+                this._targetY = hint._targetY;
+                this._targetX = hint._targetX;
+
+                this._topMargin = hint._topMargin;
+                this._bottomMargin = hint._bottomMargin;
+                this._leftMargin = hint._leftMargin;
+                this._rightMargin = hint._rightMargin;
+
                 this._priority = hint._priority;
+                this._strategy = hint._strategy;
             }
             finally
             {
@@ -183,6 +197,9 @@ namespace HintServiceMeow.Core.Models.Hints
             }
         }
 
+        /// <summary>
+        /// The Y coordinate that dynamic hint will try to reach
+        /// </summary>
         public float TargetY
         {
             get
@@ -215,6 +232,9 @@ namespace HintServiceMeow.Core.Models.Hints
             }
         }
 
+        /// <summary>
+        /// The X coordinate that dynamic hint will try to reach
+        /// </summary>
         public float TargetX
         {
             get
@@ -238,6 +258,134 @@ namespace HintServiceMeow.Core.Models.Hints
                         return;
 
                     _targetX = value;
+                    OnHintUpdated();
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
+            }
+        }
+
+        public float TopMargin
+        {
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return _topMargin;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
+            set
+            {
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (_topMargin.Equals(value))
+                        return;
+
+                    _topMargin = value;
+                    OnHintUpdated();
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
+            }
+        }
+
+        public float BottomMargin
+        {
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return _bottomMargin;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
+            set
+            {
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (_bottomMargin.Equals(value))
+                        return;
+
+                    _bottomMargin = value;
+                    OnHintUpdated();
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
+            }
+        }
+
+        public float LeftMargin
+        {
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return _leftMargin;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
+            set
+            {
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (_leftMargin.Equals(value))
+                        return;
+
+                    _leftMargin = value;
+                    OnHintUpdated();
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
+            }
+        }
+
+        public float RightMargin
+        {
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return _rightMargin;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
+            set
+            {
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (_rightMargin.Equals(value))
+                        return;
+
+                    _rightMargin = value;
                     OnHintUpdated();
                 }
                 finally

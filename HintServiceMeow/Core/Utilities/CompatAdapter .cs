@@ -1,14 +1,15 @@
 ﻿using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Models.Hints;
-using HintServiceMeow.Core.Utilities.Tools;
+using HintServiceMeow.Core.Utilities.Parser;
+
 using PluginAPI.Core;
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using UnityEngine.TextCore.Text;
 
 namespace HintServiceMeow.Core.Utilities
 {
@@ -22,7 +23,7 @@ namespace HintServiceMeow.Core.Utilities
 
         private static readonly ConcurrentDictionary<string, DateTime> RemoveTime = new ConcurrentDictionary<string, DateTime>();
 
-        private static readonly ConcurrentDictionary<string, List<Hint>> HintCache = new ConcurrentDictionary<string, List<Hint>>();
+        private static readonly ConcurrentDictionary<string, IReadOnlyList<Hint>> HintCache = new ConcurrentDictionary<string, IReadOnlyList<Hint>>();
 
         private static readonly ConcurrentDictionary<string, CancellationTokenSource> CancellationTokens = new ConcurrentDictionary<string, CancellationTokenSource>();
 
@@ -30,14 +31,20 @@ namespace HintServiceMeow.Core.Utilities
         {
             if (Plugin.Config.DisabledCompatAdapter.Contains(assemblyName))
                 return;
-
+            
             lock(RegisteredAssembliesLock)
                 RegisteredAssemblies.Add(assemblyName);
 
             if (CancellationTokens.TryGetValue(assemblyName, out var token))
             {
-                token.Cancel();
-                token.Dispose();
+                try
+                {
+                    token.Cancel();
+                }
+                finally
+                {
+                    token.Dispose();
+                }
             }
 
             var cancellationTokenSource = new CancellationTokenSource();
@@ -100,7 +107,7 @@ namespace HintServiceMeow.Core.Utilities
 
                         //If not empty line, then add hint
                         if (!string.IsNullOrEmpty(lineInfo.RawText.Trim()) && !lineInfo.Characters.IsEmpty())
-                            generatedHintList.Add(new CompatAdapterHint
+                            generatedHintList.Add(new Hint
                             {
                                 Text = lineInfo.RawText,
                                 XCoordinate = lineInfo.Pos,
@@ -141,11 +148,14 @@ namespace HintServiceMeow.Core.Utilities
             catch (TaskCanceledException) { }
 
             //Add generated hint into cache
+            HintCache[content] = new List<Hint>(hintList).AsReadOnly();
+
             _ = Task.Run(async () =>
             {
                 try
                 {
                     await Task.Delay(15000, cancellationToken);
+
                     HintCache.TryRemove(content, out var _);
                 }
                 catch (TaskCanceledException) { }

@@ -4,8 +4,8 @@ using System.Reflection;
 
 using UnityEngine;
 
-using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.Core.Models.Hints;
+using HintServiceMeow.Core.Utilities;
 
 namespace HintServiceMeow.UI.Utilities
 {

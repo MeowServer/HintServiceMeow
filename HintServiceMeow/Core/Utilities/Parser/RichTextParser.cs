@@ -1,19 +1,15 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using HintServiceMeow.Core.Enum;
-using PluginAPI.Core;
-using YamlDotNet.Core.Tokens;
-using static HintServiceMeow.Core.Utilities.Tools.FontTool;
+using HintServiceMeow.Core.Utilities.Tools;
 
-namespace HintServiceMeow.Core.Utilities.Tools
+namespace HintServiceMeow.Core.Utilities.Parser
 {
     internal static class Regexs
     {
@@ -101,16 +97,21 @@ namespace HintServiceMeow.Core.Utilities.Tools
         private int _index = 0;
         private readonly StringBuilder _currentRawLineText = new StringBuilder(100);
 
-        //Line status
+        //Current line status. Only apply to a single line
         private float _pos = 0;
         private float _lineHeight = float.MinValue;
         private bool _hasLineHeight = false;
+
+        //Line status
+        private HintAlignment _currentLineAlignment = HintAlignment.Center; //Used since line alignment apply to entire line but can affect multiple line
+        private readonly Stack<HintAlignment> _hintAlignmentStack = new Stack<HintAlignment>();
 
         //Character status
         private float _vOffset = 0;
         private TextStyle _style = TextStyle.Normal;
         private readonly Stack<float> _fontSizeStack = new Stack<float>();
-        private readonly Stack<HintAlignment> _hintAlignmentStack = new Stack<HintAlignment>();
+        private readonly List<CaseStyle> _caseStyleStack = new List<CaseStyle>();
+        private readonly List<ScriptStyle> _scriptStyles = new List<ScriptStyle>();
 
         public IReadOnlyList<LineInfo> ParseText(string text, int size = 20)
         {
@@ -123,19 +124,15 @@ namespace HintServiceMeow.Core.Utilities.Tools
             ClearStatus();
 
             _fontSizeStack.Push(size);
+            _caseStyleStack.Add(CaseStyle.Smallcaps);
 
             List<LineInfo> lines = new List<LineInfo>();
             List<CharacterInfo> currentChInfos = new List<CharacterInfo>();
 
             int lastIndex = 0;
-            
-            bool hasLastingAlign = false;
-            HintAlignment lastingAlign = HintAlignment.Center;//To make sure align from last line will apply when there's a /align tag at the end of the line
 
             lock (_lock)
             {
-                HintAlignment actualAlign;
-
                 while (_index < text.Length)
                 {
                     if(lastIndex <= _index)
@@ -150,30 +147,36 @@ namespace HintServiceMeow.Core.Utilities.Tools
                         continue;
                     }
 
-                    //Try change line 
-                    if (text[_index] == '\n' || (!currentChInfos.IsEmpty() && currentChInfos.Sum(x => x.Width) >= 2400))
+                    if (!currentChInfos.IsEmpty())
                     {
-                        actualAlign = hasLastingAlign ? lastingAlign : _hintAlignmentStack.Count > 0 ? _hintAlignmentStack.Peek() : HintAlignment.Center;
+                        float currentWidth = currentChInfos.Sum(x => x.Width);
+                        float leftX = - currentWidth / 2 + _pos;
+                        float rightX = currentWidth / 2 + _pos;
 
-                        //Create new line info
-                        lines.Add(GetLineInfo(currentChInfos, actualAlign));
+                        //Try change line 
+                        if (text[_index] == '\n' || leftX < -1200 || rightX > 1200)
+                        {
+                            //Create new line info
+                            lines.Add(GetLineInfo(currentChInfos, _currentLineAlignment));
 
-                        //Clear character list
-                        currentChInfos.Clear();
+                            //Clear character list
+                            currentChInfos.Clear();
 
-                        //Clear line status
-                        _pos = 0;
-                        _lineHeight = float.MinValue;
-                        _hasLineHeight = false;
+                            //Set default alignment for next line
+                            _currentLineAlignment = _hintAlignmentStack.Any() ? _hintAlignmentStack.Peek() : HintAlignment.Center;
 
-                        //Goto next character
-                        _index++;
+                            //Clear line status
+                            ClearLineStatus();
 
-                        hasLastingAlign = _hintAlignmentStack.Count > 0;
-                        lastingAlign = _hintAlignmentStack.Count > 0 ? _hintAlignmentStack.Peek() : HintAlignment.Center;
+                            //Goto next character
+                            _index++;
 
-                        continue;
+                            continue;
+                        }
                     }
+                    
+
+                    
 
                     currentChInfos.Add(GetChInfo(text[_index]));
                     _index++;
@@ -186,8 +189,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
                         _currentRawLineText.Append(text.Substring(lastIndex, cutLength));
                 }
 
-                actualAlign = hasLastingAlign ? lastingAlign : _hintAlignmentStack.Count > 0 ? _hintAlignmentStack.Peek() : HintAlignment.Center;
-                lines.Add(GetLineInfo(currentChInfos, actualAlign));
+                lines.Add(GetLineInfo(currentChInfos, _currentLineAlignment));
                 currentChInfos.Clear();
             }
 
@@ -219,17 +221,49 @@ namespace HintServiceMeow.Core.Utilities.Tools
             //Get size
             float currentFontSize = _fontSizeStack.Count > 0 ? (int)_fontSizeStack.Peek() : 40;
 
-            if (char.IsLower(ch))
+            //Case style
+            switch(_caseStyleStack.LastOrDefault())
             {
-                currentFontSize *= 0.8f;
-                ch = char.ToUpper(ch);
+                case CaseStyle.Lowercase:
+                    ch = char.ToLower(ch);
+                    break;
+                case CaseStyle.Uppercase:
+                    ch = char.ToUpper(ch);
+                    break;
+                case CaseStyle.Allcaps:
+                    ch = char.ToUpper(ch);
+                    break;
+                case CaseStyle.Smallcaps:
+                    if (char.IsLetter(ch))
+                    {
+                        currentFontSize *= 0.8f;
+                        ch = char.ToUpper(ch);
+                    }
+                    break;
+                default: //Default to smallcap
+                    if (char.IsLetter(ch))
+                    {
+                        currentFontSize *= 0.8f;
+                        ch = char.ToUpper(ch);
+                    }
+                    break;
             }
 
             //Get height with v-offset
             float chHeight = currentFontSize + _vOffset;
 
             //Get character size
-            var chWidth = GetCharSize(ch, currentFontSize, _style);
+            var chWidth = FontTool.GetCharSize(ch, currentFontSize, _style);
+
+            //Script style
+            if (_scriptStyles.Contains(ScriptStyle.Superscript))
+            {
+                chWidth *= (float)Math.Pow(0.5, _scriptStyles.Count(x => x == ScriptStyle.Superscript));
+            }
+            else if (_scriptStyles.Contains(ScriptStyle.Subscript))
+            {
+                chWidth *= (float)Math.Pow(0.5, _scriptStyles.Count(x => x == ScriptStyle.Subscript));
+            }
 
             var chInfo = new CharacterInfo(
                 ch,
@@ -246,6 +280,9 @@ namespace HintServiceMeow.Core.Utilities.Tools
             _index = 0;
             _currentRawLineText.Clear();
 
+            _currentLineAlignment = HintAlignment.Center;
+            _hintAlignmentStack.Clear();
+
             _pos = 0;
             _lineHeight = float.MinValue;
             _hasLineHeight = false;
@@ -253,7 +290,15 @@ namespace HintServiceMeow.Core.Utilities.Tools
             _vOffset = 0;
             _style = TextStyle.Normal;
             _fontSizeStack.Clear();
-            _hintAlignmentStack.Clear();
+            _caseStyleStack.Clear();
+            _scriptStyles.Clear();
+        }
+
+        private void ClearLineStatus()//Clear status that applies to current line
+        {
+            _pos = 0;
+            _lineHeight = float.MinValue;
+            _hasLineHeight = false;
         }
 
         private bool CheckTag(string text)
@@ -294,6 +339,8 @@ namespace HintServiceMeow.Core.Utilities.Tools
             //Handle end tag
             if (tag.StartsWith("</"))
             {
+                int index;
+
                 switch (tag)
                 {
                     case "</b>":
@@ -312,6 +359,36 @@ namespace HintServiceMeow.Core.Utilities.Tools
                     case "</align>":
                         if (_hintAlignmentStack.Count > 0)
                             _hintAlignmentStack.Pop();
+                        return true;
+                    case "</lowercase>":
+                        index = _caseStyleStack.LastIndexOf(CaseStyle.Lowercase);
+                        if(index != -1)
+                            _caseStyleStack.RemoveAt(index);
+                        return true;
+                    case "</uppercase>":
+                        index = _caseStyleStack.LastIndexOf(CaseStyle.Uppercase);
+                        if (index != -1)
+                            _caseStyleStack.RemoveAt(index);
+                        return true;
+                    case "</allcaps>":
+                        index = _caseStyleStack.LastIndexOf(CaseStyle.Allcaps);
+                        if (index != -1)
+                            _caseStyleStack.RemoveAt(index);
+                        return true;
+                    case "</smallcaps>":
+                        index = _caseStyleStack.LastIndexOf(CaseStyle.Smallcaps);
+                        if (index != -1)
+                            _caseStyleStack.RemoveAt(index);
+                        return true;
+                    case "</sup>":
+                        index = _scriptStyles.LastIndexOf(ScriptStyle.Superscript);
+                        if (index != -1)
+                            _scriptStyles.RemoveAt(index);
+                        return true;
+                    case "</sub>":
+                        index = _scriptStyles.LastIndexOf(ScriptStyle.Subscript);
+                        if (index != -1)
+                            _scriptStyles.RemoveAt(index);
                         return true;
                 }
 
@@ -351,6 +428,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
             if (tag.StartsWith("<align") && TryParseAlign(tag, out var align))
             {
                 _hintAlignmentStack.Push(align);
+                _currentLineAlignment = align;
 
                 return true;
             }
@@ -365,6 +443,48 @@ namespace HintServiceMeow.Core.Utilities.Tools
             if (tag == "<i>")
             {
                 _style |= TextStyle.Italic;
+
+                return true;
+            }
+
+            if (tag == "<lowercase>")
+            {
+                _caseStyleStack.Add(CaseStyle.Lowercase);
+
+                return true;
+            }
+
+            if (tag == "<uppercase>")
+            {
+                _caseStyleStack.Add(CaseStyle.Uppercase);
+
+                return true;
+            }
+
+            if (tag == "<allcaps>")
+            {
+                _caseStyleStack.Add(CaseStyle.Allcaps);
+
+                return true;
+            }
+
+            if (tag == "<smallcaps>")
+            {
+                _caseStyleStack.Add(CaseStyle.Smallcaps);
+
+                return true;
+            }
+
+            if (tag == "<sup>")
+            {
+                _scriptStyles.Add(ScriptStyle.Superscript);
+
+                return true;
+            }
+
+            if (tag == "<sub>")
+            {
+                _scriptStyles.Add(ScriptStyle.Subscript);
 
                 return true;
             }
@@ -536,8 +656,6 @@ namespace HintServiceMeow.Core.Utilities.Tools
         {
             get
             {
-                float height = 0;
-
                 if (Characters is null || Characters.IsEmpty())
                     return 0;
 
@@ -545,10 +663,8 @@ namespace HintServiceMeow.Core.Utilities.Tools
                 {
                     return LineHeight;
                 }
-                else
-                {
-                    return Characters.Max(c => c.Height);
-                }
+
+                return Characters.Max(c => c.Height);
             }
         }
 

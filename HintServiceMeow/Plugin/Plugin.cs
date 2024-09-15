@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Linq;
+
 using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.Core.Utilities.Patch;
 using HintServiceMeow.Core.Utilities.Tools;
@@ -114,7 +114,11 @@ using PluginAPI.Events;
 // *        Fix the bug that causes the server to crash when getting the player display
 // *        Improve the behavior of the compatibility adaptor
 // *        Support size tag in a hint
-
+// *    V5.3.0 Pre-release 2.1
+// *        Support for case style and script style tags
+// *        Fix the bug that causes the rich text parser to handle the alignment incorrectly
+// *        Fix the bug that causes rich text parser break line incorrectly
+// *        Add margin properties in the dynamic hint
 
 namespace HintServiceMeow
 {
