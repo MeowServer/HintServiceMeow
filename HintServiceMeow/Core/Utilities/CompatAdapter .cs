@@ -1,7 +1,7 @@
 ﻿using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities.Parser;
-
+using MEC;
 using PluginAPI.Core;
 
 using System;
@@ -25,13 +25,21 @@ namespace HintServiceMeow.Core.Utilities
 
         private static readonly ConcurrentDictionary<string, DateTime> RemoveTime = new ConcurrentDictionary<string, DateTime>();
 
+        private static readonly HashSet<string> SuppressedAssemblies = new HashSet<string>();
+
         public static void ShowHint(ReferenceHub player, string assemblyName, string content, float timeToRemove)
         {
-            if (Plugin.Config.DisabledCompatAdapter.Contains(assemblyName))
-                return;
-
             lock (RegisteredAssembliesLock)
                 RegisteredAssemblies.Add(assemblyName);
+
+            if (Plugin.Config.DisabledCompatAdapter.Contains(assemblyName) //Config limitation
+                || content.Length > ushort.MaxValue //Length limitation
+                || SuppressedAssemblies.Contains(assemblyName)) //Rate limitation
+                return;
+
+            //Rate limitation
+            SuppressedAssemblies.Add(assemblyName);
+            Timing.CallDelayed(0.45f, () => RegisteredAssemblies.Remove(assemblyName));
 
             assemblyName = "CompatibilityAdaptor-" + assemblyName;
             var playerDisplay = PlayerDisplay.Get(player);
@@ -39,7 +47,7 @@ namespace HintServiceMeow.Core.Utilities
             _ = Task.Run(() => InternalShowHint(playerDisplay, assemblyName, content, timeToRemove));
         }
 
-        public static async Task InternalShowHint(PlayerDisplay playerDisplay, string assemblyName, string content, float timeToRemove)
+        public static async void InternalShowHint(PlayerDisplay playerDisplay, string assemblyName, string content, float timeToRemove)
         {
             if (playerDisplay is null)
                 return;
@@ -57,7 +65,7 @@ namespace HintServiceMeow.Core.Utilities
                     playerDisplay.InternalAddHint(assemblyName, cachedHintList);
 
                     //Remove after hint expire
-                    await Task.Delay(TimeSpan.FromSeconds(timeToRemove + 0.2f));
+                    await Task.Delay(TimeSpan.FromSeconds(timeToRemove + 0.05f));
 
                     if(RemoveTime.TryGetValue(assemblyName, out var removeTime) && removeTime < DateTime.Now)
                         playerDisplay.InternalClearHint(assemblyName);
@@ -65,7 +73,7 @@ namespace HintServiceMeow.Core.Utilities
                     return;
                 }
 
-                //If no cache, then generate hint
+                //If not cached, then generate hint
                 List<Hint> hintList = await Task.Run(() =>
                 {
                     try
@@ -100,7 +108,6 @@ namespace HintServiceMeow.Core.Utilities
 
                         return generatedHintList;
                     }
-                    catch(TaskCanceledException) { }
                     catch (Exception e)
                     {
                         Log.Error($"Error while generating hint for {assemblyName}: {e}");
@@ -112,7 +119,7 @@ namespace HintServiceMeow.Core.Utilities
                 if (hintList is null || hintList.IsEmpty())
                     return;
 
-                //Check if time out
+                //Make sure for low performance server
                 var elapsed = DateTime.Now - startTime;
                 if (elapsed > TimeSpan.FromSeconds(0.5) || elapsed > TimeSpan.FromSeconds(timeToRemove))
                     return;
@@ -126,7 +133,7 @@ namespace HintServiceMeow.Core.Utilities
                 {
                     try
                     {
-                        await Task.Delay(TimeSpan.FromSeconds(timeToRemove + 0.2f));
+                        await Task.Delay(TimeSpan.FromSeconds(timeToRemove + 0.05f));
 
                         if (RemoveTime.TryGetValue(assemblyName, out var removeTime) && removeTime < DateTime.Now)
                             playerDisplay.InternalClearHint(assemblyName);
@@ -137,7 +144,7 @@ namespace HintServiceMeow.Core.Utilities
                     }
                 });
 
-                //Add generated hint into cache
+                //Cache
                 HintCache[content] = new List<Hint>(hintList).AsReadOnly();
                 _ = Task.Run(async () =>
                 {
@@ -150,7 +157,6 @@ namespace HintServiceMeow.Core.Utilities
                     {
                         Log.Error(ex.ToString());
                     }
-
                 });
             }
             catch(Exception ex)
