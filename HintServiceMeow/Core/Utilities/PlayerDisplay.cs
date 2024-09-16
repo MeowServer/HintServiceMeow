@@ -571,7 +571,7 @@ namespace HintServiceMeow.Core.Utilities
 
         internal void InternalClearHint(string name)
         {
-            foreach(var hint in _hints.GetHints(name))
+            foreach(var hint in _hints.GetHints(name).ToList())
             {
                 hint.HintUpdated -= OnHintUpdate;
                 UpdateAvailable -= hint.TryUpdateHint;

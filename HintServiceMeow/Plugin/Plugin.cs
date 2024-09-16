@@ -119,6 +119,8 @@ using PluginAPI.Events;
 // *        Fix the bug that causes the rich text parser to handle the alignment incorrectly
 // *        Fix the bug that causes rich text parser break line incorrectly
 // *        Add margin properties in the dynamic hint
+// *    V5.3.0 Pre-release 2.2
+// *        Fix the bug that causes the line height not usable
 
 namespace HintServiceMeow
 {

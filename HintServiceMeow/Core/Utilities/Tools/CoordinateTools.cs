@@ -130,10 +130,10 @@ namespace HintServiceMeow.Core.Utilities.Tools
             if (hint == null)
                 throw new ArgumentNullException(nameof(hint), "Hint cannot be null.");
 
-            return GetTextHeight(parser, hint.Content.GetText(), hint.FontSize, hint.LineHeight);
+            return GetTextHeight(parser, hint.Content.GetText(), hint.FontSize);
         }
 
-        public static float GetTextHeight(RichTextParser parser, string text, int fontSize, float lineHeight)
+        public static float GetTextHeight(RichTextParser parser, string text, int fontSize)
         {
             if (parser == null)
                 throw new ArgumentNullException(nameof(parser), "Parser cannot be null.");

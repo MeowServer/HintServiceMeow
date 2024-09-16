@@ -34,9 +34,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
                         char c = (char)i;
                         string text = c.ToString();
 
-                        var regular = graphics.MeasureString(text, regularFont, PointF.Empty, format);
-
-                        ChSize[c] = regular.Width;
+                        ChSize[c] = graphics.MeasureString(text, regularFont, PointF.Empty, format).Width;
                     }
                 }
             }
@@ -81,19 +79,19 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         public static float GetCharSize(char c, float fontSize, TextStyle style)
         {
-            if(ChSize.TryGetValue(c, out var width))
+            float ratio = 1;
+
+            if ((style & TextStyle.Bold) == TextStyle.Bold)
             {
-                float ratio = 1;
+                ratio = 1.15f;
+            }
 
-                if ((style & TextStyle.Bold) == TextStyle.Bold)
-                {
-                    ratio = 1.15f;//Estimated value
-                }
-
+            if (ChSize.TryGetValue(c, out var width))
+            {
                 return width * fontSize / BaseFontSize * ratio;
             }
 
-            return 36.52988f;//Default width
+            return 36.52988f / BaseFontSize * ratio;//Default width
         }
 
         public struct CharSize

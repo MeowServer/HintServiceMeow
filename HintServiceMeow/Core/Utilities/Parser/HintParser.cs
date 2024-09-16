@@ -38,13 +38,13 @@ namespace HintServiceMeow.Core.Utilities.Parser
             {
                 _hintList.Clear();
 
-                foreach (var group in collection.AllGroups)
+                foreach (var group in collection.AllGroups.ToList())
                 {
                     List<Hint> orderedList = new List<Hint>();
                     List<Hint> handledDynamicHints = new List<Hint>();
 
                     //Convert to Hint
-                    foreach (var item in group)
+                    foreach (var item in group.ToList())
                     {
                         if (item is null || item.Hide || string.IsNullOrEmpty(item.Content.GetText()))
                             continue;
@@ -250,7 +250,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                         _richTextBuilder.AppendLine();
                     }
 
-                    vOffset -= CoordinateTools.GetTextHeight(_richTextParser, lineText, hint.FontSize, hint.LineHeight);
+                    vOffset -= CoordinateTools.GetTextHeight(_richTextParser, lineText, hint.FontSize) + hint.LineHeight;
                 }
                 _richTextBuilder.Append("</size>");
 
