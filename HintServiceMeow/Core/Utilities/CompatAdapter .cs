@@ -41,20 +41,20 @@ namespace HintServiceMeow.Core.Utilities
             SuppressedAssemblies.Add(assemblyName);
             Timing.CallDelayed(0.45f, () => RegisteredAssemblies.Remove(assemblyName));
 
-            assemblyName = "CompatibilityAdaptor-" + assemblyName;
-            var playerDisplay = PlayerDisplay.Get(player);
-
-            _ = Task.Run(() => InternalShowHint(playerDisplay, assemblyName, content, timeToRemove));
+            InternalShowHint(PlayerDisplay.Get(player), 
+                "CompatibilityAdaptor-" + assemblyName, 
+                content, 
+                TimeSpan.FromSeconds(timeToRemove));
         }
 
-        public static async void InternalShowHint(PlayerDisplay playerDisplay, string assemblyName, string content, float timeToRemove)
+        public static async void InternalShowHint(PlayerDisplay playerDisplay, string assemblyName, string content, TimeSpan timeToRemove)
         {
             if (playerDisplay is null)
                 return;
 
             try
             {
-                RemoveTime[assemblyName] = DateTime.Now + TimeSpan.FromSeconds(timeToRemove);
+                RemoveTime[assemblyName] = DateTime.Now + timeToRemove;
 
                 var startTime = DateTime.Now;
 
@@ -65,7 +65,7 @@ namespace HintServiceMeow.Core.Utilities
                     playerDisplay.InternalAddHint(assemblyName, cachedHintList);
 
                     //Remove after hint expire
-                    await Task.Delay(TimeSpan.FromSeconds(timeToRemove + 0.05f));
+                    await Task.Delay(timeToRemove);
 
                     if(RemoveTime.TryGetValue(assemblyName, out var removeTime) && removeTime < DateTime.Now)
                         playerDisplay.InternalClearHint(assemblyName);
@@ -119,9 +119,24 @@ namespace HintServiceMeow.Core.Utilities
                 if (hintList is null || hintList.IsEmpty())
                     return;
 
+                //Cache
+                HintCache[content] = new List<Hint>(hintList).AsReadOnly();
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await Task.Delay(15000);
+                        HintCache.TryRemove(content, out var _);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex.ToString());
+                    }
+                });
+
                 //Make sure for low performance server
                 var elapsed = DateTime.Now - startTime;
-                if (elapsed > TimeSpan.FromSeconds(0.5) || elapsed > TimeSpan.FromSeconds(timeToRemove))
+                if (elapsed > TimeSpan.FromSeconds(0.5) || elapsed > timeToRemove)
                     return;
 
                 //Set up hint
@@ -133,27 +148,12 @@ namespace HintServiceMeow.Core.Utilities
                 {
                     try
                     {
-                        await Task.Delay(TimeSpan.FromSeconds(timeToRemove + 0.05f));
+                        await Task.Delay(timeToRemove);
 
                         if (RemoveTime.TryGetValue(assemblyName, out var removeTime) && removeTime < DateTime.Now)
                             playerDisplay.InternalClearHint(assemblyName);
                     }
                     catch (Exception ex)
-                    {
-                        Log.Error(ex.ToString());
-                    }
-                });
-
-                //Cache
-                HintCache[content] = new List<Hint>(hintList).AsReadOnly();
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        await Task.Delay(15000);
-                        HintCache.TryRemove(content, out var _);
-                    }
-                    catch(Exception ex)
                     {
                         Log.Error(ex.ToString());
                     }
