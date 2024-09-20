@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Drawing.Text;
 using System.IO;
 using System.Reflection;
+using PluginAPI.Core;
 
 namespace HintServiceMeow.Core.Utilities.Tools
 {
@@ -14,6 +15,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
     internal static class FontTool
     {
         private static readonly float BaseFontSize = 34.7f;
+        private static readonly float DefaultFontSize = 36.52988f;
 
         private static readonly ConcurrentDictionary<char, float> ChSize = new ConcurrentDictionary<char, float>();
 
@@ -21,21 +23,23 @@ namespace HintServiceMeow.Core.Utilities.Tools
         {
             using (var bmp = new Bitmap(1, 1))
             using (var graphics = Graphics.FromImage(bmp))
+            using (var regularFont = GetFont(BaseFontSize, FontStyle.Regular))
             {
                 graphics.PageUnit = GraphicsUnit.Pixel;
 
-                using (var regularFont = GetFont(BaseFontSize, FontStyle.Regular))
+                for (int i = char.MinValue; i <= char.MaxValue; i++)
                 {
-                    var format = new StringFormat();
-                    //format.FormatFlags |= StringFormatFlags.MeasureTrailingSpaces;
+                    char c = (char)i;
 
-                    for (int i = char.MinValue; i <= char.MaxValue; i++)
-                    {
-                        char c = (char)i;
-                        string text = c.ToString();
+                    if (!char.IsControl(c))
+                        continue;
 
-                        ChSize[c] = graphics.MeasureString(text, regularFont, PointF.Empty, format).Width;
-                    }
+                    float width = graphics.MeasureString(c.ToString(), regularFont).Width;
+
+                    if (Math.Abs(width - DefaultFontSize) < 0.01f)
+                        continue;
+
+                    ChSize[c] = width;
                 }
             }
         }
@@ -91,7 +95,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
                 return width * fontSize / BaseFontSize * ratio;
             }
 
-            return 36.52988f / BaseFontSize * ratio;//Default width
+            return DefaultFontSize / BaseFontSize * ratio;//Default width
         }
 
         public struct CharSize

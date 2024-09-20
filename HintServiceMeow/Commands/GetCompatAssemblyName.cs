@@ -19,14 +19,11 @@ namespace HintServiceMeow.Commands
 
             sb.AppendLine("The following assemblies are using Compatibility Adaptor in HintServiceMeow:");
 
-            lock (CompatibilityAdaptor.RegisteredAssembliesLock)
+            foreach (var name in CompatibilityAdaptor.RegisteredAssemblies)
             {
-                foreach (var name in CompatibilityAdaptor.RegisteredAssemblies)
-                {
-                    sb.Append("- ");
-                    sb.AppendLine(name);
-                }
-            } 
+                sb.Append("- ");
+                sb.AppendLine(name);
+            }
 
             response = sb.ToString();
             return true;

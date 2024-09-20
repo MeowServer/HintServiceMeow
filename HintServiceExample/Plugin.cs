@@ -36,46 +36,12 @@ namespace HintServiceExample
     {
         public static void OnVerified(VerifiedEventArgs ev)
         {
-            //ShowHintA(ev.Player);
-            //ShowHintB(ev.Player);
-            //ShowDynamicHintA(ev.Player);
-            //ShowCommonHintA(ev.Player);
+            ShowHintA(ev.Player);
+            ShowHintB(ev.Player);
+            ShowDynamicHintA(ev.Player);
+            ShowCommonHintA(ev.Player);
 
-            //ev.Player.ShowHint("<Line-Height=500>\n<pos=400>Hello, this is a hint using ShowHint directly", 20f); //Compatibility adapter
-
-            ev.Player.GetPlayerDisplay().AddHint(new Hint
-            {
-                AutoText = param => Hotbar(Player.Get(param.Player)),
-                FontSize = 17,
-                YCoordinate = 980
-            });
-        }
-
-        private static string Hotbar(Player player)
-        {
-            var playtime = Round.ElapsedTime;
-            var steamId = player.UserId;
-
-            int days = playtime.Days;
-            int hours = playtime.Hours;
-            int minutes = playtime.Minutes;
-            int seconds = playtime.Seconds;
-
-            int playerLevel = 1;
-            int playerXP = 40;
-            int requiredXP = 150;
-
-            var builder = new StringBuilder();
-            builder.Clear();
-
-            string rankName = "ServerOwner";
-
-            builder.Append($"Spielername: <color=#00bfcf>{player.Nickname}</color> | Rang: <color=#00bfcf>{rankName}</color> | Level: <color=#00bfcf>{playerLevel}</color> | XP: <color=#00bfcf>{playerXP}/{requiredXP}</color> | Prestige: <color=#00bfcf>0</color> | Playtime: <color=#00bfcf>{days}d {hours}h {minutes}m {seconds}s</color>\n\n");
-            builder.Append($"[ UserID: <color=#00bfcf>{steamId}</color> ]");
-
-            string hintText = builder.ToString();
-
-            return hintText;
+            ev.Player.ShowHint("<Line-Height=500>\n<pos=400>Hello, this is a hint using ShowHint directly", 20f); //Compatibility adapter
         }
 
         //How to use Hint

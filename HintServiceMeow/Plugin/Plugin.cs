@@ -121,6 +121,8 @@ using PluginAPI.Events;
 // *        Add margin properties in the dynamic hint
 // *    V5.3.0 Pre-release 2.2
 // *        Fix the bug that causes the line height not usable
+// *    V5.3.0 Pre-release 2.3
+// *        Minor updates and bug fixing
 
 namespace HintServiceMeow
 {

@@ -50,9 +50,8 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 if (tag.StartsWith("</"))
                 {
                     string tagName = tag
-                        .Substring(2, tag.Length - 3)
-                        .Split('=')
-                        .First();
+                        .Substring(2, tag.Length - 3);
+
                     return AllTags.Contains(tagName);
                 }
 
@@ -75,6 +74,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                         .Substring(1, tag.Length - 2)
                         .Split('=')
                         .First();
+
                     return AllTags.Contains(tagName);
                 }
 
@@ -88,7 +88,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
     /// </summary>
     internal class RichTextParser
     {
-        private static readonly ConcurrentDictionary<string, IReadOnlyList<LineInfo>> Cache = new ConcurrentDictionary<string, IReadOnlyList<LineInfo>>();
+        private static readonly ConcurrentDictionary<ValueTuple<string, float, HintAlignment>, IReadOnlyList<LineInfo>> Cache = new ConcurrentDictionary<ValueTuple<string, float, HintAlignment>, IReadOnlyList<LineInfo>>();
 
         //Lock
         private readonly object _lock = new object();
@@ -113,15 +113,20 @@ namespace HintServiceMeow.Core.Utilities.Parser
         private readonly List<CaseStyle> _caseStyleStack = new List<CaseStyle>();
         private readonly List<ScriptStyle> _scriptStyles = new List<ScriptStyle>();
 
-        public IReadOnlyList<LineInfo> ParseText(string text, int size = 20)
+        public IReadOnlyList<LineInfo> ParseText(string text, int size = 20, HintAlignment alignment = HintAlignment.Center)
         {
+            var cacheKey = ValueTuple.Create(text, size, alignment);
+
             //Check cache
-            if(Cache.TryGetValue(text, out var cachedResult))
+            if (Cache.TryGetValue(cacheKey, out var cachedResult))
             {
                 return cachedResult;
             }
 
             ClearStatus();
+
+            if(alignment != HintAlignment.Center)
+                _hintAlignmentStack.Push(alignment);
 
             _fontSizeStack.Push(size);
             _caseStyleStack.Add(CaseStyle.Smallcaps);
@@ -193,8 +198,8 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 currentChInfos.Clear();
             }
 
-            Cache[text] = new List<LineInfo>(lines).AsReadOnly();
-            Task.Run(() =>Task.Delay(10000).ContinueWith(_ => Cache.TryRemove(text, out var _)));//Remove cache after 10 seconds
+            Cache[cacheKey] = new List<LineInfo>(lines).AsReadOnly();
+            Task.Run(() =>Task.Delay(10000).ContinueWith(_ => Cache.TryRemove(cacheKey, out var _)));//Remove cache after 10 seconds
 
             return new List<LineInfo>(lines).AsReadOnly();
         }

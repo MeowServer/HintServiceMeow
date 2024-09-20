@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using HintServiceMeow.Core.Interface;
 using PluginAPI.Core;
 
 namespace HintServiceMeow.Core.Utilities
@@ -8,7 +9,7 @@ namespace HintServiceMeow.Core.Utilities
     /// <summary>
     /// Used to estimate the next update time.
     /// </summary>
-    internal class UpdateAnalyser
+    internal class UpdateAnalyser : IUpdateAnalyser
     {
         private readonly object _lock = new object();
 

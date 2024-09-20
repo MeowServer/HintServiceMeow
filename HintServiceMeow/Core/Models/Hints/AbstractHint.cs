@@ -4,6 +4,7 @@ using System.Threading;
 using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.Core.Models.HintContent.HintContent;
+using HintServiceMeow.Core.Interface;
 
 namespace HintServiceMeow.Core.Models.Hints
 {
@@ -11,7 +12,7 @@ namespace HintServiceMeow.Core.Models.Hints
     {
         protected ReaderWriterLockSlim Lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
 
-        internal readonly UpdateAnalyser Analyser = new UpdateAnalyser();
+        internal readonly IUpdateAnalyser Analyser = new UpdateAnalyser();
 
         private readonly Guid _guid = Guid.NewGuid();
         private string _id = string.Empty;
