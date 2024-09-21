@@ -15,11 +15,11 @@ namespace HintServiceMeow.Core.Utilities.Tools
     internal static class FontTool
     {
         private static readonly float BaseFontSize = 34.7f;
-        private static readonly float DefaultFontSize = 36.52988f;
+        private static readonly float DefaultFontWidth = 36.52988f;
 
         private static readonly ConcurrentDictionary<char, float> ChSize = new ConcurrentDictionary<char, float>();
 
-        public static void InitializeFont()
+        static FontTool()
         {
             using (var bmp = new Bitmap(1, 1))
             using (var graphics = Graphics.FromImage(bmp))
@@ -36,7 +36,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
                     float width = graphics.MeasureString(c.ToString(), regularFont).Width;
 
-                    if (Math.Abs(width - DefaultFontSize) < 0.01f)
+                    if (Math.Abs(width - DefaultFontWidth) < 0.001f)
                         continue;
 
                     ChSize[c] = width;
@@ -84,18 +84,19 @@ namespace HintServiceMeow.Core.Utilities.Tools
         public static float GetCharSize(char c, float fontSize, TextStyle style)
         {
             float ratio = 1;
+            float width = 0;
 
             if ((style & TextStyle.Bold) == TextStyle.Bold)
             {
                 ratio = 1.15f;
             }
 
-            if (ChSize.TryGetValue(c, out var width))
+            if (!ChSize.TryGetValue(c, out width))
             {
-                return width * fontSize / BaseFontSize * ratio;
+                width = DefaultFontWidth;
             }
 
-            return DefaultFontSize / BaseFontSize * ratio;//Default width
+            return width * ratio * fontSize / BaseFontSize; //Default width
         }
 
         public struct CharSize

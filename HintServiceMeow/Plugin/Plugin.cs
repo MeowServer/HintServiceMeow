@@ -3,13 +3,13 @@
 using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.Core.Utilities.Patch;
 using HintServiceMeow.Core.Utilities.Tools;
-using HintServiceMeow.Integrations;
 using HintServiceMeow.UI.Utilities;
 
 using PluginAPI.Core;
 using PluginAPI.Core.Attributes;
 using PluginAPI.Enums;
 using PluginAPI.Events;
+using UnityEngine;
 
 // *    V1.0.0  First Release
 // *    V1.0.1
@@ -120,9 +120,12 @@ using PluginAPI.Events;
 // *        Fix the bug that causes rich text parser break line incorrectly
 // *        Add margin properties in the dynamic hint
 // *    V5.3.0 Pre-release 2.2
-// *        Fix the bug that causes the line height not usable
-// *    V5.3.0 Pre-release 2.3
+// *        Fix the bug that causes the line height not to be usable
 // *        Minor updates and bug fixing
+// *    V5.3.0 Pre-release 2.3
+// *        Fix the problem that line height was not included when calculating the text height
+// *        Fix the problem that font tools does not calculate character length correctly
+// *        Fix the problem that rich text parser does not handle line break correctly
 
 namespace HintServiceMeow
 {
@@ -151,6 +154,17 @@ namespace HintServiceMeow
             Plugin.OnDisabled(this);
 
             base.OnDisabled();
+        }
+
+        public override void OnReloaded()
+        {
+            foreach(var player in Exiled.API.Features.Player.List)
+            {
+                PlayerDisplay.TryCreate(player.ReferenceHub);
+                PlayerUI.TryCreate(player.ReferenceHub);
+            }
+
+            base.OnReloaded();
         }
 
         //IPlugin
@@ -279,8 +293,13 @@ namespace HintServiceMeow
             //Register events
             plugin.BindEvent();
 
-            FontTool.InitializeFont();
-            Integrator.StartAllIntegration();
+            var lineInfos = CoordinateTools.GetLineInfos(new Core.Utilities.Parser.RichTextParser(), "<Line-Height=500>\n<pos=400>Hello, this is a hint using ShowHint directly", 40, 0);
+            
+            foreach(var lineInfo in lineInfos)
+            {
+                Log.Debug(lineInfo.Height.ToString());
+                Log.Debug(lineInfo.Width.ToString());
+            }
 
             Log.Info($"HintServiceMeow {Version} has been enabled!");
         }

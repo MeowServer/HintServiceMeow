@@ -19,6 +19,7 @@ namespace HintServiceExample
 
         public override void OnEnabled()
         {
+            //Exiled.Events.Handlers.Player.Verified += OnVerified;
             Exiled.Events.Handlers.Player.Verified += EventHandler.OnVerified;
 
             base.OnEnabled();
@@ -26,9 +27,21 @@ namespace HintServiceExample
 
         public override void OnDisabled()
         {
+            //Exiled.Events.Handlers.Player.Verified -= OnVerified;
             Exiled.Events.Handlers.Player.Verified -= EventHandler.OnVerified;
 
             base.OnDisabled();
+        }
+
+        public static void OnVerified(VerifiedEventArgs ev)
+        {
+            var sb = new StringBuilder();
+
+            sb.AppendLine("<pos=-300><align=left>asdfghjklasdfghjklasdfgasdfghjklasdfghjklasdfghjklasdfghjklasdfghjklhjklasdfghjklasdfghjkl");
+            //sb.AppendLine("asdfghjklasdfghjklasdfghjklasdfghasdfghjklasdfghjklasdfghjklasdfghjklasdfghjkljklasdfghjkl");
+
+            ev.Player.ShowHint(sb.ToString(), 100);
+
         }
     }
 
@@ -112,7 +125,7 @@ namespace HintServiceExample
         //How to use Dynamic Hint
         private static void ShowDynamicHintA(Player player)
         {
-            for(var i = 0; i < 10; i++)
+            for (var i = 0; i < 10; i++)
             {
                 //Each dynamic hint will automatically find the position that does not overlaps with other hints
                 player.GetPlayerDisplay().AddHint(new DynamicHint()
@@ -150,7 +163,7 @@ namespace HintServiceExample
 
         private static string GetItem(AbstractHint.TextUpdateArg ev)
         {
-            return Player.Get(ev.Player).CurrentItem?.Type.ToString()??ItemType.None.ToString();
+            return Player.Get(ev.Player).CurrentItem?.Type.ToString() ?? ItemType.None.ToString();
         }
     }
 }

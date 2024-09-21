@@ -115,29 +115,32 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
         public IReadOnlyList<LineInfo> ParseText(string text, int size = 20, HintAlignment alignment = HintAlignment.Center)
         {
+            if(text is null)
+                return new List<LineInfo>();
+
             var cacheKey = ValueTuple.Create(text, size, alignment);
 
             //Check cache
             if (Cache.TryGetValue(cacheKey, out var cachedResult))
             {
-                return cachedResult;
+                return new List<LineInfo>(cachedResult);
             }
-
-            ClearStatus();
-
-            if(alignment != HintAlignment.Center)
-                _hintAlignmentStack.Push(alignment);
-
-            _fontSizeStack.Push(size);
-            _caseStyleStack.Add(CaseStyle.Smallcaps);
 
             List<LineInfo> lines = new List<LineInfo>();
             List<CharacterInfo> currentChInfos = new List<CharacterInfo>();
 
-            int lastIndex = 0;
-
             lock (_lock)
             {
+                ClearStatus();
+
+                if (alignment != HintAlignment.Center)
+                    _hintAlignmentStack.Push(alignment);
+
+                _fontSizeStack.Push(size);
+                _caseStyleStack.Add(CaseStyle.Smallcaps);
+
+                int lastIndex = 0;
+                
                 while (_index < text.Length)
                 {
                     if(lastIndex <= _index)
@@ -152,36 +155,46 @@ namespace HintServiceMeow.Core.Utilities.Parser
                         continue;
                     }
 
-                    if (!currentChInfos.IsEmpty())
+                    float currentWidth = 
+                        currentChInfos.IsEmpty() ? 0 : currentChInfos.Sum(x => x.Width);                      ;
+                    float rightX = 0;
+
+                    switch (_currentLineAlignment)
                     {
-                        float currentWidth = currentChInfos.Sum(x => x.Width);
-                        float leftX = - currentWidth / 2 + _pos;
-                        float rightX = currentWidth / 2 + _pos;
-
-                        //Try change line 
-                        if (text[_index] == '\n' || leftX < -1200 || rightX > 1200)
-                        {
-                            //Create new line info
-                            lines.Add(GetLineInfo(currentChInfos, _currentLineAlignment));
-
-                            //Clear character list
-                            currentChInfos.Clear();
-
-                            //Set default alignment for next line
-                            _currentLineAlignment = _hintAlignmentStack.Any() ? _hintAlignmentStack.Peek() : HintAlignment.Center;
-
-                            //Clear line status
-                            ClearLineStatus();
-
-                            //Goto next character
-                            _index++;
-
-                            continue;
-                        }
+                        case HintAlignment.Center:
+                            rightX = currentWidth / 2 + _pos;
+                            break;
+                        case HintAlignment.Left:
+                            rightX = -1200 + currentWidth + _pos;
+                            break;
+                        case HintAlignment.Right:
+                            rightX = 1200 + _pos;
+                            break;
                     }
-                    
 
-                    
+                    //Try change line
+                    if (text[_index] == '\n' || rightX > 1200)// Hint seems to only detect the right edge of the text
+                    {
+                        if(text[_index] == '\n')
+                            currentChInfos.Add(GetChInfo(text[_index]));//Add \n if the line break at \n
+
+                        //Create new line info
+                        lines.Add(GetLineInfo(currentChInfos, _currentLineAlignment));
+
+                        //Clear character list
+                        currentChInfos.Clear();
+
+                        //Set default alignment for next line
+                        _currentLineAlignment = _hintAlignmentStack.Any() ? _hintAlignmentStack.Peek() : HintAlignment.Center;
+
+                        //Clear line status
+                        ClearLineStatus();
+
+                        //Goto next character
+                        _index++;
+
+                        continue;
+                    }
 
                     currentChInfos.Add(GetChInfo(text[_index]));
                     _index++;
@@ -194,7 +207,9 @@ namespace HintServiceMeow.Core.Utilities.Parser
                         _currentRawLineText.Append(text.Substring(lastIndex, cutLength));
                 }
 
-                lines.Add(GetLineInfo(currentChInfos, _currentLineAlignment));
+                if(!currentChInfos.IsEmpty())
+                    lines.Add(GetLineInfo(currentChInfos, _currentLineAlignment));
+
                 currentChInfos.Clear();
             }
 
@@ -640,6 +655,9 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
     internal class LineInfo
     {
+        /// <summary>
+        /// A list of character info that include all the characters after parsed. Include the line break at the end(if exist).
+        /// </summary>
         public IReadOnlyList<CharacterInfo> Characters { get; }
         public HintAlignment Alignment { get; }
         public float LineHeight { get; }

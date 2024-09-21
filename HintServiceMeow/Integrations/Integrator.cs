@@ -9,7 +9,7 @@ namespace HintServiceMeow.Integrations
 {
     internal static class Integrator
     {
-        public static void StartAllIntegration()
+        static Integrator()
         {
 #if EXILED
 #endif

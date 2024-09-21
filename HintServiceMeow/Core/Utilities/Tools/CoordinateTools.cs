@@ -1,11 +1,10 @@
 ﻿using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities.Parser;
-
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using static System.Net.Mime.MediaTypeNames;
+using PluginAPI.Core;
+using NorthwoodLib;
 
 namespace HintServiceMeow.Core.Utilities.Tools
 {
@@ -92,22 +91,26 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         public static float GetTextWidth(RichTextParser parser, string text, int fontSize, HintAlignment align = HintAlignment.Center)
         {
-            return GetLineInfos(parser, text, fontSize, align).Max(x => x.Width);
+            var lineInfos = GetLineInfos(parser, text, fontSize, align);
+
+            return lineInfos.Max(x => x.Width);
         }
 
         public static float GetTextHeight(RichTextParser parser, AbstractHint hint)
         {
-            return GetTextHeight(parser, hint.Content.GetText(), hint.FontSize);
+            return GetTextHeight(parser, hint.Content.GetText(), hint.FontSize, hint.LineHeight);
         }
 
-        public static float GetTextHeight(RichTextParser parser, string text, int fontSize)
+        public static float GetTextHeight(RichTextParser parser, string text, int fontSize, float lineHeight)
         {
-            return GetLineInfos(parser, text, fontSize).Sum(x => x.Height);
+            var lineInfos = GetLineInfos(parser, text, fontSize);
+
+            return lineInfos.Sum(x => x.Height) + lineInfos.Count * lineHeight;
         }
 
         public static IReadOnlyCollection<LineInfo> GetLineInfos(RichTextParser parser, Hint hint)
         {
-            return parser.ParseText(hint.Content.GetText(), hint.FontSize, hint.Alignment);
+            return GetLineInfos(parser, hint.Content.GetText(), hint.FontSize, hint.Alignment);
         }
 
         public static IReadOnlyCollection<LineInfo> GetLineInfos(RichTextParser parser, string text, int fontSize, HintAlignment align = HintAlignment.Center)
