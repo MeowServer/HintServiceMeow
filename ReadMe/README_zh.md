@@ -28,20 +28,20 @@ HintServiceMeow包含了一个Hint适配器，这个适配器可以自动将本�
 
 ## 致开发者
 这里是一个简单的指导：
-有两种方式向一个玩家展示一条Hint
-- 创建一个hint类型的实例，并将其加入到PlayerDisplay类中
+有两种方式向一个玩家显示一段文字
+- 创建一个Hint类型的实例，并将其加入到PlayerDisplay类中
 - 使用PlayerUI的CommonHint部件
-2. 通过PlayerDisplay来展示Hint
+2. 通过PlayerDisplay来显示文字
 ```csharp
 var hint = new Hint() 
 {
     Text = "Hello World!",
-    YCoordinateAlign = HintVerticalAlign.Top,//Means that the Y coordinate represents the top edge of the hint
-    YCoordinate = 0, //Higher the Y coordinate, lower it is on the screen
+    YCoordinateAlign = HintVerticalAlign.Top,//这表示Y坐标代表了文字的上边缘，换句话说，文字的上边缘在y=0
+    YCoordinate = 0, // Y坐标越高，文字的位置越低
     Alignment = HintAlignment.Right,
     FontSize = 20
-}; //You do not have to set every single property
-var playerDisplay = PlayerDisplay.Get(player);//Could be ReferenceHub or Player
+}; //你不必设置每一个属性
+var playerDisplay = PlayerDisplay.Get(player);//你可以使用ReferenceHub或者Player来获取PlayerDisplay
 playerDisplay.AddHint(hint);
  ```
 这个例子创建了一条Hint实例，并将其放置到到玩家的屏幕上。任何对Hint实例的改变都会自动更新到玩家屏幕上。因此，在添加了Hint之后，我可以通过改变Hint实例来修改玩家所看到的内容。比如，如果我希望玩家的屏幕上展示“你好，世界”而非“Hello World!"的话，我可以这么做：
