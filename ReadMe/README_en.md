@@ -4,15 +4,17 @@ HintServiceMeow is a framework that allows plugins to display multiple hints on 
 ## Installation
 To install this plugin, please 
 1. go to the release page and download the newest HintServiceMeow.dll. Then, paste it into the plugin folder.
-2. If you are using PluginAPI (The default API), put Harmony.dll into dependencies folder.
+2. If you are using PluginAPI (The default API), put Harmony.dll into the dependencies folder.
 3. Restart your server.
 
 ## Features
-HintServiceMeow includes following features:
+HintServiceMeow includes the following features:
 #### Hint Adapter
 HintServiceMeow includes a hint adapter that can automatically convert other plugins' hints into HintServiceMeow-compatible Hint. This allows people to use any plugin that uses hints, even if they are neither compatible with each other nor with HintServiceMeow. 
 
 ## Developer Features
+#### Hint Functions
+This framework provides methods that allow you to display hints on a specific position on the screen without conflict with other plugins.
 #### Auto text
 An auto-update text in the Hint classes.
 #### Dynamic Hint
@@ -27,7 +29,7 @@ Player UI includes advanced components to simplify your development. For example
 ## To Developers
 Here's an easy documentary of this plugin:
 There are 2 ways to show a hint to a player.
-- Initate and Hint instance and add it to PlayerDisplay
+- Create an Hint instance and add it to PlayerDisplay
 - Use common hint component of PlayerUI
 1. Showing hint using PlayerDisplay
 ```csharp
