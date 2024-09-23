@@ -36,7 +36,7 @@ HintServiceMeow包含了一个Hint适配器，这个适配器可以自动将本�
 var hint = new Hint() 
 {
     Text = "Hello World!",
-    YCoordinateAlign = HintVerticalAlign.Top,//Means that Y coordinate represent the top side of the hint
+    YCoordinateAlign = HintVerticalAlign.Top,//Means that the Y coordinate represents the top edge of the hint
     YCoordinate = 0, //Higher the Y coordinate, lower it is on the screen
     Alignment = HintAlignment.Right,
     FontSize = 20
