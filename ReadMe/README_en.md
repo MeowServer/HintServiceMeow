@@ -1,5 +1,5 @@
 ## Introduction
-HintServiceMeow is a framework that allows plugins to display multiple hints on a player's screen simultaneously.
+HintServiceMeow is a framework that allows plugins to display text on a selected position on a player's screen.
 
 ## Installation
 To install this plugin, please 
@@ -14,7 +14,7 @@ HintServiceMeow includes a hint adapter that can automatically convert other plu
 
 ## Developer Features
 #### Hint Functions
-This framework provides methods that allow you to display hints on a specific position on the screen without conflict with other plugins.
+This framework provides methods that allow you to display text on a specific position on the screen without conflict with other plugins.
 #### Auto text
 An auto-update text in the Hint classes.
 #### Dynamic Hint
