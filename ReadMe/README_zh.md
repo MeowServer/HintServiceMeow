@@ -12,6 +12,8 @@ HintServiceMeow 是一款基于Exiled框架的插件，用于向玩家同时展�
 HintServiceMeow包含了一个Hint适配器，这个适配器可以自动将本不适配HintServiceMeow的插件适配HintServiceMeow。通过这样，可以让使用了Hint的插件在没有任何适配的情况下互相兼容。
 
 ## 开发者功能
+#### 基本功能
+这个框架提供了在玩家屏幕的选定位置上显示文字的功能
 #### 自更新文字
 可通过AutoText属性自动更新Hint内容
 #### 动态Hint
