@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using Exiled.API.Features;
 using Exiled.Events.EventArgs.Player;
@@ -6,6 +8,7 @@ using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Extension;
 using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.UI.Extension;
+using MEC;
 using Hint = HintServiceMeow.Core.Models.Hints.Hint;
 
 namespace HintServiceExample
@@ -19,7 +22,7 @@ namespace HintServiceExample
 
         public override void OnEnabled()
         {
-            //Exiled.Events.Handlers.Player.Verified += OnVerified;
+            Exiled.Events.Handlers.Player.Verified += OnVerified;
             Exiled.Events.Handlers.Player.Verified += EventHandler.OnVerified;
 
             base.OnEnabled();
@@ -27,7 +30,7 @@ namespace HintServiceExample
 
         public override void OnDisabled()
         {
-            //Exiled.Events.Handlers.Player.Verified -= OnVerified;
+            Exiled.Events.Handlers.Player.Verified -= OnVerified;
             Exiled.Events.Handlers.Player.Verified -= EventHandler.OnVerified;
 
             base.OnDisabled();
@@ -35,12 +38,6 @@ namespace HintServiceExample
 
         public static void OnVerified(VerifiedEventArgs ev)
         {
-            var sb = new StringBuilder();
-
-            sb.AppendLine("<pos=-300><align=left>asdfghjklasdfghjklasdfgasdfghjklasdfghjklasdfghjklasdfghjklasdfghjklhjklasdfghjklasdfghjkl");
-            //sb.AppendLine("asdfghjklasdfghjklasdfghjklasdfghasdfghjklasdfghjklasdfghjklasdfghjklasdfghjkljklasdfghjkl");
-
-            ev.Player.ShowHint(sb.ToString(), 100);
 
         }
     }

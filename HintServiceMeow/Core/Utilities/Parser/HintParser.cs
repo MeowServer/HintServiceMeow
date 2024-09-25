@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Models;
 using HintServiceMeow.Core.Models.Hints;
+using HintServiceMeow.Core.Utilities.Pools;
 using HintServiceMeow.Core.Utilities.Tools;
 
 namespace HintServiceMeow.Core.Utilities.Parser
@@ -62,7 +63,11 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 orderedHintGroups.Add(orderedGroup);
             }
 
-            StringBuilder messageBuilder = new StringBuilder();
+            StringBuilder messageBuilder = StringBuilderPool.Rent(5000);
+
+            int availableArea = ushort.MaxValue 
+                - "</size></b></i>".Length 
+                -"<line-height=0><voffset=-9999>P</voffset>".Length;
 
             messageBuilder.AppendLine("<line-height=0><voffset=9999>P</voffset>");//Place Holder
 
@@ -70,10 +75,8 @@ namespace HintServiceMeow.Core.Utilities.Parser
             {
                 foreach (Hint hint in hintList)
                 {
-                    if (messageBuilder.Length +
-                        "</size></b></i>".Length +
-                        "<line-height=0><voffset=-9999>P</voffset>".Length > ushort.MaxValue)
-                        break; //Prevent message to be overflow
+                    if (messageBuilder.Length > availableArea)
+                        break; //Prevent hint message to be overflow
 
                     var text = ToRichText(hint);
                     if (!string.IsNullOrEmpty(text))
@@ -89,7 +92,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
             //var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), $"{DateTime.Now.Ticks}.txt");
             //File.WriteAllText(path, result);
 
-            return messageBuilder.ToString();
+            return StringBuilderPool.ToStringReturn(messageBuilder);
         }
 
         private Hint ConvertDynamicHint(DynamicHint dynamicHint, IEnumerable<Hint> existingHints)
@@ -183,7 +186,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
             string text = Regex
                 .Replace(
                     hint.Content.GetText() ?? string.Empty,
-                    @"<line-height=[^>]*>|<voffset=[^>]*>|<pos=[^>]*>|<align=[^>]*>|</voffset>|</align>|{|}",
+                    @"<line-height=[^>]*>|<voffset=[^>]*>|<pos=[^>]*>|</voffset>|{|}",
                     string.Empty,
                     RegexOptions.IgnoreCase | RegexOptions.Compiled
                 );
@@ -201,7 +204,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 - lineList[0].Height;
 
             //Start to generate rich text
-            StringBuilder richTextBuilder = new StringBuilder(text.Length + 200);
+            StringBuilder richTextBuilder = StringBuilderPool.Rent(text.Length + 200);
 
             //Add default size/alignment
             richTextBuilder.AppendFormat("<size={0}>", hint.FontSize);
@@ -211,11 +214,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
             {
                 var lineText = line.RawText;
 
-                if (string.IsNullOrEmpty(lineText))
-                {
-                    lineText = " "; // For height calculation
-                }
-                else if(line.Characters.Count > 0)
+                if (!string.IsNullOrEmpty(lineText))
                 {
                     if (hint.XCoordinate != 0) richTextBuilder.AppendFormat("<pos={0:0.#}>", hint.XCoordinate);//X coordinate
                     richTextBuilder.Append("<line-height=0>");
@@ -229,7 +228,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                     richTextBuilder.AppendLine(); //Break line
                 }
 
-                vOffset -= CoordinateTools.GetTextHeight(_richTextParser, lineText, hint.FontSize, hint.LineHeight); //Move y coordinate to the bottom of next line
+                vOffset -= line.Height + hint.LineHeight; //Move y coordinate to the bottom of next line
             }
 
             //End default size/alignment

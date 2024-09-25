@@ -88,6 +88,8 @@ namespace HintServiceMeow.Core.Utilities.Parser
     /// </summary>
     internal class RichTextParser
     {
+        private const float DefaultFontSize = 40f;
+
         private static readonly ConcurrentDictionary<ValueTuple<string, float, HintAlignment>, IReadOnlyList<LineInfo>> Cache = new ConcurrentDictionary<ValueTuple<string, float, HintAlignment>, IReadOnlyList<LineInfo>>();
 
         //Lock
@@ -239,7 +241,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
         private CharacterInfo GetChInfo(char ch)
         {
             //Get size
-            float currentFontSize = _fontSizeStack.Count > 0 ? (int)_fontSizeStack.Peek() : 40;
+            float currentFontSize = _fontSizeStack.Count > 0 ? (int)_fontSizeStack.Peek() : DefaultFontSize;
 
             //Case style
             switch(_caseStyleStack.LastOrDefault())
@@ -273,7 +275,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
             float chHeight = currentFontSize + _vOffset;
 
             //Get character size
-            var chWidth = FontTool.GetCharSize(ch, currentFontSize, _style);
+            var chWidth = FontTool.GetCharWidth(ch, currentFontSize, _style);
 
             //Script style
             if (_scriptStyles.Contains(ScriptStyle.Superscript))
@@ -527,10 +529,10 @@ namespace HintServiceMeow.Core.Utilities.Parser
                         lineHeight = value;
                         break;
                     case "%":
-                        lineHeight = 40f * value / 100f;
+                        lineHeight = DefaultFontSize * value / 100f;
                         break;
                     case "em":
-                        lineHeight = 40f * value;
+                        lineHeight = DefaultFontSize * value;
                         break;
                     default:
                         lineHeight = value;
@@ -559,7 +561,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                         size = value;
                         break;
                     case "%":
-                        size = 40f * value / 100f;
+                        size = DefaultFontSize * value / 100f;
                         break;
                     default:
                         size = value;

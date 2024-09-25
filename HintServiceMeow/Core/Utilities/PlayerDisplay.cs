@@ -24,12 +24,11 @@ namespace HintServiceMeow.Core.Utilities
     /// </summary>
     public class PlayerDisplay
     {
-        private static readonly object PlayerDisplayLock = new object();
-
         /// <summary>
         /// Instance Trackers
         /// </summary>
         private static readonly HashSet<PlayerDisplay> PlayerDisplayList = new HashSet<PlayerDisplay>();
+        private static readonly object PlayerDisplayListLock = new object();
 
         private static readonly TextHint HintTemplate = new TextHint("", new HintParameter[] { new StringHintParameter("") }, new HintEffect[] { HintEffectPresets.TrailingPulseAlpha(1, 1, 1) }, float.MaxValue);
 
@@ -51,13 +50,6 @@ namespace HintServiceMeow.Core.Utilities
         public event UpdateAvailableEventHandler UpdateAvailable;
 
         public delegate void UpdateAvailableEventHandler(UpdateAvailableEventArg ev);
-
-        /// <summary>
-        /// Coroutine that implements force update and UpdateAvailable event functions
-        /// </summary>
-        private static readonly CoroutineHandle Coroutine = Timing.RunCoroutine(CoroutineMethod());
-
-        private static readonly CoroutineHandle UpdateCoroutine = Timing.RunCoroutine(UpdateCoroutineMethod());
 
         private readonly HintParser _hintParser = new HintParser();
 
@@ -184,7 +176,7 @@ namespace HintServiceMeow.Core.Utilities
         }
 
         /// <summary>
-        /// Plan an update when an update chance is available.
+        /// Update as soon as possible.
         /// </summary>
         private void UpdateWhenAvailable(bool useFastUpdate = false)
         {
@@ -200,7 +192,7 @@ namespace HintServiceMeow.Core.Utilities
         }
 
         /// <summary>
-        /// Call UpdateWhenAvailable method based on estimated next update time of other hints
+        /// Arrange an update based on all hint's estimated update time.
         /// </summary>
         private void ArrangeUpdate(TimeSpan maxDelay, AbstractHint hint)
         {
@@ -228,13 +220,16 @@ namespace HintServiceMeow.Core.Utilities
             }
         }
 
+        /// <summary>
+        /// Include force update and UpdateAvailable event
+        /// </summary>
         private static IEnumerator<float> CoroutineMethod()
         {
             while (true)
             {
                 try
                 {
-                    lock (PlayerDisplayLock)
+                    lock (PlayerDisplayListLock)
                     {
                         foreach (PlayerDisplay pd in PlayerDisplayList)
                         {
@@ -260,6 +255,9 @@ namespace HintServiceMeow.Core.Utilities
             }
         }
 
+        /// <summary>
+        /// Include update management
+        /// </summary>
         private static IEnumerator<float> UpdateCoroutineMethod()
         {
             while (true)
@@ -268,13 +266,13 @@ namespace HintServiceMeow.Core.Utilities
                 {
                     DateTime now = DateTime.Now;
 
-                    lock (PlayerDisplayLock)
+                    lock (PlayerDisplayListLock)
                     {
                         foreach (PlayerDisplay pd in PlayerDisplayList)
                         {
                             lock (pd._rateDataLock)
                             {
-                                //Check arranged update time
+                                //Check arranged update time.
                                 if (now > pd._arrangedUpdateTime)
                                 {
                                     pd._arrangedUpdateTime = DateTime.MaxValue;
@@ -293,6 +291,7 @@ namespace HintServiceMeow.Core.Utilities
                                 }
                             }
 
+                            //If competed parsing, send the parsed text to client
                             if (pd._currentParserTask != null && pd._currentParserTask.IsCompleted)
                             {
                                 var text = pd._currentParserTask.GetAwaiter().GetResult();
@@ -300,7 +299,7 @@ namespace HintServiceMeow.Core.Utilities
 
                                 lock (pd._rateDataLock)
                                 {
-                                    //Check whether the text had changed since last update or if this is a force update
+                                    //Only update when text had changed since last update or if this is a force update
                                     if (text != pd._lastText || pd.NeedPeriodicUpdate)
                                     {
                                         //Update text record
@@ -376,15 +375,21 @@ namespace HintServiceMeow.Core.Utilities
             this.ConnectionToClient = referenceHub.netIdentity.connectionToClient;
             this.ReferenceHub = referenceHub;
 
-            lock (PlayerDisplayLock)
+            lock (PlayerDisplayListLock)
                 PlayerDisplayList.Add(this);
+        }
+
+        static PlayerDisplay()
+        {
+            Timing.RunCoroutine(CoroutineMethod());
+            Timing.RunCoroutine(UpdateCoroutineMethod());
         }
 
         internal static PlayerDisplay TryCreate(ReferenceHub referenceHub)
         {
             PlayerDisplay pd;
 
-            lock (PlayerDisplayLock)
+            lock (PlayerDisplayListLock)
                 pd = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
 
             return pd ?? new PlayerDisplay(referenceHub);
@@ -392,13 +397,13 @@ namespace HintServiceMeow.Core.Utilities
 
         internal static void Destruct(ReferenceHub referenceHub)
         {
-            lock (PlayerDisplayLock)
+            lock (PlayerDisplayListLock)
                 PlayerDisplayList.RemoveWhere(x => x.ReferenceHub == referenceHub);
         }
 
         internal static void ClearInstance()
         {
-            lock (PlayerDisplayLock)
+            lock (PlayerDisplayListLock)
                 PlayerDisplayList.Clear();
         }
 
@@ -417,7 +422,7 @@ namespace HintServiceMeow.Core.Utilities
 
             PlayerDisplay pd;
 
-            lock (PlayerDisplayLock)
+            lock (PlayerDisplayListLock)
                 pd = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
 
             return pd ?? new PlayerDisplay(referenceHub);//TryCreate ReferenceHub display if it has not been created yet

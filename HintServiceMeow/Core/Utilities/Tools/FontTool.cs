@@ -6,42 +6,47 @@ using System.Drawing.Text;
 using System.IO;
 using System.Reflection;
 using PluginAPI.Core;
+using System.Threading.Tasks;
 
 namespace HintServiceMeow.Core.Utilities.Tools
 {
     /// <summary>
-    /// Used to get the size of the font Hint is using.
+    /// Used to get the size of the characters.
     /// </summary>
     internal static class FontTool
     {
-        private static readonly float BaseFontSize = 34.7f;
-        private static readonly float DefaultFontWidth = 36.52988f;
+        private const float BaseFontSize = 34.7f;
+        private const float DefaultFontWidth = 36.52988f;
 
-        private static readonly ConcurrentDictionary<char, float> ChSize = new ConcurrentDictionary<char, float>();
+        private static readonly ConcurrentDictionary<char, float> ChWidth = new ConcurrentDictionary<char, float>();
 
         static FontTool()
         {
-            using (var bmp = new Bitmap(1, 1))
-            using (var graphics = Graphics.FromImage(bmp))
-            using (var regularFont = GetFont(BaseFontSize, FontStyle.Regular))
+            //Initialize ch width
+            Task.Run(() =>
             {
-                graphics.PageUnit = GraphicsUnit.Pixel;
-
-                for (int i = char.MinValue; i <= char.MaxValue; i++)
+                using (var bmp = new Bitmap(1, 1))
+                using (var graphics = Graphics.FromImage(bmp))
+                using (var regularFont = GetFont(BaseFontSize, FontStyle.Regular))
                 {
-                    char c = (char)i;
+                    graphics.PageUnit = GraphicsUnit.Pixel;
 
-                    if (!char.IsControl(c))
-                        continue;
+                    for (int i = char.MinValue; i <= char.MaxValue; i++)
+                    {
+                        char c = (char)i;
 
-                    float width = graphics.MeasureString(c.ToString(), regularFont).Width;
+                        if (!char.IsControl(c))
+                            continue;
 
-                    if (Math.Abs(width - DefaultFontWidth) < 0.001f)
-                        continue;
+                        var width = graphics.MeasureString(c.ToString(), regularFont).Width;
 
-                    ChSize[c] = width;
+                        if (width.Equals(DefaultFontWidth))
+                            continue;
+
+                        ChWidth[c] = width;
+                    }
                 }
-            }
+            });
         }
 
         public static Font GetFont(float fontSize, FontStyle style)
@@ -81,39 +86,17 @@ namespace HintServiceMeow.Core.Utilities.Tools
             }
         }
 
-        public static float GetCharSize(char c, float fontSize, TextStyle style)
+        public static float GetCharWidth(char c, float fontSize, TextStyle style)
         {
             float ratio = 1;
-            float width = 0;
 
             if ((style & TextStyle.Bold) == TextStyle.Bold)
-            {
                 ratio = 1.15f;
-            }
 
-            if (!ChSize.TryGetValue(c, out width))
-            {
+            if (!ChWidth.TryGetValue(c, out var width))
                 width = DefaultFontWidth;
-            }
 
-            return width * ratio * fontSize / BaseFontSize; //Default width
-        }
-
-        public struct CharSize
-        {
-            public float Width;
-            public float Height;
-
-            public CharSize(float width, float height)
-            {
-                Width = width;
-                Height = height;
-            }
-
-            public override string ToString()
-            {
-                return $"Width: {Width}, Height: {Height}";
-            }
+            return width * ratio * fontSize / BaseFontSize;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using CommandSystem;
 using System;
 using HintServiceMeow.Core.Utilities;
+using HintServiceMeow.Core.Utilities.Pools;
 
 namespace HintServiceMeow.Commands
 {
@@ -15,7 +16,7 @@ namespace HintServiceMeow.Commands
 
         public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
         {
-            var sb = new System.Text.StringBuilder();
+            var sb = StringBuilderPool.Rent();
 
             sb.AppendLine("The following assemblies are using Compatibility Adaptor in HintServiceMeow:");
 
@@ -25,7 +26,7 @@ namespace HintServiceMeow.Commands
                 sb.AppendLine(name);
             }
 
-            response = sb.ToString();
+            response = StringBuilderPool.ToStringReturn(sb);
             return true;
         }
     }

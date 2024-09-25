@@ -2,14 +2,12 @@
 
 using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.Core.Utilities.Patch;
-using HintServiceMeow.Core.Utilities.Tools;
 using HintServiceMeow.UI.Utilities;
 
-using PluginAPI.Core;
 using PluginAPI.Core.Attributes;
 using PluginAPI.Enums;
 using PluginAPI.Events;
-using UnityEngine;
+
 
 // *    V1.0.0  First Release
 // *    V1.0.1
@@ -126,6 +124,10 @@ using UnityEngine;
 // *        Fix the problem that line height was not included when calculating the text height
 // *        Fix the problem that font tools does not calculate character length correctly
 // *        Fix the problem that rich text parser does not handle line break correctly
+// *    V5.3.0
+// *        Fix the problem that ReceiveHint patch cause crush 
+// *        Add string builder pool to improve performance
+// *        Minor naming update
 
 namespace HintServiceMeow
 {
@@ -158,38 +160,25 @@ namespace HintServiceMeow
 
         public override void OnReloaded()
         {
-            foreach(var player in Exiled.API.Features.Player.List)
-            {
-                PlayerDisplay.TryCreate(player.ReferenceHub);
-                PlayerUI.TryCreate(player.ReferenceHub);
-            }
+            Plugin.OnReloaded();
 
             base.OnReloaded();
         }
 
-        //IPlugin
         public void BindEvent()
         {
-            Exiled.Events.Handlers.Player.Verified += ExiledEventHandler.OnVerified;
-            Exiled.Events.Handlers.Player.Left += ExiledEventHandler.OnLeft;
-            Exiled.Events.Handlers.Server.WaitingForPlayers += ExiledEventHandler.OnWaitingForPlayers;
+            Exiled.Events.Handlers.Player.Verified += OnVerified;
+            Exiled.Events.Handlers.Player.Left += OnLeft;
+            Exiled.Events.Handlers.Server.WaitingForPlayers += OnWaitingForPlayers;
         }
 
         public void UnbindEvent()
         {
-            Exiled.Events.Handlers.Player.Verified -= ExiledEventHandler.OnVerified;
-            Exiled.Events.Handlers.Player.Left -= ExiledEventHandler.OnLeft;
-            Exiled.Events.Handlers.Server.WaitingForPlayers -= ExiledEventHandler.OnWaitingForPlayers;
+            Exiled.Events.Handlers.Player.Verified -= OnVerified;
+            Exiled.Events.Handlers.Player.Left -= OnLeft;
+            Exiled.Events.Handlers.Server.WaitingForPlayers -= OnWaitingForPlayers;
         }
-    }
 
-    internal class ExiledPluginConfig : PluginConfig, Exiled.API.Interfaces.IConfig
-    {
-    }
-
-    internal static class ExiledEventHandler
-    {
-        // TryCreate PlayerDisplay and PlayerUIConfig for the new ReferenceHub
         internal static void OnVerified(Exiled.Events.EventArgs.Player.VerifiedEventArgs ev)
         {
             if (ev.Player is null)
@@ -214,6 +203,10 @@ namespace HintServiceMeow
         }
     }
 
+    internal class ExiledPluginConfig : PluginConfig, Exiled.API.Interfaces.IConfig
+    {
+    }
+
 #else
 
     internal class NwapiPlugin : IPlugin
@@ -231,22 +224,21 @@ namespace HintServiceMeow
         //IPlugin
         public void BindEvent()
         {
-            PluginAPI.Events.EventManager.RegisterEvents<NwapiEventHandler>(this);
+            PluginAPI.Events.EventManager.RegisterEvents<NwapiPlugin>(this);
         }
-
+         
         public void UnbindEvent()
         {
             PluginAPI.Events.EventManager.UnregisterEvents(this);
         }
-    }
 
-    
-    internal class NwapiEventHandler 
-    {
         [PluginEvent(ServerEventType.PlayerJoined)]
         internal void OnJoin(PlayerJoinedEvent ev)
         {
-            if (ev.Player is null || ev.Player.ReferenceHub.isLocalPlayer || ev.Player.UserId is null)
+            if (ev.Player is null 
+            || ev.Player.ReferenceHub is null
+            || ev.Player.ReferenceHub.isLocalPlayer 
+            || string.IsNullOrEmpty(ev.Player.UserId))
                 return;
 
             PlayerDisplay.TryCreate(ev.Player.ReferenceHub);
@@ -292,16 +284,6 @@ namespace HintServiceMeow
 
             //Register events
             plugin.BindEvent();
-
-            var lineInfos = CoordinateTools.GetLineInfos(new Core.Utilities.Parser.RichTextParser(), "<Line-Height=500>\n<pos=400>Hello, this is a hint using ShowHint directly", 40, 0);
-            
-            foreach(var lineInfo in lineInfos)
-            {
-                Log.Debug(lineInfo.Height.ToString());
-                Log.Debug(lineInfo.Width.ToString());
-            }
-
-            Log.Info($"HintServiceMeow {Version} has been enabled!");
         }
 
         public static void OnDisabled(IPlugin plugin)
@@ -318,6 +300,21 @@ namespace HintServiceMeow
 
             PlayerUI.ClearInstance();
             PlayerDisplay.ClearInstance();
+        }
+
+        public static void OnReloaded()
+        {
+            foreach (var player in PluginAPI.Core.Player.GetPlayers())
+            {
+                if (player is null 
+                    || player.ReferenceHub is null 
+                    || player.ReferenceHub.isLocalPlayer 
+                    || string.IsNullOrEmpty(player.UserId))
+                    continue;
+
+                PlayerDisplay.TryCreate(player.ReferenceHub);
+                PlayerUI.TryCreate(player.ReferenceHub);
+            }
         }
     }
 }

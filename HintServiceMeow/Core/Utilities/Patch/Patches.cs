@@ -5,9 +5,9 @@ using PluginAPI.Core;
 
 namespace HintServiceMeow.Core.Utilities.Patch
 {
-    internal static class HintDisplayPatch
+    internal static class Patches
     {
-        public static bool Prefix(ref Hint hint, ref HintDisplay __instance)
+        public static bool HintDisplayPatch(ref Hint hint, ref HintDisplay __instance)
         {
             if (!PluginConfig.Instance.UseHintCompatibilityAdapter)
                 return false;
@@ -31,11 +31,8 @@ namespace HintServiceMeow.Core.Utilities.Patch
 
             return false;
         }
-    }
 
-    internal static class NWAPIHintPatch
-    {
-        public static bool Prefix(ref string text, ref float duration, ref ReferenceHub __instance)
+        public static bool ReceiveHintPatch1(ref string text, ref float duration, ref Player __instance)
         {
             if (!PluginConfig.Instance.UseHintCompatibilityAdapter)
                 return false;
@@ -44,7 +41,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
             {
                 var assemblyName = Assembly.GetCallingAssembly().GetName().Name;
 
-                CompatibilityAdaptor.ShowHint(__instance, assemblyName, text, duration);
+                CompatibilityAdaptor.ShowHint(__instance.ReferenceHub, assemblyName, text, duration);
             }
             catch (Exception ex)
             {
@@ -53,12 +50,28 @@ namespace HintServiceMeow.Core.Utilities.Patch
 
             return false;
         }
-    }
+
+        public static bool ReceiveHintPatch2(ref string text, ref HintEffect[] effects, ref float duration, ref Player __instance)
+        {
+            if (!PluginConfig.Instance.UseHintCompatibilityAdapter)
+                return false;
+
+            try
+            {
+                var assemblyName = Assembly.GetCallingAssembly().GetName().Name;
+
+                CompatibilityAdaptor.ShowHint(__instance.ReferenceHub, assemblyName, text, duration);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.ToString());
+            }
+
+            return false;
+        }
 
 #if EXILED
-    internal static class ExiledHintPatch
-    {
-        public static bool Prefix1(ref string message, ref float duration, ref Exiled.API.Features.Player __instance)
+        public static bool ExiledHintPatch1(ref string message, ref float duration, ref Exiled.API.Features.Player __instance)
         {
             if (!PluginConfig.Instance.UseHintCompatibilityAdapter)
                 return false;
@@ -77,7 +90,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
             return false;
         }
 
-        public static bool Prefix2(ref Exiled.API.Features.Hint hint, ref Exiled.API.Features.Player __instance)
+        public static bool ExiledHintPatch2(ref Exiled.API.Features.Hint hint, ref Exiled.API.Features.Player __instance)
         {
             if (!PluginConfig.Instance.UseHintCompatibilityAdapter)
                 return false;
@@ -98,6 +111,6 @@ namespace HintServiceMeow.Core.Utilities.Patch
 
             return false;
         }
-    }
 #endif
+    }
 }

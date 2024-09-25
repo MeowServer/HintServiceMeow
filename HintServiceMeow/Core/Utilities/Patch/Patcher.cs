@@ -12,6 +12,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
             Harmony = new Harmony("HintServiceMeowHarmony" + Plugin.Version);
 
             //Unpatch all other patches
+            var patchType = typeof(Patches);
             var hintDisplayMethod = typeof(HintDisplay).GetMethod(nameof(HintDisplay.Show));
             var receiveHintMethod1 = typeof(PluginAPI.Core.Player).GetMethod(nameof(PluginAPI.Core.Player.ReceiveHint), new[] { typeof(string), typeof(float) });
             var receiveHintMethod2 = typeof(PluginAPI.Core.Player).GetMethod(nameof(PluginAPI.Core.Player.ReceiveHint), new[] { typeof(string), typeof(HintEffect[]), typeof(float) });
@@ -20,23 +21,25 @@ namespace HintServiceMeow.Core.Utilities.Patch
             Harmony.Unpatch(receiveHintMethod2, HarmonyPatchType.All);
 
             // Patch the method
-            var hintDisplayPatch = typeof(HintDisplayPatch).GetMethod(nameof(HintDisplayPatch.Prefix));
-            var receiveHintPatch = typeof(NWAPIHintPatch).GetMethod(nameof(NWAPIHintPatch.Prefix));
+            var hintDisplayPatch = patchType.GetMethod(nameof(Patches.HintDisplayPatch));
+            var receiveHintPatch1 = patchType.GetMethod(nameof(Patches.ReceiveHintPatch1));
+            var receiveHintPatch2 = patchType.GetMethod(nameof(Patches.ReceiveHintPatch2));
 
             Harmony.Patch(hintDisplayMethod, new HarmonyMethod(hintDisplayPatch));
-            Harmony.Patch(receiveHintMethod1, new HarmonyMethod(receiveHintPatch));
-            Harmony.Patch(receiveHintMethod2, new HarmonyMethod(receiveHintPatch));
+            Harmony.Patch(receiveHintMethod1, new HarmonyMethod(receiveHintPatch1));
+            Harmony.Patch(receiveHintMethod2, new HarmonyMethod(receiveHintPatch2));
 
-            //Exiled methods
+
 #if EXILED
+            //Exiled methods
             var showHintMethod1 = typeof(Exiled.API.Features.Player).GetMethod(nameof(Exiled.API.Features.Player.ShowHint), new[] { typeof(string), typeof(float) });
             var showHintMethod2 = typeof(Exiled.API.Features.Player).GetMethod(nameof(Exiled.API.Features.Player.ShowHint), new[] { typeof(Exiled.API.Features.Hint) });
 
             Harmony.Unpatch(showHintMethod1, HarmonyPatchType.All);
             Harmony.Unpatch(showHintMethod2, HarmonyPatchType.All);
 
-            var exiledHintPatch1 = typeof(ExiledHintPatch).GetMethod(nameof(ExiledHintPatch.Prefix1));
-            var exiledHintPatch2 = typeof(ExiledHintPatch).GetMethod(nameof(ExiledHintPatch.Prefix2));
+            var exiledHintPatch1 = patchType.GetMethod(nameof(Patches.ExiledHintPatch1));
+            var exiledHintPatch2 = patchType.GetMethod(nameof(Patches.ExiledHintPatch2));
             Harmony.Patch(showHintMethod1, new HarmonyMethod(exiledHintPatch1));
             Harmony.Patch(showHintMethod2, new HarmonyMethod(exiledHintPatch2));
 #endif

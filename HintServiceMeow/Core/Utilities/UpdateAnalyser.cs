@@ -15,7 +15,6 @@ namespace HintServiceMeow.Core.Utilities
 
         private readonly TimeSpan _leastInterval = TimeSpan.FromMilliseconds(50f);
 
-        //For update estimation
         private readonly List<DateTime> _updateTimestamps = new List<DateTime>();
 
         public void OnUpdate()

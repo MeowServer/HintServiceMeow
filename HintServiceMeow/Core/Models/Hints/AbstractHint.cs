@@ -354,12 +354,12 @@ namespace HintServiceMeow.Core.Models.Hints
 
         #region Methods
 
-        internal void TryUpdateHint(PlayerDisplay.UpdateAvailableEventArg ev)
+        internal virtual void TryUpdateHint(PlayerDisplay.UpdateAvailableEventArg ev)
         {
             Content.TryUpdate(new TextUpdateArg(this, ev.PlayerDisplay));
         }
 
-        protected void OnHintUpdated()
+        protected virtual void OnHintUpdated()
         {
             Analyser.OnUpdate();
 
