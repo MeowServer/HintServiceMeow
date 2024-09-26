@@ -12,7 +12,7 @@ namespace HintServiceMeow.UI.Utilities
 {
     public class CommonHint
     {
-        private static PlayerUIConfig Config => PluginConfig.Instance.PlayerUIConfig;
+        private static PluginConfig Config => PluginConfig.Instance;
 
         private ReferenceHub ReferenceHub { get; }
         private PlayerDisplay PlayerDisplay => PlayerDisplay.Get(ReferenceHub);

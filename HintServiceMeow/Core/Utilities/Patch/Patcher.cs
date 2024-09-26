@@ -12,7 +12,6 @@ namespace HintServiceMeow.Core.Utilities.Patch
             Harmony = new Harmony("HintServiceMeowHarmony" + Plugin.Version);
 
             //Unpatch all other patches
-            var patchType = typeof(Patches);
             var hintDisplayMethod = typeof(HintDisplay).GetMethod(nameof(HintDisplay.Show));
             var receiveHintMethod1 = typeof(PluginAPI.Core.Player).GetMethod(nameof(PluginAPI.Core.Player.ReceiveHint), new[] { typeof(string), typeof(float) });
             var receiveHintMethod2 = typeof(PluginAPI.Core.Player).GetMethod(nameof(PluginAPI.Core.Player.ReceiveHint), new[] { typeof(string), typeof(HintEffect[]), typeof(float) });
@@ -20,14 +19,12 @@ namespace HintServiceMeow.Core.Utilities.Patch
             Harmony.Unpatch(receiveHintMethod1, HarmonyPatchType.All);
             Harmony.Unpatch(receiveHintMethod2, HarmonyPatchType.All);
 
-            // Patch the method
-            var hintDisplayPatch = patchType.GetMethod(nameof(Patches.HintDisplayPatch));
-            var receiveHintPatch1 = patchType.GetMethod(nameof(Patches.ReceiveHintPatch1));
-            var receiveHintPatch2 = patchType.GetMethod(nameof(Patches.ReceiveHintPatch2));
+            var patchType = typeof(Patches);
 
-            Harmony.Patch(hintDisplayMethod, new HarmonyMethod(hintDisplayPatch));
-            Harmony.Patch(receiveHintMethod1, new HarmonyMethod(receiveHintPatch1));
-            Harmony.Patch(receiveHintMethod2, new HarmonyMethod(receiveHintPatch2));
+            // Patch the method
+            Harmony.Patch(hintDisplayMethod, new HarmonyMethod(patchType.GetMethod(nameof(Patches.HintDisplayPatch))));
+            Harmony.Patch(receiveHintMethod1, new HarmonyMethod(patchType.GetMethod(nameof(Patches.ReceiveHintPatch1))));
+            Harmony.Patch(receiveHintMethod2, new HarmonyMethod(patchType.GetMethod(nameof(Patches.ReceiveHintPatch2))));
 
 
 #if EXILED

@@ -125,8 +125,10 @@ using PluginAPI.Events;
 // *        Fix the problem that font tools does not calculate character length correctly
 // *        Fix the problem that rich text parser does not handle line break correctly
 // *    V5.3.0
-// *        Fix the problem that ReceiveHint patch cause crush 
+// *        Use 4.8 instead of 4.8.1 as default .net version
+// *        Fix the problem that ReceiveHint patch cause crush
 // *        Add string builder pool to improve performance
+// *        Improve NW API compatibility
 // *        Minor naming update
 
 namespace HintServiceMeow
@@ -213,9 +215,12 @@ namespace HintServiceMeow
     {
         //IPlugin
         public PluginType Type => PluginType.NwAPI;
-        public PluginConfig PluginConfig => null;//NW somehow cannot serialize the config for HintServiceMeow
 
-        [PluginEntryPoint("HintServiceMeow", "5.3.0", "A hint framework", "MeowServerOwner")]
+        [PluginAPI.Core.Attributes.PluginConfig]
+        public PluginConfig Config;
+        public PluginConfig PluginConfig => Config;
+
+        [PluginEntryPoint("HintServiceMeow", "5.3.0", "A hint framework", "MeowServer")]
         public void LoadPlugin()
         {
             Plugin.OnEnabled(this);
@@ -267,7 +272,7 @@ namespace HintServiceMeow
         public static string Author => "MeowServer";
         public static Version Version => new Version(5, 3, 0);
 
-        public static PluginConfig Config = new PluginConfig();//Initialize if fail to initialize
+        public static PluginConfig Config = new PluginConfig();//Default if no config
 
         public static bool HasInitiated = false;
 
