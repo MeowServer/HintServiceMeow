@@ -125,6 +125,7 @@
     <Compile Include="Core\Models\HintContent\StringContent.cs" />
     <Compile Include="Core\Utilities\CompatAdapter .cs" />
     <Compile Include="Core\Utilities\Pools\StringBuilderPool.cs" />
+    <Compile Include="Core\Utilities\UpdateScheduler.cs" />
     <Compile Include="Core\Utilities\Tools\CoordinateTools.cs" />
     <Compile Include="Core\Utilities\Parser\HintParser.cs" />
     <Compile Include="Core\Utilities\Patch\Patcher.cs" />
