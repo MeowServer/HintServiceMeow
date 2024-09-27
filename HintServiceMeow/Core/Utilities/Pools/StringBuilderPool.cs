@@ -27,11 +27,8 @@ namespace HintServiceMeow.Core.Utilities.Pools
 
                     return sb;
                 }
-
-                return new StringBuilder(capacity);
             }
-
-            if (SmallStringBuilderQueue.TryDequeue(out sb))
+            else if (SmallStringBuilderQueue.TryDequeue(out sb))
             {
                 if (sb.Capacity < capacity)
                     sb.Capacity = capacity;
