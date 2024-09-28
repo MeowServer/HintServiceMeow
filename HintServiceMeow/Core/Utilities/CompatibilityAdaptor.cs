@@ -16,60 +16,61 @@ namespace HintServiceMeow.Core.Utilities
     /// <summary>
     /// Compatibility adaptor design to adapt other plugins' hint system to HintServiceMeow's hint system
     /// </summary>
-    internal static class CompatibilityAdaptor
+    internal class CompatibilityAdaptor
     {
         internal static readonly HashSet<string> RegisteredAssemblies = new HashSet<string>(); //Include all the assembly names that used this adaptor
-
         private static readonly ConcurrentDictionary<string, IReadOnlyList<Hint>> HintCache = new ConcurrentDictionary<string, IReadOnlyList<Hint>>();
 
-        private static readonly ConcurrentDictionary<string, DateTime> RemoveTime = new ConcurrentDictionary<string, DateTime>();
+        private readonly ConcurrentDictionary<string, DateTime> _removeTime = new ConcurrentDictionary<string, DateTime>();
+        private readonly HashSet<string> _suppressedAssemblies = new HashSet<string>();
 
-        private static readonly HashSet<string> SuppressedAssemblies = new HashSet<string>();
+        private readonly PlayerDisplay _playerDisplay;
 
-        public static void ShowHint(ReferenceHub player, string assemblyName, string content, float timeToRemove)
+        public CompatibilityAdaptor(PlayerDisplay playerDisplay)
+        {
+            this._playerDisplay = playerDisplay;
+        }
+
+        public void ShowHint(string assemblyName, string content, float timeToRemove)
         {
             RegisteredAssemblies.Add(assemblyName);
 
             if (Plugin.Config.DisabledCompatAdapter.Contains(assemblyName) //Config limitation
                 || content.Length > ushort.MaxValue //Length limitation
-                || SuppressedAssemblies.Contains(assemblyName)) //Rate limitation
+                || _suppressedAssemblies.Contains(assemblyName)) //Rate limitation
                 return;
 
             //Rate limitation
-            SuppressedAssemblies.Add(assemblyName);
-            Timing.CallDelayed(0.45f, () => SuppressedAssemblies.Remove(assemblyName));
+            _suppressedAssemblies.Add(assemblyName);
+            Timing.CallDelayed(0.45f, () => _suppressedAssemblies.Remove(assemblyName));
 
-            InternalShowHint(PlayerDisplay.Get(player), 
-                "CompatibilityAdaptor-" + assemblyName, 
-                content, 
-                TimeSpan.FromSeconds(timeToRemove));
+            var internalName = "CompatibilityAdaptor-" + assemblyName;
+
+            //Remove after period of time
+            _removeTime[internalName] = DateTime.Now.AddSeconds(timeToRemove);
+            Timing.CallDelayed(timeToRemove, () => 
+            Timing.CallDelayed(float.MinValue, () =>
+            {
+                if (DateTime.Now >= _removeTime[internalName])
+                    _playerDisplay.InternalClearHint(internalName);
+            }));
+
+            InternalShowHint(internalName, content);
         }
 
-        private static async void InternalShowHint(PlayerDisplay playerDisplay, string assemblyName, string content, TimeSpan timeToRemove)
+        private async void InternalShowHint(string internalName, string content)
         {
-            if (playerDisplay is null)
-                return;
-
             try
             {
-                RemoveTime[assemblyName] = DateTime.Now + timeToRemove;
-
-                var startTime = DateTime.Now;
-
                 //Check if the hint is already cached
                 if (HintCache.TryGetValue(content, out var cachedHintList))
                 {
-                    playerDisplay.InternalClearHint(assemblyName);
-                    playerDisplay.InternalAddHint(assemblyName, cachedHintList);
-
-                    //Remove after hint expire
-                    await Task.Delay(timeToRemove);
-
-                    if(RemoveTime.TryGetValue(assemblyName, out var removeTime) && removeTime <= DateTime.Now)
-                        playerDisplay.InternalClearHint(assemblyName);
-
+                    _playerDisplay.InternalClearHint(internalName, false);
+                    _playerDisplay.InternalAddHint(internalName, cachedHintList);
                     return;
                 }
+
+                var startTime = DateTime.Now;
 
                 //If not cached, then generate hint
                 List<Hint> hintList = await Task.Run(() =>
@@ -108,7 +109,7 @@ namespace HintServiceMeow.Core.Utilities
                     }
                     catch (Exception e)
                     {
-                        Log.Error($"Error while generating hint for {assemblyName}: {e}");
+                        Log.Error($"Error while generating hint for {internalName}: {e}");
                     }
 
                     return new List<Hint>();
@@ -133,29 +134,12 @@ namespace HintServiceMeow.Core.Utilities
                 });
 
                 //Make sure for low performance server
-                var elapsed = DateTime.Now - startTime;
-                if (elapsed > TimeSpan.FromSeconds(0.5) || elapsed >= timeToRemove)
+                if (DateTime.Now - startTime > TimeSpan.FromSeconds(0.45f))
                     return;
 
                 //Set up hint
-                playerDisplay.InternalClearHint(assemblyName);
-                playerDisplay.InternalAddHint(assemblyName, hintList);
-
-                //Remove after hint expire
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        await Task.Delay(timeToRemove);
-
-                        if (RemoveTime.TryGetValue(assemblyName, out var removeTime) && removeTime <= DateTime.Now)
-                            playerDisplay.InternalClearHint(assemblyName);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex.ToString());
-                    }
-                });
+                _playerDisplay.InternalClearHint(internalName, false);
+                _playerDisplay.InternalAddHint(internalName, hintList);
             }
             catch(Exception ex)
             {

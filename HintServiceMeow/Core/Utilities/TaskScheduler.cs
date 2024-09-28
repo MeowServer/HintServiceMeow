@@ -10,41 +10,36 @@ namespace HintServiceMeow.Core.Utilities
 {
     internal class TaskScheduler
     {
-        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
-
         private readonly Action _action;
 
         public readonly TimeSpan Interval;
+        private readonly CoroutineHandle _actionCoroutine;
+        private readonly ReaderWriterLockSlim _coroutineLock = new ReaderWriterLockSlim();
 
         public DateTime LastActionTime { get; private set; } = DateTime.MinValue;
         public DateTime NextActionTime { get; private set; } = DateTime.MaxValue;
-
-        public enum DelayType
-        {
-            /// <summary>
-            /// Only save the fastest action time
-            /// </summary>
-            Fastest,
-            /// <summary>
-            /// Only save the latest action time
-            /// </summary>
-            Latest,
-            /// <summary>
-            /// Update the action time without comparing
-            /// </summary>
-            Normal
-        }
+        private readonly ReaderWriterLockSlim _actionTimeLock = new ReaderWriterLockSlim();
 
         public TaskScheduler(TimeSpan interval, Action action)
         {
             this.Interval = interval;
             this._action = action ?? throw new ArgumentNullException(nameof(action));
-            Timing.RunCoroutine(TaskCoroutineMethod());
+
+            _coroutineLock.EnterWriteLock();
+            try
+            {
+                this._actionCoroutine = Timing.RunCoroutine(TaskCoroutineMethod());
+            }
+            finally
+            {
+                _coroutineLock.ExitWriteLock();
+            }
+
         }
 
         public void StartAction()
         {
-            _lock.EnterWriteLock();
+            _actionTimeLock.EnterWriteLock();
 
             try
             {
@@ -52,13 +47,13 @@ namespace HintServiceMeow.Core.Utilities
             }
             finally
             {
-                _lock.ExitWriteLock();
+                _actionTimeLock.ExitWriteLock();
             }
         }
 
         public void StartAction(float delay, DelayType delayType)
         {
-            _lock.EnterWriteLock();
+            _actionTimeLock.EnterWriteLock();
 
             try
             {
@@ -85,27 +80,13 @@ namespace HintServiceMeow.Core.Utilities
             }
             finally
             {
-                _lock.ExitWriteLock();
-            }
-        }
-
-        public void ResetCountDown()
-        {
-            _lock.EnterWriteLock();
-
-            try
-            {
-                LastActionTime = DateTime.Now;
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
+                _actionTimeLock.ExitWriteLock();
             }
         }
 
         public bool IsReadyForNextAction()
         {
-            _lock.EnterReadLock();
+            _coroutineLock.EnterReadLock();
 
             try
             {
@@ -113,7 +94,37 @@ namespace HintServiceMeow.Core.Utilities
             }
             finally
             {
-                _lock.ExitReadLock();
+                _coroutineLock.ExitReadLock();
+            }
+        }
+
+        public void PauseAction()
+        {
+            _coroutineLock.EnterWriteLock();
+
+            try
+            {
+                if(_actionCoroutine.IsRunning)
+                    Timing.PauseCoroutines(_actionCoroutine);
+            }
+            finally
+            {
+                _coroutineLock.ExitWriteLock();
+            }
+        }
+
+        public void ResumeAction()
+        {
+            _actionTimeLock.EnterWriteLock();
+
+            try
+            {
+                if(_actionCoroutine.IsAliveAndPaused)
+                    Timing.ResumeCoroutines(_actionCoroutine);
+            }
+            finally
+            {
+                _actionTimeLock.ExitWriteLock();
             }
         }
 
@@ -123,7 +134,7 @@ namespace HintServiceMeow.Core.Utilities
             {
                 yield return Timing.WaitUntilTrue(() =>
                 {
-                    _lock.EnterReadLock();
+                    _actionTimeLock.EnterReadLock();
 
                     try
                     {
@@ -137,19 +148,18 @@ namespace HintServiceMeow.Core.Utilities
                     }
                     finally
                     {
-                        _lock.ExitReadLock();
+                        _actionTimeLock.ExitReadLock();
                     }
                 });
 
-                _lock.EnterWriteLock();
+                _actionTimeLock.EnterWriteLock();
 
                 try
                 {
                     LastActionTime = DateTime.Now;
+                    NextActionTime = DateTime.MaxValue;
 
                     _action.Invoke();
-
-                    NextActionTime = DateTime.MaxValue;
                 }
                 catch(Exception ex)
                 {
@@ -157,9 +167,25 @@ namespace HintServiceMeow.Core.Utilities
                 }
                 finally
                 {
-                    _lock.ExitWriteLock();
+                    _actionTimeLock.ExitWriteLock();
                 }
             }
+        }
+
+        public enum DelayType
+        {
+            /// <summary>
+            /// Only save the fastest action time
+            /// </summary>
+            Fastest,
+            /// <summary>
+            /// Only save the latest action time
+            /// </summary>
+            Latest,
+            /// <summary>
+            /// Update the action time without comparing
+            /// </summary>
+            Normal
         }
     }
 }

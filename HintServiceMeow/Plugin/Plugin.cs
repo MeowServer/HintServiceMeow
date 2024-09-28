@@ -8,7 +8,6 @@ using PluginAPI.Core.Attributes;
 using PluginAPI.Enums;
 using PluginAPI.Events;
 
-
 // *    V1.0.0  First Release
 // *    V1.0.1
 // *        Update the display based on hint's content update
@@ -133,6 +132,9 @@ using PluginAPI.Events;
 // *    V5.3.1
 // *        Add RemoveAfter and HideAfter to PlayerDisplay and AbstractHint
 // *        Rewrite update management code in PlayerDisplay
+// *    V5.3.2
+// *        Fix the bug that cause CompatibilityAdapter to not work correctly
+// *        Fix the bug that cause update management to not work correctly
 
 namespace HintServiceMeow
 {
@@ -223,7 +225,7 @@ namespace HintServiceMeow
         public PluginConfig Config;
         public PluginConfig PluginConfig => Config;
 
-        [PluginEntryPoint("HintServiceMeow", "5.3.1", "A hint framework", "MeowServer")]
+        [PluginEntryPoint("HintServiceMeow", "5.3.2", "A hint framework", "MeowServer")]
         public void LoadPlugin()
         {
             Plugin.OnEnabled(this);
@@ -273,7 +275,7 @@ namespace HintServiceMeow
     {
         public static string Name => "HintServiceMeow";
         public static string Author => "MeowServer";
-        public static Version Version => new Version(5, 3, 1);
+        public static Version Version => new Version(5, 3, 2);
 
         public static PluginConfig Config = new PluginConfig();//Default if no config
 

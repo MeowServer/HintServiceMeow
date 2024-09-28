@@ -15,6 +15,7 @@ using HintServiceMeow.Core.Utilities.Parser;
 //Plugin API
 using Log = PluginAPI.Core.Log;
 using PluginAPI.Core;
+using UnityEngine.PlayerLoop;
 
 namespace HintServiceMeow.Core.Utilities
 {
@@ -46,8 +47,10 @@ namespace HintServiceMeow.Core.Utilities
         private readonly HintParser _hintParser = new HintParser();
         private readonly TaskScheduler _taskScheduler;
 
-        private readonly CoroutineHandle UpdateCoroutine;
-        private readonly CoroutineHandle Coroutine;
+        internal readonly CompatibilityAdaptor Adapter;
+
+        private readonly CoroutineHandle _updateCoroutine;
+        private readonly CoroutineHandle _coroutine;
 
         private readonly HashSet<AbstractHint> _updatingHints = new HashSet<AbstractHint>();
 
@@ -61,10 +64,15 @@ namespace HintServiceMeow.Core.Utilities
             this.ConnectionToClient = referenceHub.netIdentity.connectionToClient;
             this.ReferenceHub = referenceHub;
 
-            this._taskScheduler = new TaskScheduler(TimeSpan.FromMilliseconds(50), StartParserTask);
+            this._taskScheduler = new TaskScheduler(TimeSpan.FromSeconds(0.5f), () =>
+            {
+                StartParserTask();
+                _taskScheduler?.PauseAction();//Pause action until the parser task is done
+            });
+            this.Adapter = new CompatibilityAdaptor(this);
 
-            UpdateCoroutine = Timing.RunCoroutine(UpdateCoroutineMethod());
-            Coroutine = Timing.RunCoroutine(CoroutineMethod());
+            _updateCoroutine = Timing.RunCoroutine(UpdateCoroutineMethod());
+            _coroutine = Timing.RunCoroutine(CoroutineMethod());
 
             lock (PlayerDisplayListLock)
                 PlayerDisplayList.Add(this);
@@ -85,8 +93,8 @@ namespace HintServiceMeow.Core.Utilities
                     if (pd.ReferenceHub != referenceHub)
                         continue;
 
-                    Timing.KillCoroutines(pd.UpdateCoroutine);
-                    Timing.KillCoroutines(pd.Coroutine);
+                    Timing.KillCoroutines(pd._updateCoroutine);
+                    Timing.KillCoroutines(pd._coroutine);
                 }
 
                 PlayerDisplayList.RemoveWhere(x => x.ReferenceHub == referenceHub);
@@ -101,7 +109,7 @@ namespace HintServiceMeow.Core.Utilities
 
         #endregion
 
-        #region Coroutine Methods
+        #region _coroutine Methods
         private IEnumerator<float> UpdateCoroutineMethod()
         {
             //Basically send hint when parser task is done
@@ -116,7 +124,7 @@ namespace HintServiceMeow.Core.Utilities
                     {
                         SendHint(_currentParserTask.Result);
 
-                        _taskScheduler.ResetCountDown();
+                        _taskScheduler.ResumeAction();
 
                         _currentParserTask.Dispose();
                         _currentParserTask = null;
@@ -151,7 +159,7 @@ namespace HintServiceMeow.Core.Utilities
 
                 //Periodic update
                 if (_taskScheduler.LastActionTime + TimeSpan.FromSeconds(5) < DateTime.Now)
-                    StartParserTask();
+                    ScheduleUpdate();
             }
         }
         #endregion
@@ -308,9 +316,7 @@ namespace HintServiceMeow.Core.Utilities
             if (hint == null)
                 return;
 
-            var name = Assembly.GetCallingAssembly().FullName;
-
-            this.InternalAddHint(name, hint);
+            this.InternalAddHint(Assembly.GetCallingAssembly().FullName, hint);
         }
 
         public void AddHint(IEnumerable<AbstractHint> hints)
@@ -318,9 +324,7 @@ namespace HintServiceMeow.Core.Utilities
             if (hints == null)
                 return;
 
-            var name = Assembly.GetCallingAssembly().FullName;
-
-            this.InternalAddHint(name, hints);
+            this.InternalAddHint(Assembly.GetCallingAssembly().FullName, hints);
         }
 
         public void RemoveHint(AbstractHint hint)
@@ -328,9 +332,7 @@ namespace HintServiceMeow.Core.Utilities
             if (hint == null)
                 return;
 
-            var name = Assembly.GetCallingAssembly().FullName;
-
-            this.InternalRemoveHint(name, hint);
+            this.InternalRemoveHint(Assembly.GetCallingAssembly().FullName, hint);
         }
 
         public void RemoveHint(IEnumerable<AbstractHint> hints)
@@ -338,9 +340,7 @@ namespace HintServiceMeow.Core.Utilities
             if (hints == null)
                 return;
 
-            var name = Assembly.GetCallingAssembly().FullName;
-
-            this.InternalRemoveHint(name, hints);
+            this.InternalRemoveHint(Assembly.GetCallingAssembly().FullName, hints);
         }
 
         public void RemoveHint(string id)
@@ -348,16 +348,12 @@ namespace HintServiceMeow.Core.Utilities
             if (string.IsNullOrEmpty(id))
                 throw new Exception("A null or a empty ID had been passed to RemoveFromHintList");
 
-            var name = Assembly.GetCallingAssembly().FullName;
-
-            this.InternalRemoveHint(name, id);
+            this.InternalRemoveHint(Assembly.GetCallingAssembly().FullName, id);
         }
 
         public void ClearHint()
         {
-            var name = Assembly.GetCallingAssembly().FullName;
-
-            this.InternalClearHint(name);
+            this.InternalClearHint(Assembly.GetCallingAssembly().FullName);
         }
 
         public AbstractHint GetHint(string id)
@@ -370,17 +366,18 @@ namespace HintServiceMeow.Core.Utilities
             return _hints.GetHints(name).FirstOrDefault(x => x.Id == id);
         }
 
-        internal void InternalAddHint(string name, AbstractHint hint)
+        internal void InternalAddHint(string name, AbstractHint hint, bool update = true)
         {
             hint.HintUpdated += OnHintUpdate;
             UpdateAvailable += hint.TryUpdateHint;
 
             _hints.AddHint(name, hint);
 
-            ScheduleUpdate();
+            if (update)
+                ScheduleUpdate();
         }
 
-        internal void InternalAddHint(string name, IEnumerable<AbstractHint> hints)
+        internal void InternalAddHint(string name, IEnumerable<AbstractHint> hints, bool update = true)
         {
             foreach (var hint in hints)
             {
@@ -390,20 +387,22 @@ namespace HintServiceMeow.Core.Utilities
                 _hints.AddHint(name, hint);
             }
 
-            ScheduleUpdate();
+            if (update)
+                ScheduleUpdate();
         }
 
-        internal void InternalRemoveHint(string name, AbstractHint hint)
+        internal void InternalRemoveHint(string name, AbstractHint hint, bool update = true)
         {
             hint.HintUpdated -= OnHintUpdate;
             UpdateAvailable -= hint.TryUpdateHint;
 
             _hints.RemoveHint(name, hint);
 
-            ScheduleUpdate();
+            if (update)
+                ScheduleUpdate();
         }
 
-        internal void InternalRemoveHint(string name, IEnumerable<AbstractHint> hints)
+        internal void InternalRemoveHint(string name, IEnumerable<AbstractHint> hints, bool update = true)
         {
             foreach (var hint in hints)
             {
@@ -413,10 +412,11 @@ namespace HintServiceMeow.Core.Utilities
                 _hints.RemoveHint(name, hint);
             }
 
-            ScheduleUpdate();
+            if (update)
+                ScheduleUpdate();
         }
 
-        internal void InternalRemoveHint(string name, string id)
+        internal void InternalRemoveHint(string name, string id, bool update = true)
         {
             var hint = _hints.GetHints(name).FirstOrDefault(x => x.Id.Equals(id));
 
@@ -428,10 +428,11 @@ namespace HintServiceMeow.Core.Utilities
 
             _hints.RemoveHint(name, x => x.Id.Equals(id));
 
-            ScheduleUpdate();
+            if (update)
+                ScheduleUpdate();
         }
 
-        internal void InternalClearHint(string name)
+        internal void InternalClearHint(string name, bool update = true)
         {
             foreach(var hint in _hints.GetHints(name).ToList())
             {
@@ -441,7 +442,8 @@ namespace HintServiceMeow.Core.Utilities
 
             _hints.ClearHints(name);
 
-            ScheduleUpdate();
+            if (update)
+                ScheduleUpdate();
         }
 
         #endregion

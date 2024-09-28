@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using Hints;
+using HintServiceMeow.Core.Extension;
 using PluginAPI.Core;
 
 namespace HintServiceMeow.Core.Utilities.Patch
@@ -19,9 +20,8 @@ namespace HintServiceMeow.Core.Utilities.Patch
                     {
                         var assemblyName = Assembly.GetCallingAssembly().GetName().Name;
                         var content = textHint.Text;
-                        var timeToRemove = textHint.DurationScalar;
-
-                        CompatibilityAdaptor.ShowHint(referenceHub, assemblyName, content, timeToRemove);
+                        var duration = textHint.DurationScalar;
+                        PlayerDisplay.Get(referenceHub).Adapter.ShowHint(assemblyName, content, duration);
                     }
             }
             catch(Exception ex)
@@ -40,8 +40,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
             try
             {
                 var assemblyName = Assembly.GetCallingAssembly().GetName().Name;
-
-                CompatibilityAdaptor.ShowHint(__instance.ReferenceHub, assemblyName, text, duration);
+                __instance.GetPlayerDisplay().Adapter.ShowHint(assemblyName, text, duration);
             }
             catch (Exception ex)
             {
@@ -59,8 +58,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
             try
             {
                 var assemblyName = Assembly.GetCallingAssembly().GetName().Name;
-
-                CompatibilityAdaptor.ShowHint(__instance.ReferenceHub, assemblyName, text, duration);
+                __instance.GetPlayerDisplay().Adapter.ShowHint(assemblyName, text, duration);
             }
             catch (Exception ex)
             {
@@ -79,8 +77,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
             try
             {
                 var assemblyName = Assembly.GetCallingAssembly().GetName().Name;
-
-                CompatibilityAdaptor.ShowHint(__instance.ReferenceHub, assemblyName, message, duration);
+                __instance.GetPlayerDisplay().Adapter.ShowHint(assemblyName, message, duration);
             }
             catch (Exception ex)
             {
@@ -102,7 +99,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
             {
                 var assemblyName = Assembly.GetCallingAssembly().GetName().Name;
 
-                CompatibilityAdaptor.ShowHint(__instance.ReferenceHub, assemblyName, hint.Content, hint.Duration);
+                __instance.GetPlayerDisplay().Adapter.ShowHint(assemblyName, hint.Content, hint.Duration);
             }
             catch (Exception ex)
             {

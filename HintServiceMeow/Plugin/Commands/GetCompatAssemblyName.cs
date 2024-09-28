@@ -3,14 +3,14 @@ using System;
 using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.Core.Utilities.Pools;
 
-namespace HintServiceMeow.Commands
+namespace HintServiceMeow
 {
     [CommandHandler(typeof(RemoteAdminCommandHandler))]
     internal class GetCompatAssemblyName: ICommand
     {
         public string Command => "GetCompatAssemblyName";
 
-        public string[] Aliases => new string[] { "GCAN" };
+        public string[] Aliases => Array.Empty<string>();
 
         public string Description => "Get the name of all the assemblies that are using Compatibility Adaptor in HintServiceMeow";
 
