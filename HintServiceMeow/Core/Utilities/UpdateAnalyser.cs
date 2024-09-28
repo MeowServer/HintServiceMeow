@@ -29,7 +29,7 @@ namespace HintServiceMeow.Core.Utilities
 
                 //Add timestamp and remove outdated ones
                 _updateTimestamps.Add(now);
-                _updateTimestamps.RemoveAll(x => now - x > TimeSpan.FromSeconds(60));
+                _updateTimestamps.RemoveAll(x => now - x > TimeSpan.FromSeconds(30));
             }
         }
 
@@ -37,7 +37,7 @@ namespace HintServiceMeow.Core.Utilities
         {
             lock (_lock)
             {
-                if (_updateTimestamps.Count < 2)
+                if (_updateTimestamps.Count <= 1)
                 {
                     return DateTime.MaxValue;
                 }

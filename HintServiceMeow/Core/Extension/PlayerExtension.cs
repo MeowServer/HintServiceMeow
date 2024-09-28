@@ -22,22 +22,12 @@ namespace HintServiceMeow.Core.Extension
         }
     }
 #endif
-
     public static class NWPlayerExtension
     {
-        public static PlayerDisplay GetPlayerDisplay(this PluginAPI.Core.Player player)
-        {
-            return PlayerDisplay.Get(player.ReferenceHub);
-        }
+        public static PlayerDisplay GetPlayerDisplay(this PluginAPI.Core.Player player) => PlayerDisplay.Get(player);
 
-        public static void AddHint(this PluginAPI.Core.Player player, Hint hint)
-        {
-            PlayerDisplay.Get(player.ReferenceHub).AddHint(hint);
-        }
+        public static void AddHint(this PluginAPI.Core.Player player, Hint hint) => PlayerDisplay.Get(player).AddHint(hint);
 
-        public static void RemoveHint(this PluginAPI.Core.Player player, Hint hint)
-        {
-            PlayerDisplay.Get(player.ReferenceHub).RemoveHint(hint);
-        }
+        public static void RemoveHint(this PluginAPI.Core.Player player, Hint hint) => PlayerDisplay.Get(player).RemoveHint(hint);
     }
 }

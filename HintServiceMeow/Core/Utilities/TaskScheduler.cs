@@ -1,17 +1,10 @@
-﻿using HintServiceMeow.Core.Enum;
-using HintServiceMeow.Core.Models.Hints;
-using MEC;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using PluginAPI.Core;
-using static HintServiceMeow.Core.Utilities.PlayerDisplay;
-using HintServiceMeow.Core.Models;
-using System.Collections;
-using UnityEngine;
 using System.Threading;
+
+using PluginAPI.Core;
+using MEC;
+using static HintServiceMeow.Core.Utilities.TaskScheduler;
 
 namespace HintServiceMeow.Core.Utilities
 {
@@ -19,26 +12,43 @@ namespace HintServiceMeow.Core.Utilities
     {
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
-        private Action _action;
+        private readonly Action _action;
 
         public readonly TimeSpan Interval;
-        public DateTime LastActionTime { get; private set; } = DateTime.MinValue;
-        public DateTime NextActionTime { get; private set; } = DateTime.MaxValue;
 
-        public TaskScheduler(TimeSpan interval)
+        public DateTime LastActionTime { get; private set; } = DateTime.MinValue;
+        public DateTime NextActionTime { get; set; } = DateTime.MaxValue;
+
+        public enum DelayType
+        {
+            /// <summary>
+            /// Only save the fastest action time
+            /// </summary>
+            Fastest,
+            /// <summary>
+            /// Only save the latest action time
+            /// </summary>
+            Latest,
+            /// <summary>
+            /// Update the action time without comparing
+            /// </summary>
+            Normal
+        }
+
+        public TaskScheduler(TimeSpan interval, Action action)
         {
             this.Interval = interval;
+            this._action = action;
             Timing.RunCoroutine(RunTasks());
         }
 
-        public void SetNextAction(Action action)
+        public void StartAction()
         {
             _lock.EnterWriteLock();
 
             try
             {
                 NextActionTime = DateTime.MinValue;
-                _action = action;
             }
             finally
             {
@@ -46,23 +56,31 @@ namespace HintServiceMeow.Core.Utilities
             }
         }
 
-        public void SetNextAction(Action action, float delay)
+        public void StartAction(float delay, DelayType delayType)
         {
             _lock.EnterWriteLock();
 
             try
             {
-                if (NextActionTime - DateTime.Now > TimeSpan.FromSeconds(delay))
+                switch (delayType)
                 {
-                    NextActionTime = DateTime.Now.AddSeconds(delay);
-                    _action = action;
+                    case DelayType.Fastest:
+                        if (NextActionTime - DateTime.Now > TimeSpan.FromSeconds(delay))
+                            NextActionTime = DateTime.Now.AddSeconds(delay);
+                        break;
+                    case DelayType.Latest:
+                        if (NextActionTime < DateTime.Now.AddSeconds(delay))
+                            NextActionTime = DateTime.Now.AddSeconds(delay);
+                        break;
+                    case DelayType.Normal:
+                        NextActionTime = DateTime.Now.AddSeconds(delay);
+                        break;
                 }
             }
             finally
             {
                 _lock.ExitWriteLock();
             }
-            
         }
 
         public void ResetCountDown()
@@ -103,9 +121,6 @@ namespace HintServiceMeow.Core.Utilities
 
                     try
                     {
-                        if (_action == null)
-                            return false;
-
                         if (DateTime.Now < LastActionTime + Interval)
                             return false;
 
@@ -128,9 +143,8 @@ namespace HintServiceMeow.Core.Utilities
                     {
                         LastActionTime = DateTime.Now;
 
-                        _action?.Invoke();
+                        _action.Invoke();
 
-                        _action = null;
                         NextActionTime = DateTime.MaxValue;
                     }
                     finally

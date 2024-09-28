@@ -14,6 +14,7 @@ using HintServiceMeow.Core.Utilities.Parser;
 
 //Plugin API
 using Log = PluginAPI.Core.Log;
+using PluginAPI.Core;
 
 namespace HintServiceMeow.Core.Utilities
 {
@@ -22,19 +23,6 @@ namespace HintServiceMeow.Core.Utilities
     /// </summary>
     public class PlayerDisplay
     {
-        /// <summary>
-        /// Instance Trackers
-        /// </summary>
-        private static readonly HashSet<PlayerDisplay> PlayerDisplayList = new HashSet<PlayerDisplay>();
-        private static readonly object PlayerDisplayListLock = new object();
-
-        private static readonly Hints.TextHint HintTemplate = new Hints.TextHint("", new Hints.HintParameter[] { new Hints.StringHintParameter("") }, new Hints.HintEffect[] { Hints.HintEffectPresets.TrailingPulseAlpha(1, 1, 1) }, float.MaxValue);
-
-        /// <summary>
-        /// Groups of hints shows to the ReferenceHub. First group is used for regular hints, reset of the groups are used for compatibility hints
-        /// </summary>
-        private readonly HintCollection _hints = new HintCollection();
-
         /// <summary>
         /// The player this instance bind to
         /// </summary>
@@ -49,12 +37,19 @@ namespace HintServiceMeow.Core.Utilities
 
         public delegate void UpdateAvailableEventHandler(UpdateAvailableEventArg ev);
 
+        private static readonly HashSet<PlayerDisplay> PlayerDisplayList = new HashSet<PlayerDisplay>();
+        private static readonly object PlayerDisplayListLock = new object();
+
+        private static readonly Hints.TextHint HintTemplate = new Hints.TextHint("", new Hints.HintParameter[] { new Hints.StringHintParameter("") }, new Hints.HintEffect[] { Hints.HintEffectPresets.TrailingPulseAlpha(1, 1, 1) }, float.MaxValue);
+
+        private readonly HintCollection _hints = new HintCollection();
         private readonly HintParser _hintParser = new HintParser();
+        private readonly TaskScheduler _taskScheduler;
+
+        private readonly HashSet<AbstractHint> _updatingHints = new HashSet<AbstractHint>();
 
         private Task<string> _currentParserTask;
         private readonly object _currentParserTaskLock = new object();
-
-        private readonly TaskScheduler _taskScheduler = new TaskScheduler(TimeSpan.FromMilliseconds(50));
 
         #region Constructor and Destructors
 
@@ -62,6 +57,8 @@ namespace HintServiceMeow.Core.Utilities
         {
             this.ConnectionToClient = referenceHub.netIdentity.connectionToClient;
             this.ReferenceHub = referenceHub;
+
+            this._taskScheduler = new TaskScheduler(TimeSpan.FromMilliseconds(50), StartParserTask);
 
             Timing.RunCoroutine(UpdateCoroutineMethod());
             Timing.RunCoroutine(CoroutineMethod());
@@ -90,6 +87,7 @@ namespace HintServiceMeow.Core.Utilities
 
         #endregion
 
+        #region Coroutine Methods
         private IEnumerator<float> UpdateCoroutineMethod()
         {
             //Basically send hint when parser task is done
@@ -102,9 +100,6 @@ namespace HintServiceMeow.Core.Utilities
 
                     try
                     {
-                        if (_currentParserTask is null)
-                            continue;
-
                         SendHint(_currentParserTask.Result);
 
                         _taskScheduler.ResetCountDown();
@@ -145,34 +140,40 @@ namespace HintServiceMeow.Core.Utilities
                     StartParserTask();
             }
         }
+        #endregion
 
-        #region Update Rate Management
-
+        #region Update Management
         internal void OnHintUpdate(AbstractHint hint)
         {
+            if(_updatingHints.Contains(hint))
+                return;
+
             switch (hint.SyncSpeed)
             {
                 case HintSyncSpeed.Fastest:
                     ScheduleUpdate();
                     break;
                 case HintSyncSpeed.Fast:
-                    ScheduleUpdate(hint, 0.1f);
+                    ScheduleUpdate(0.1f, hint);
                     break;
                 case HintSyncSpeed.Normal:
-                    ScheduleUpdate(hint, 0.3f);
+                    ScheduleUpdate(0.3f, hint);
                     break;
                 case HintSyncSpeed.Slow:
-                    ScheduleUpdate(hint, 1f);
+                    ScheduleUpdate(1f, hint);
                     break;
                 case HintSyncSpeed.Slowest:
-                    ScheduleUpdate(hint, 3f);
+                    ScheduleUpdate(3f, hint);
                     break;
                 case HintSyncSpeed.UnSync:
                     break;
             }
+
+            _updatingHints.Add(hint);
+            Timing.CallDelayed(float.MinValue, () => _updatingHints.Remove(hint));//Suppress the hint from scheduling update for one frame
         }
 
-        private void ScheduleUpdate(AbstractHint updatingHint = null, float maxWaitingTime = 0)
+        private void ScheduleUpdate(float maxWaitingTime = float.MinValue, AbstractHint updatingHint = null)
         {
             lock(_currentParserTaskLock)
             {
@@ -180,17 +181,23 @@ namespace HintServiceMeow.Core.Utilities
                     return;
             }
 
-            if (updatingHint is null || maxWaitingTime <= 0)
+            if (maxWaitingTime <= 0)
             {
-                _taskScheduler.SetNextAction(StartParserTask);
+                _taskScheduler.StartAction();
                 return;
+            }
+
+            var predictingHints = _hints.AllHints;
+
+            if(updatingHint != null)
+            {
+                predictingHints = predictingHints.Where(h => h.SyncSpeed >= updatingHint.SyncSpeed && h != updatingHint);
             }
 
             var maxWaitingTimeSpan = TimeSpan.FromSeconds(maxWaitingTime);
             var now = DateTime.Now;
 
-            DateTime newTime = _hints.AllHints
-                .Where(h => h.SyncSpeed >= updatingHint.SyncSpeed && h != updatingHint)
+            DateTime newTime = predictingHints
                 .Select(h => h.Analyser.EstimateNextUpdate())
                 .Where(x => x - now >= TimeSpan.Zero && x - now <= maxWaitingTimeSpan)
                 .DefaultIfEmpty(DateTime.Now)
@@ -199,22 +206,21 @@ namespace HintServiceMeow.Core.Utilities
             var delay = (float)(newTime - DateTime.Now).TotalSeconds;
 
             if(delay <= 0)
-                _taskScheduler.SetNextAction(StartParserTask);
+                _taskScheduler.StartAction();
             else
-                _taskScheduler.SetNextAction(StartParserTask, delay);
+                _taskScheduler.StartAction(delay, TaskScheduler.DelayType.Fastest);
         }
-        #endregion
-
-        #region Update Methods
 
         /// <summary>
         /// Force an update when the update is available. You do not need to use this method unless you are using UnSync hints
         /// </summary>
         public void ForceUpdate(bool useFastUpdate = false)
         {
-            ScheduleUpdate();
+            ScheduleUpdate(useFastUpdate ? 0f : 0.3f);
         }
+        #endregion
 
+        #region Update Methods
         private void StartParserTask()
         {
             lock (_currentParserTaskLock)
@@ -236,8 +242,6 @@ namespace HintServiceMeow.Core.Utilities
                 Log.Error(ex.ToString());
             }
         }
-
-        
         #endregion
 
         #region Player Display Methods
@@ -257,6 +261,14 @@ namespace HintServiceMeow.Core.Utilities
                 pd = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
 
             return pd ?? new PlayerDisplay(referenceHub);//TryCreate ReferenceHub display if it has not been created yet
+        }
+
+        public static PlayerDisplay Get(Player player)
+        {
+            if (player is null)
+                throw new Exception("A null player had been passed to Get method");
+
+            return Get(player.ReferenceHub);
         }
 
 #if EXILED

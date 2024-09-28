@@ -118,6 +118,8 @@
     <Compile Include="Core\Enum\CaseStyle.cs" />
     <Compile Include="Core\Enum\FontStyle.cs" />
     <Compile Include="Core\Enum\ScriptStyle.cs" />
+    <Compile Include="Core\Extension\HintExtension.cs" />
+    <Compile Include="Core\Extension\PlayerDisplayExtension.cs" />
     <Compile Include="Core\Interface\IUpdateAnalyser.cs" />
     <Compile Include="Core\Models\HintCollection.cs" />
     <Compile Include="Core\Models\HintContent\AutoContent.cs" />
@@ -133,7 +135,7 @@
     <Compile Include="Core\Utilities\UpdateAnalyser.cs" />
     <Compile Include="Integrations\Integrator.cs" />
     <Compile Include="Integrations\ScriptedEventIntegration.cs" />
-    <Compile Include="Core\Extension\Extension.cs" />
+    <Compile Include="Core\Extension\PlayerExtension.cs" />
     <Compile Include="Core\Utilities\Parser\RichTextParser.cs" />
     <Compile Include="Core\Models\Hints\AbstractHint.cs" />
     <Compile Include="Core\Models\Hints\DynamicHint.cs" />
