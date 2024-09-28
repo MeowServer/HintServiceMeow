@@ -17,7 +17,7 @@ namespace HintServiceMeow.Core.Utilities
         public readonly TimeSpan Interval;
 
         public DateTime LastActionTime { get; private set; } = DateTime.MinValue;
-        public DateTime NextActionTime { get; set; } = DateTime.MaxValue;
+        public DateTime NextActionTime { get; private set; } = DateTime.MaxValue;
 
         public enum DelayType
         {
@@ -38,8 +38,8 @@ namespace HintServiceMeow.Core.Utilities
         public TaskScheduler(TimeSpan interval, Action action)
         {
             this.Interval = interval;
-            this._action = action;
-            Timing.RunCoroutine(RunTasks());
+            this._action = action ?? throw new ArgumentNullException(nameof(action));
+            Timing.RunCoroutine(TaskCoroutineMethod());
         }
 
         public void StartAction()
@@ -62,10 +62,16 @@ namespace HintServiceMeow.Core.Utilities
 
             try
             {
+                if (NextActionTime == DateTime.MaxValue)
+                {
+                    NextActionTime = DateTime.Now.AddSeconds(delay);
+                    return;
+                }
+
                 switch (delayType)
                 {
                     case DelayType.Fastest:
-                        if (NextActionTime - DateTime.Now > TimeSpan.FromSeconds(delay))
+                        if (NextActionTime > DateTime.Now.AddSeconds(delay))
                             NextActionTime = DateTime.Now.AddSeconds(delay);
                         break;
                     case DelayType.Latest:
@@ -111,7 +117,7 @@ namespace HintServiceMeow.Core.Utilities
             }
         }
 
-        private IEnumerator<float> RunTasks()
+        private IEnumerator<float> TaskCoroutineMethod()
         {
             while (true)
             {
@@ -135,26 +141,23 @@ namespace HintServiceMeow.Core.Utilities
                     }
                 });
 
+                _lock.EnterWriteLock();
+
                 try
                 {
-                    _lock.EnterWriteLock();
+                    LastActionTime = DateTime.Now;
 
-                    try
-                    {
-                        LastActionTime = DateTime.Now;
+                    _action.Invoke();
 
-                        _action.Invoke();
-
-                        NextActionTime = DateTime.MaxValue;
-                    }
-                    finally
-                    {
-                        _lock.ExitWriteLock();
-                    }
+                    NextActionTime = DateTime.MaxValue;
                 }
-                catch (Exception e)
+                catch(Exception ex)
                 {
-                    Log.Error(e.ToString());
+                    Log.Error(ex.ToString());
+                }
+                finally
+                {
+                    _lock.ExitWriteLock();
                 }
             }
         }

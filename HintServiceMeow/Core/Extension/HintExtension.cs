@@ -1,17 +1,19 @@
 ﻿using HintServiceMeow.Core.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using HintServiceMeow.Core.Models.Hints;
+using PluginAPI.Core;
 
 namespace HintServiceMeow.Core.Extension
 {
     public static class HintExtension
     {
-        private static readonly Dictionary<Hint, TaskScheduler> HideTime = new Dictionary<Hint, TaskScheduler>();
+        private static readonly Dictionary<AbstractHint, TaskScheduler> HideTime = new Dictionary<AbstractHint, TaskScheduler>();
 
-        public static void HideAfter(this Hint hint, float delay)
+        /// <summary>
+        /// Set Hint.Hide to true after a delay. If a hiding task is in progress, it will be reset.
+        /// </summary>
+        public static void HideAfter(this AbstractHint hint, float delay)
         {
             if (!HideTime.TryGetValue(hint, out var scheduler))
                 HideTime.Add(hint, scheduler = new TaskScheduler(TimeSpan.Zero, () => hint.Hide = true));

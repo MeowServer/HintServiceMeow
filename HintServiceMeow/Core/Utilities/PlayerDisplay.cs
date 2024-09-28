@@ -46,6 +46,9 @@ namespace HintServiceMeow.Core.Utilities
         private readonly HintParser _hintParser = new HintParser();
         private readonly TaskScheduler _taskScheduler;
 
+        private readonly CoroutineHandle UpdateCoroutine;
+        private readonly CoroutineHandle Coroutine;
+
         private readonly HashSet<AbstractHint> _updatingHints = new HashSet<AbstractHint>();
 
         private Task<string> _currentParserTask;
@@ -60,8 +63,8 @@ namespace HintServiceMeow.Core.Utilities
 
             this._taskScheduler = new TaskScheduler(TimeSpan.FromMilliseconds(50), StartParserTask);
 
-            Timing.RunCoroutine(UpdateCoroutineMethod());
-            Timing.RunCoroutine(CoroutineMethod());
+            UpdateCoroutine = Timing.RunCoroutine(UpdateCoroutineMethod());
+            Coroutine = Timing.RunCoroutine(CoroutineMethod());
 
             lock (PlayerDisplayListLock)
                 PlayerDisplayList.Add(this);
@@ -76,7 +79,18 @@ namespace HintServiceMeow.Core.Utilities
         internal static void Destruct(ReferenceHub referenceHub)
         {
             lock (PlayerDisplayListLock)
+            {
+                foreach (var pd in PlayerDisplayList)
+                {
+                    if (pd.ReferenceHub != referenceHub)
+                        continue;
+
+                    Timing.KillCoroutines(pd.UpdateCoroutine);
+                    Timing.KillCoroutines(pd.Coroutine);
+                }
+
                 PlayerDisplayList.RemoveWhere(x => x.ReferenceHub == referenceHub);
+            }
         }
 
         internal static void ClearInstance()
@@ -430,14 +444,6 @@ namespace HintServiceMeow.Core.Utilities
             ScheduleUpdate();
         }
 
-        #endregion
-
-        #region Extension Methods
-        public void RemoveAfter(AbstractHint hint, float seconds)
-        {
-            var name = Assembly.GetCallingAssembly().FullName;
-            Timing.CallDelayed(seconds, () => InternalRemoveHint(name, hint));    
-        }
         #endregion
 
         /// <summary>

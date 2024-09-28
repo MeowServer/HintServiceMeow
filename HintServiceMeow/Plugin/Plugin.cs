@@ -130,6 +130,9 @@ using PluginAPI.Events;
 // *        Add string builder pool to improve performance
 // *        Improve NW API compatibility
 // *        Minor naming update
+// *    V5.3.1
+// *        Add RemoveAfter and HideAfter to PlayerDisplay and AbstractHint
+// *        Rewrite update management code in PlayerDisplay
 
 namespace HintServiceMeow
 {
@@ -220,7 +223,7 @@ namespace HintServiceMeow
         public PluginConfig Config;
         public PluginConfig PluginConfig => Config;
 
-        [PluginEntryPoint("HintServiceMeow", "5.3.0", "A hint framework", "MeowServer")]
+        [PluginEntryPoint("HintServiceMeow", "5.3.1", "A hint framework", "MeowServer")]
         public void LoadPlugin()
         {
             Plugin.OnEnabled(this);
@@ -270,7 +273,7 @@ namespace HintServiceMeow
     {
         public static string Name => "HintServiceMeow";
         public static string Author => "MeowServer";
-        public static Version Version => new Version(5, 3, 0);
+        public static Version Version => new Version(5, 3, 1);
 
         public static PluginConfig Config = new PluginConfig();//Default if no config
 

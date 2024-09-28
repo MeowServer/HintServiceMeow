@@ -22,7 +22,7 @@ namespace HintServiceExample
 
         public override void OnEnabled()
         {
-            Exiled.Events.Handlers.Player.Verified += OnVerified;
+            //Exiled.Events.Handlers.Player.Verified += OnVerified;
             Exiled.Events.Handlers.Player.Verified += EventHandler.OnVerified;
 
             base.OnEnabled();
@@ -30,7 +30,7 @@ namespace HintServiceExample
 
         public override void OnDisabled()
         {
-            Exiled.Events.Handlers.Player.Verified -= OnVerified;
+            //Exiled.Events.Handlers.Player.Verified -= OnVerified;
             Exiled.Events.Handlers.Player.Verified -= EventHandler.OnVerified;
 
             base.OnDisabled();
@@ -51,10 +51,12 @@ namespace HintServiceExample
             ShowDynamicHintA(ev.Player);
             ShowCommonHintA(ev.Player);
 
+            Timing.RunCoroutine(CoroutineMethod(ev.Player));
+
             ev.Player.ShowHint("<Line-Height=500>\n<pos=400>Hello, this is a hint using ShowHint directly", 20f); //Compatibility adapter
         }
 
-        //How to use Hint
+        //Basic Hint Skill
         private static void ShowHintA(Player player)
         {
             var pd = player.GetPlayerDisplay();
@@ -98,21 +100,21 @@ namespace HintServiceExample
 
             var roleHint = new Hint()
             {
-                AutoText = GetRole,
+                AutoText = ev => Player.Get(ev.Player).Role?.Type.ToString(),
                 YCoordinateAlign = HintVerticalAlign.Bottom,
-                YCoordinate = 1080, //1920*1080, so 1080 is the highest Y coordinate
+                YCoordinate = 1080, //0 - 1080. This applies to any screen resolution since 1080 is virtual resolution
                 XCoordinate = 600,
                 FontSize = 20
             };
 
             var itemHint = new Hint()
             {
-                AutoText = GetItem,
+                AutoText = ev => Player.Get(ev.Player).CurrentItem?.Type.ToString() ?? ItemType.None.ToString(),
                 YCoordinateAlign = HintVerticalAlign.Bottom,
                 YCoordinate = 1080,
                 XCoordinate = -600,
                 FontSize = 20,
-                SyncSpeed = HintSyncSpeed.Fast // This will update the hint as soon as it can
+                SyncSpeed = HintSyncSpeed.Fastest // This will update the hint as soon as it can
             };
 
             pd.AddHint(roleHint);
@@ -125,13 +127,15 @@ namespace HintServiceExample
             for (var i = 0; i < 10; i++)
             {
                 //Each dynamic hint will automatically find the position that does not overlaps with other hints
-                player.GetPlayerDisplay().AddHint(new DynamicHint()
+                var dynamicHint = new DynamicHint()
                 {
                     Id = $"DynamicHint{i}",
                     Text = "Welcome\n<b>To HintServiceMeow</b>",
                     TargetX = 0,
                     TargetY = 700,
-                });
+                };
+
+                player.AddHint(dynamicHint);
             }
         }
 
@@ -153,14 +157,25 @@ namespace HintServiceExample
             return $"TPS: {Server.Tps:0.#}";
         }
 
-        private static string GetRole(AbstractHint.TextUpdateArg ev)
+        public static IEnumerator<float> CoroutineMethod(Player player)
         {
-            return Player.Get(ev.Player).Role?.Type.ToString();
-        }
+            var hint = new Hint()
+            {
+                Text = "Hello, this hint will be remove after the last HideAfter is called",
+                YCoordinateAlign = HintVerticalAlign.Top,
+                YCoordinate = 200,
+                FontSize = 60
+            };
+            player.AddHint(hint);
 
-        private static string GetItem(AbstractHint.TextUpdateArg ev)
-        {
-            return Player.Get(ev.Player).CurrentItem?.Type.ToString() ?? ItemType.None.ToString();
+            //How to use hide after
+            //By doing this, the hint will only be hidden 5 seconds after the last HideAfter since every HideAfter method reset the last task.
+            //PlayerDisplay.RemoveAfter works the same way
+            hint.HideAfter(5f);
+            yield return Timing.WaitForSeconds(3f);
+            hint.HideAfter(5f);
+            yield return Timing.WaitForSeconds(3f);
+            hint.HideAfter(5f);
         }
     }
 }
