@@ -12,10 +12,10 @@ namespace HintServiceMeow.Core.Models
     /// </summary>
     internal class HintCollection
     {
-        private readonly Dictionary<string, List<AbstractHint>> _hintGroups = new Dictionary<string, List<AbstractHint>>();
+        private readonly Dictionary<string, HashSet<AbstractHint>> _hintGroups = new Dictionary<string, HashSet<AbstractHint>>();
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
-        public IEnumerable<List<AbstractHint>> AllGroups
+        public IEnumerable<HashSet<AbstractHint>> AllGroups
         {
             get
             {
@@ -53,7 +53,7 @@ namespace HintServiceMeow.Core.Models
             try
             {
                 if (!_hintGroups.ContainsKey(assemblyName))
-                    _hintGroups[assemblyName] = new List<AbstractHint>();
+                    _hintGroups[assemblyName] = new HashSet<AbstractHint>();
 
                 _hintGroups[assemblyName].Add(hint);
             }
@@ -87,7 +87,7 @@ namespace HintServiceMeow.Core.Models
                 if (!_hintGroups.TryGetValue(assemblyName, out var hintList))
                     return;
 
-                hintList.RemoveAll(predicate);
+                hintList.RemoveWhere(predicate);
             }
             finally
             {

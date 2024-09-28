@@ -23,7 +23,7 @@ namespace HintServiceMeow.Core.Utilities
             {
                 var now = DateTime.Now;
 
-                //Check if the interval is too short
+                //Check if the Interval is too short
                 if (!_updateTimestamps.IsEmpty() && now - _updateTimestamps.Last() < _leastInterval)
                     return;
 
@@ -49,7 +49,7 @@ namespace HintServiceMeow.Core.Utilities
 
                 try
                 {
-                    //Calculate interval
+                    //Calculate Interval
                     List<long> intervals = new List<long>();
                     for (int i = 1; i < _updateTimestamps.Count; i++)
                     {

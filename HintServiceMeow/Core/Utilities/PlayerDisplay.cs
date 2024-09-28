@@ -4,7 +4,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
-using Hints;
 using Mirror;
 using MEC;
 
@@ -15,8 +14,6 @@ using HintServiceMeow.Core.Utilities.Parser;
 
 //Plugin API
 using Log = PluginAPI.Core.Log;
-using Exiled.API.Features;
-
 
 namespace HintServiceMeow.Core.Utilities
 {
@@ -31,7 +28,7 @@ namespace HintServiceMeow.Core.Utilities
         private static readonly HashSet<PlayerDisplay> PlayerDisplayList = new HashSet<PlayerDisplay>();
         private static readonly object PlayerDisplayListLock = new object();
 
-        private static readonly TextHint HintTemplate = new TextHint("", new HintParameter[] { new StringHintParameter("") }, new HintEffect[] { HintEffectPresets.TrailingPulseAlpha(1, 1, 1) }, float.MaxValue);
+        private static readonly Hints.TextHint HintTemplate = new Hints.TextHint("", new Hints.HintParameter[] { new Hints.StringHintParameter("") }, new Hints.HintEffect[] { Hints.HintEffectPresets.TrailingPulseAlpha(1, 1, 1) }, float.MaxValue);
 
         /// <summary>
         /// Groups of hints shows to the ReferenceHub. First group is used for regular hints, reset of the groups are used for compatibility hints
@@ -57,14 +54,97 @@ namespace HintServiceMeow.Core.Utilities
         private Task<string> _currentParserTask;
         private readonly object _currentParserTaskLock = new object();
 
-        /// <summary>
-        /// The text that was sent to the client in latest sync
-        /// </summary>
-        private string _lastText = string.Empty;
+        private readonly TaskScheduler _taskScheduler = new TaskScheduler(TimeSpan.FromMilliseconds(50));
 
-        private readonly UpdateScheduler _updateScheduler = new UpdateScheduler();
-        private DateTime _arrangedUpdateTime = DateTime.MaxValue;
-        private DateTime _planUpdateTime = DateTime.MaxValue;
+        #region Constructor and Destructors
+
+        private PlayerDisplay(ReferenceHub referenceHub)
+        {
+            this.ConnectionToClient = referenceHub.netIdentity.connectionToClient;
+            this.ReferenceHub = referenceHub;
+
+            Timing.RunCoroutine(UpdateCoroutineMethod());
+            Timing.RunCoroutine(CoroutineMethod());
+
+            lock (PlayerDisplayListLock)
+                PlayerDisplayList.Add(this);
+        }
+
+        internal static PlayerDisplay TryCreate(ReferenceHub referenceHub)
+        {
+             lock (PlayerDisplayListLock)
+                return PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub) ?? new PlayerDisplay(referenceHub);
+        }
+
+        internal static void Destruct(ReferenceHub referenceHub)
+        {
+            lock (PlayerDisplayListLock)
+                PlayerDisplayList.RemoveWhere(x => x.ReferenceHub == referenceHub);
+        }
+
+        internal static void ClearInstance()
+        {
+            lock (PlayerDisplayListLock)
+                PlayerDisplayList.Clear();
+        }
+
+        #endregion
+
+        private IEnumerator<float> UpdateCoroutineMethod()
+        {
+            //Basically send hint when parser task is done
+            while (true)
+            {
+                lock(_currentParserTaskLock)
+                {
+                    while(_currentParserTask is null || !_currentParserTask.IsCompleted)
+                        yield return Timing.WaitForOneFrame;
+
+                    try
+                    {
+                        if (_currentParserTask is null)
+                            continue;
+
+                        SendHint(_currentParserTask.Result);
+
+                        _taskScheduler.ResetCountDown();
+
+                        _currentParserTask.Dispose();
+                        _currentParserTask = null;
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex.ToString());
+                    }
+
+                    yield return Timing.WaitForOneFrame;
+                }
+            }
+        }
+
+        private IEnumerator<float> CoroutineMethod()
+        {
+            while (true)
+            {
+                yield return Timing.WaitForSeconds(0.1f);
+
+                if (_taskScheduler.IsReadyForNextAction())
+                {
+                    try
+                    {
+                        UpdateAvailable?.Invoke(new UpdateAvailableEventArg(this));
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex.ToString());
+                    }
+                }
+
+                //Periodic update
+                if (_taskScheduler.LastActionTime + TimeSpan.FromSeconds(5) < DateTime.Now)
+                    StartParserTask();
+            }
+        }
 
         #region Update Rate Management
 
@@ -73,138 +153,56 @@ namespace HintServiceMeow.Core.Utilities
             switch (hint.SyncSpeed)
             {
                 case HintSyncSpeed.Fastest:
-                    _updateScheduler.UpdateWhenAvailable(true);
+                    ScheduleUpdate();
                     break;
                 case HintSyncSpeed.Fast:
-                    UpdateWhenAvailable();
+                    ScheduleUpdate(hint, 0.1f);
                     break;
                 case HintSyncSpeed.Normal:
-                    Task.Run(() => ArrangeUpdate(TimeSpan.FromSeconds(0.3f), hint));
+                    ScheduleUpdate(hint, 0.3f);
                     break;
                 case HintSyncSpeed.Slow:
-                    Task.Run(() => ArrangeUpdate(TimeSpan.FromSeconds(1f), hint));
+                    ScheduleUpdate(hint, 1f);
                     break;
                 case HintSyncSpeed.Slowest:
-                    Task.Run(() => ArrangeUpdate(TimeSpan.FromSeconds(3f), hint));
+                    ScheduleUpdate(hint, 3f);
                     break;
                 case HintSyncSpeed.UnSync:
                     break;
             }
         }
 
-        private void UpdateWhenAvailable()
+        private void ScheduleUpdate(AbstractHint updatingHint = null, float maxWaitingTime = 0)
         {
-            DateTime newUpdateTime = _updateScheduler.UpdateWhenAvailable();
-
-            if (newUpdateTime < _planUpdateTime)
-                _planUpdateTime = newUpdateTime;
-
-            _planUpdateTime = _updateScheduler.UpdateWhenAvailable();
-        }
-
-        private void ArrangeUpdate(TimeSpan maxWaitingTime, AbstractHint hint)
-        {
-            DateTime newArrangeUpdateTime = _updateScheduler.ArrangeUpdate(maxWaitingTime, hint, _hints);
-
-            if(newArrangeUpdateTime < _arrangedUpdateTime)
-                _arrangedUpdateTime = newArrangeUpdateTime;
-        }
-
-        /// <summary>
-        /// Include force update and UpdateAvailable event
-        /// </summary>
-        private static IEnumerator<float> CoroutineMethod()
-        {
-            while (true)
+            lock(_currentParserTaskLock)
             {
-                try
-                {
-                    lock (PlayerDisplayListLock)
-                    {
-                        foreach (PlayerDisplay pd in PlayerDisplayList)
-                        {
-                            //Force update
-                            if (pd._updateScheduler.NeedPeriodicUpdate && pd._currentParserTask == null)
-                                pd.StartParserTask();
-
-                            //Invoke UpdateAvailable event
-                            if (pd._updateScheduler.UpdateReady)
-                                pd.UpdateAvailable?.Invoke(new UpdateAvailableEventArg(pd));
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex.ToString());
-                }
-
-                yield return Timing.WaitForSeconds(0.1f);
+                if (_currentParserTask != null)
+                    return;
             }
-        }
 
-        /// <summary>
-        /// Include update management
-        /// </summary>
-        private static IEnumerator<float> UpdateCoroutineMethod()
-        {
-            while (true)
+            if (updatingHint is null || maxWaitingTime <= 0)
             {
-                try
-                {
-                    DateTime now = DateTime.Now;
-
-                    lock (PlayerDisplayListLock)
-                    {
-                        foreach (PlayerDisplay pd in PlayerDisplayList)
-                        {
-                            //Check arranged update time.
-                            if (now > pd._arrangedUpdateTime)
-                            {
-                                pd._arrangedUpdateTime = DateTime.MaxValue;
-                                pd.UpdateWhenAvailable();
-                            }
-
-                            //Update based on plan
-                            //If last update complete, then start a new update. Otherwise, wait for the last update to complete
-                            if (now > pd._planUpdateTime && pd._currentParserTask == null)
-                            {
-                                //Reset Update Plan
-                                pd._planUpdateTime = DateTime.MaxValue;
-                                pd.StartParserTask();
-                            }
-
-                            //If complete parsing, send the parsed text to client
-                            if (pd._currentParserTask != null && pd._currentParserTask.IsCompleted)
-                            {
-                                var text = pd._currentParserTask.GetAwaiter().GetResult();
-
-                                //Only update when text had changed since last update or if this is a force update
-                                if (text != pd._lastText || pd._updateScheduler.NeedPeriodicUpdate)
-                                {
-                                    //Update text record
-                                    pd._lastText = text;
-
-                                    //Reset CountDown
-                                    pd._updateScheduler.Reset();
-
-                                    pd.SendHint(text);
-                                }
-
-                                pd._currentParserTask.Dispose();
-                                pd._currentParserTask = null;
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex.ToString());
-                }
-
-                yield return Timing.WaitForOneFrame;
+                _taskScheduler.SetNextAction(StartParserTask);
+                return;
             }
-        }
 
+            var maxWaitingTimeSpan = TimeSpan.FromSeconds(maxWaitingTime);
+            var now = DateTime.Now;
+
+            DateTime newTime = _hints.AllHints
+                .Where(h => h.SyncSpeed >= updatingHint.SyncSpeed && h != updatingHint)
+                .Select(h => h.Analyser.EstimateNextUpdate())
+                .Where(x => x - now >= TimeSpan.Zero && x - now <= maxWaitingTimeSpan)
+                .DefaultIfEmpty(DateTime.Now)
+                .Max();
+
+            var delay = (float)(newTime - DateTime.Now).TotalSeconds;
+
+            if(delay <= 0)
+                _taskScheduler.SetNextAction(StartParserTask);
+            else
+                _taskScheduler.SetNextAction(StartParserTask, delay);
+        }
         #endregion
 
         #region Update Methods
@@ -212,10 +210,9 @@ namespace HintServiceMeow.Core.Utilities
         /// <summary>
         /// Force an update when the update is available. You do not need to use this method unless you are using UnSync hints
         /// </summary>
-        /// <param name="useFastUpdate">Use fast update might increase the cooldown of next update</param>
         public void ForceUpdate(bool useFastUpdate = false)
         {
-            UpdateWhenAvailable();
+            ScheduleUpdate();
         }
 
         private void StartParserTask()
@@ -232,7 +229,7 @@ namespace HintServiceMeow.Core.Utilities
                     return;
 
                 HintTemplate.Text = text;
-                ConnectionToClient.Send(new HintMessage(HintTemplate));
+                ConnectionToClient.Send(new Hints.HintMessage(HintTemplate));
             }
             catch (Exception ex)
             {
@@ -240,47 +237,7 @@ namespace HintServiceMeow.Core.Utilities
             }
         }
 
-        #endregion
-
-        #region Constructor and Destructors
-
-        private PlayerDisplay(ReferenceHub referenceHub)
-        {
-            this.ConnectionToClient = referenceHub.netIdentity.connectionToClient;
-            this.ReferenceHub = referenceHub;
-
-            lock (PlayerDisplayListLock)
-                PlayerDisplayList.Add(this);
-        }
-
-        static PlayerDisplay()
-        {
-            Timing.RunCoroutine(CoroutineMethod());
-            Timing.RunCoroutine(UpdateCoroutineMethod());
-        }
-
-        internal static PlayerDisplay TryCreate(ReferenceHub referenceHub)
-        {
-            PlayerDisplay pd;
-
-            lock (PlayerDisplayListLock)
-                pd = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
-
-            return pd ?? new PlayerDisplay(referenceHub);
-        }
-
-        internal static void Destruct(ReferenceHub referenceHub)
-        {
-            lock (PlayerDisplayListLock)
-                PlayerDisplayList.RemoveWhere(x => x.ReferenceHub == referenceHub);
-        }
-
-        internal static void ClearInstance()
-        {
-            lock (PlayerDisplayListLock)
-                PlayerDisplayList.Clear();
-        }
-
+        
         #endregion
 
         #region Player Display Methods
@@ -394,7 +351,7 @@ namespace HintServiceMeow.Core.Utilities
 
             _hints.AddHint(name, hint);
 
-            UpdateWhenAvailable();
+            ScheduleUpdate();
         }
 
         internal void InternalAddHint(string name, IEnumerable<AbstractHint> hints)
@@ -407,7 +364,7 @@ namespace HintServiceMeow.Core.Utilities
                 _hints.AddHint(name, hint);
             }
 
-            UpdateWhenAvailable();
+            ScheduleUpdate();
         }
 
         internal void InternalRemoveHint(string name, AbstractHint hint)
@@ -417,7 +374,7 @@ namespace HintServiceMeow.Core.Utilities
 
             _hints.RemoveHint(name, hint);
 
-            UpdateWhenAvailable();
+            ScheduleUpdate();
         }
 
         internal void InternalRemoveHint(string name, IEnumerable<AbstractHint> hints)
@@ -430,7 +387,7 @@ namespace HintServiceMeow.Core.Utilities
                 _hints.RemoveHint(name, hint);
             }
 
-            UpdateWhenAvailable();
+            ScheduleUpdate();
         }
 
         internal void InternalRemoveHint(string name, string id)
@@ -445,7 +402,7 @@ namespace HintServiceMeow.Core.Utilities
 
             _hints.RemoveHint(name, x => x.Id.Equals(id));
 
-            UpdateWhenAvailable();
+            ScheduleUpdate();
         }
 
         internal void InternalClearHint(string name)
@@ -458,7 +415,7 @@ namespace HintServiceMeow.Core.Utilities
 
             _hints.ClearHints(name);
 
-            UpdateWhenAvailable();
+            ScheduleUpdate();
         }
 
         #endregion
