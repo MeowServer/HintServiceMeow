@@ -13,9 +13,7 @@ using HintServiceMeow.Core.Models;
 using HintServiceMeow.Core.Utilities.Parser;
 
 //Plugin API
-using Log = PluginAPI.Core.Log;
 using PluginAPI.Core;
-using UnityEngine.PlayerLoop;
 
 namespace HintServiceMeow.Core.Utilities
 {
@@ -76,12 +74,6 @@ namespace HintServiceMeow.Core.Utilities
 
             lock (PlayerDisplayListLock)
                 PlayerDisplayList.Add(this);
-        }
-
-        internal static PlayerDisplay TryCreate(ReferenceHub referenceHub)
-        {
-             lock (PlayerDisplayListLock)
-                return PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub) ?? new PlayerDisplay(referenceHub);
         }
 
         internal static void Destruct(ReferenceHub referenceHub)
@@ -269,39 +261,39 @@ namespace HintServiceMeow.Core.Utilities
         #region Player Display Methods
 
         /// <summary>
-        /// Get the PlayerDisplay instance of the player
+        /// Get the PlayerDisplay instance of the player. If the instance have not been created yet, then it will create one.
         /// Not Thread Safe
         /// </summary>
         public static PlayerDisplay Get(ReferenceHub referenceHub)
         {
             if (referenceHub is null)
-                throw new Exception("A null ReferenceHub had been passed to Get method");
-
-            PlayerDisplay pd;
+                throw new ArgumentNullException(nameof(referenceHub));
 
             lock (PlayerDisplayListLock)
-                pd = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
-
-            return pd ?? new PlayerDisplay(referenceHub);//TryCreate ReferenceHub display if it has not been created yet
+                return PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub) ?? new PlayerDisplay(referenceHub);//TryCreate ReferenceHub display if it has not been created yet
         }
 
+        /// <summary>
+        /// Get the PlayerDisplay instance of the player. If the instance have not been created yet, then it will create one.
+        /// Not Thread Safe
+        /// </summary>
         public static PlayerDisplay Get(Player player)
         {
             if (player is null)
-                throw new Exception("A null player had been passed to Get method");
+                throw new ArgumentNullException(nameof(player));
 
             return Get(player.ReferenceHub);
         }
 
 #if EXILED
         /// <summary>
-        /// Get the PlayerDisplay instance of the player
+        /// Get the PlayerDisplay instance of the player. If the instance have not been created yet, then it will create one.
         /// Not Thread Safe
         /// </summary>
         public static PlayerDisplay Get(Exiled.API.Features.Player player)
         {
             if(player is null)
-                throw new Exception("A null player had been passed to Get method");
+                throw new ArgumentNullException(nameof(player));
 
             return Get(player.ReferenceHub);
         }
@@ -345,8 +337,11 @@ namespace HintServiceMeow.Core.Utilities
 
         public void RemoveHint(string id)
         {
-            if (string.IsNullOrEmpty(id))
-                throw new Exception("A null or a empty ID had been passed to RemoveFromHintList");
+            if (id is null)
+                throw new ArgumentNullException(nameof(id));
+
+            if (id == string.Empty)
+                throw new ArgumentException("A empty string had been passed to RemoveHint");
 
             this.InternalRemoveHint(Assembly.GetCallingAssembly().FullName, id);
         }
@@ -358,8 +353,11 @@ namespace HintServiceMeow.Core.Utilities
 
         public AbstractHint GetHint(string id)
         {
-            if (string.IsNullOrEmpty(id))
-                throw new Exception("A null or a empty name had been passed to GetHint");
+            if (id is null)
+                throw new ArgumentNullException(nameof(id));
+
+            if (id == string.Empty)
+                throw new ArgumentException("A empty string had been passed to GetHint");
 
             var name = Assembly.GetCallingAssembly().FullName;
 

@@ -194,7 +194,7 @@ namespace HintServiceMeow
             if (ev.Player.IsNPC || ev.Player.ReferenceHub.isLocalPlayer)
                 return;
 
-            PlayerDisplay.TryCreate(ev.Player.ReferenceHub);
+            PlayerDisplay.Get(ev.Player.ReferenceHub);
             PlayerUI.TryCreate(ev.Player.ReferenceHub);
         }
 
@@ -251,7 +251,7 @@ namespace HintServiceMeow
             || string.IsNullOrEmpty(ev.Player.UserId))
                 return;
 
-            PlayerDisplay.TryCreate(ev.Player.ReferenceHub);
+            PlayerDisplay.Get(ev.Player.ReferenceHub);
             PlayerUI.TryCreate(ev.Player.ReferenceHub);
         }
 
@@ -322,7 +322,7 @@ namespace HintServiceMeow
                     || string.IsNullOrEmpty(player.UserId))
                     continue;
 
-                PlayerDisplay.TryCreate(player.ReferenceHub);
+                PlayerDisplay.Get(player.ReferenceHub);
                 PlayerUI.TryCreate(player.ReferenceHub);
             }
         }

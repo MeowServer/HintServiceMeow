@@ -14,11 +14,11 @@ using System.Threading.Tasks;
 namespace HintServiceMeow.Core.Utilities
 {
     /// <summary>
-    /// Compatibility adaptor design to adapt other plugins' hint system to HintServiceMeow's hint system
+    /// Used to adapt other plugins' hint system to HintServiceMeow's hint system
     /// </summary>
     internal class CompatibilityAdaptor
     {
-        internal static readonly HashSet<string> RegisteredAssemblies = new HashSet<string>(); //Include all the assembly names that used this adaptor
+        internal static readonly HashSet<string> RegisteredAssemblies = new HashSet<string>();
         private static readonly ConcurrentDictionary<string, IReadOnlyList<Hint>> HintCache = new ConcurrentDictionary<string, IReadOnlyList<Hint>>();
 
         private readonly ConcurrentDictionary<string, DateTime> _removeTime = new ConcurrentDictionary<string, DateTime>();
@@ -44,18 +44,17 @@ namespace HintServiceMeow.Core.Utilities
             _suppressedAssemblies.Add(assemblyName);
             Timing.CallDelayed(0.45f, () => _suppressedAssemblies.Remove(assemblyName));
 
-            var internalName = "CompatibilityAdaptor-" + assemblyName;
+            var internalAssemblyName = "CompatibilityAdaptor-" + assemblyName;
 
             //Remove after period of time
-            _removeTime[internalName] = DateTime.Now.AddSeconds(timeToRemove);
-            Timing.CallDelayed(timeToRemove, () => 
-            Timing.CallDelayed(float.MinValue, () =>
+            _removeTime[internalAssemblyName] = DateTime.Now.AddSeconds(timeToRemove);
+            Timing.CallDelayed(timeToRemove + 0.1f, () =>
             {
-                if (DateTime.Now >= _removeTime[internalName])
-                    _playerDisplay.InternalClearHint(internalName);
-            }));
+                if (DateTime.Now >= _removeTime[internalAssemblyName])
+                    _playerDisplay.InternalClearHint(internalAssemblyName);
+            });
 
-            InternalShowHint(internalName, content);
+            InternalShowHint(internalAssemblyName, content);
         }
 
         private async void InternalShowHint(string internalName, string content)
@@ -125,7 +124,7 @@ namespace HintServiceMeow.Core.Utilities
                     try
                     {
                         await Task.Delay(15000);
-                        HintCache.TryRemove(content, out var _);
+                        HintCache.TryRemove(content, out _);
                     }
                     catch (Exception ex)
                     {
