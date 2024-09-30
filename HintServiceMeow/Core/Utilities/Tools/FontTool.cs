@@ -38,7 +38,12 @@ namespace HintServiceMeow.Core.Utilities.Tools
                         if (!char.IsControl(c))
                             continue;
 
-                        var width = graphics.MeasureString(c.ToString(), regularFont).Width;
+                        float width = DefaultFontWidth;
+                        try
+                        {
+                             width = graphics.MeasureString(c.ToString(), regularFont).Width;
+                        }
+                        catch (Exception) { }//Do not handle error since some system might not support certain character
 
                         if (width.Equals(DefaultFontWidth))
                             continue;

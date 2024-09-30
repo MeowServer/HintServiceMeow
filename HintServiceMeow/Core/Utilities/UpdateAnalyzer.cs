@@ -9,7 +9,7 @@ namespace HintServiceMeow.Core.Utilities
     /// <summary>
     /// Used to estimate the next update time.
     /// </summary>
-    internal class UpdateAnalyser : IUpdateAnalyser
+    internal class UpdateAnalyzer : IUpdateAnalyser
     {
         private readonly object _lock = new object();
 

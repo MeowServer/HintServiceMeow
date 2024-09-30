@@ -132,7 +132,7 @@
     <Compile Include="Core\Utilities\Parser\HintParser.cs" />
     <Compile Include="Core\Utilities\Patch\Patcher.cs" />
     <Compile Include="Core\Utilities\Tools\FontTool.cs" />
-    <Compile Include="Core\Utilities\UpdateAnalyser.cs" />
+    <Compile Include="Core\Utilities\UpdateAnalyzer.cs" />
     <Compile Include="Core\Extension\PlayerExtension.cs" />
     <Compile Include="Core\Utilities\Parser\RichTextParser.cs" />
     <Compile Include="Core\Models\Hints\AbstractHint.cs" />
