@@ -140,12 +140,11 @@
     <Compile Include="Core\Utilities\Patch\Patches.cs" />
     <Compile Include="Core\Enum\HintParameters .cs" />
     <Compile Include="Plugin\IPlugin.cs" />
-    <Compile Include="Plugin\PluginType.cs" />
     <Compile Include="UI\Extension\Extension.cs" />
     <Compile Include="UI\Utilities\CommonHint.cs" />
     <Compile Include="UI\Utilities\PlayerUI.cs" />
     <Compile Include="Plugin\Plugin.cs" />
-    <Compile Include="Plugin\Config\PluginConfig.cs" />
+    <Compile Include="Plugin\PluginConfig.cs" />
     <Compile Include="Core\Models\Hints\Hint.cs" />
     <Compile Include="Core\Utilities\PlayerDisplay.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

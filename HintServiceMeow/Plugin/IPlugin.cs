@@ -2,7 +2,7 @@
 {
     internal interface IPlugin
     {
-        PluginType Type { get; }
+        Plugin.PluginType Type { get; }
 
         PluginConfig PluginConfig { get; }
 

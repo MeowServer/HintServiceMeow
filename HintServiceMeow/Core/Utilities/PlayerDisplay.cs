@@ -184,7 +184,7 @@ namespace HintServiceMeow.Core.Utilities
             }
 
             _updatingHints.Add(hint);
-            Timing.CallDelayed(float.MinValue, () => _updatingHints.Remove(hint));//Suppress the hint from scheduling update for one frame
+            Timing.CallDelayed(Timing.WaitForOneFrame, () => _updatingHints.Remove(hint));//Suppress the hint from scheduling update for one frame
         }
 
         private void ScheduleUpdate(float maxWaitingTime = float.MinValue, AbstractHint updatingHint = null)

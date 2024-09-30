@@ -135,6 +135,10 @@ using PluginAPI.Events;
 // *    V5.3.2
 // *        Fix the bug that cause CompatibilityAdapter to not work correctly
 // *        Fix the bug that cause update management to not work correctly
+// *    V5.3.3
+// *        Fix an issue in Timing.CallDelayed
+// *        Improve code quality
+
 
 namespace HintServiceMeow
 {
@@ -142,8 +146,8 @@ namespace HintServiceMeow
     internal class ExiledPlugin : Exiled.API.Features.Plugin<ExiledPluginConfig>, IPlugin
     {
         //IPlugin
-        public PluginType Type => PluginType.Exiled;
-        public PluginConfig PluginConfig => this.Config;
+        public Plugin.PluginType Type => Plugin.PluginType.Exiled;
+        public PluginConfig PluginConfig => Config;
 
         public override string Name => Plugin.Name;
         public override string Author => Plugin.Author;
@@ -219,13 +223,13 @@ namespace HintServiceMeow
     internal class NwapiPlugin : IPlugin
     {
         //IPlugin
-        public PluginType Type => PluginType.NwAPI;
+        public Plugin.PluginType Type => Plugin.PluginType.NwAPI;
 
         [PluginAPI.Core.Attributes.PluginConfig]
         public PluginConfig Config;
         public PluginConfig PluginConfig => Config;
 
-        [PluginEntryPoint("HintServiceMeow", "5.3.2", "A hint framework", "MeowServer")]
+        [PluginEntryPoint("HintServiceMeow", "5.3.3", "A hint framework", "MeowServer")]
         public void LoadPlugin()
         {
             Plugin.OnEnabled(this);
@@ -275,7 +279,7 @@ namespace HintServiceMeow
     {
         public static string Name => "HintServiceMeow";
         public static string Author => "MeowServer";
-        public static Version Version => new Version(5, 3, 2);
+        public static Version Version => new Version(5, 3, 3);
 
         public static PluginConfig Config = new PluginConfig();//Default if no config
 
@@ -325,6 +329,12 @@ namespace HintServiceMeow
                 PlayerDisplay.Get(player.ReferenceHub);
                 PlayerUI.TryCreate(player.ReferenceHub);
             }
+        }
+
+        internal enum PluginType
+        {
+            Exiled,
+            NwAPI
         }
     }
 }

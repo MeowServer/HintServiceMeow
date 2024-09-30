@@ -117,6 +117,10 @@ namespace HintServiceMeow.Core.Utilities
                 if (hintList is null || hintList.IsEmpty())
                     return;
 
+                //Make sure for low performance server
+                if (DateTime.Now - startTime > TimeSpan.FromSeconds(0.45f))
+                    return;
+
                 //Cache
                 HintCache[content] = new List<Hint>(hintList).AsReadOnly();
                 _ = Task.Run(async () =>
@@ -131,10 +135,6 @@ namespace HintServiceMeow.Core.Utilities
                         Log.Error(ex.ToString());
                     }
                 });
-
-                //Make sure for low performance server
-                if (DateTime.Now - startTime > TimeSpan.FromSeconds(0.45f))
-                    return;
 
                 //Set up hint
                 _playerDisplay.InternalClearHint(internalName, false);
