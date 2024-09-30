@@ -21,7 +21,7 @@ namespace HintServiceMeow.Core.Utilities
         internal static readonly HashSet<string> RegisteredAssemblies = new HashSet<string>();
         private static readonly ConcurrentDictionary<string, IReadOnlyList<Hint>> HintCache = new ConcurrentDictionary<string, IReadOnlyList<Hint>>();
 
-        private readonly ConcurrentDictionary<string, DateTime> _removeTime = new ConcurrentDictionary<string, DateTime>();
+        private readonly ConcurrentDictionary<string, CoroutineHandle> _removeDelayedActions = new ConcurrentDictionary<string, CoroutineHandle>();
         private readonly HashSet<string> _suppressedAssemblies = new HashSet<string>();
 
         private readonly PlayerDisplay _playerDisplay;
@@ -31,7 +31,7 @@ namespace HintServiceMeow.Core.Utilities
             this._playerDisplay = playerDisplay;
         }
 
-        public void ShowHint(string assemblyName, string content, float timeToRemove)
+        public void ShowHint(string assemblyName, string content, float duration)
         {
             RegisteredAssemblies.Add(assemblyName);
 
@@ -46,26 +46,32 @@ namespace HintServiceMeow.Core.Utilities
 
             var internalAssemblyName = "CompatibilityAdaptor-" + assemblyName;
 
-            //Remove after period of time
-            _removeTime[internalAssemblyName] = DateTime.Now.AddSeconds(timeToRemove);
-            Timing.CallDelayed(timeToRemove + 0.1f, () =>
-            {
-                if (DateTime.Now >= _removeTime[internalAssemblyName])
-                    _playerDisplay.InternalClearHint(internalAssemblyName);
-            });
+            //Stop previous remove action
+            if (_removeDelayedActions.TryGetValue(internalAssemblyName, out var removeTime) && removeTime.IsRunning)
+                Timing.KillCoroutines(removeTime);
 
-            InternalShowHint(internalAssemblyName, content);
+            //Check duration, if duration is less than 0, then only clear the hints but don't generate new hints.
+            if (duration <= 0)
+            {
+                _playerDisplay.InternalClearHint(internalAssemblyName);
+                return;
+            }
+
+            //Remove after period of time
+            _removeDelayedActions[internalAssemblyName] = Timing.CallDelayed(duration + 0.1f, () => _playerDisplay.InternalClearHint(internalAssemblyName));
+
+            InternalShowHint(internalAssemblyName, content, DateTime.Now.AddSeconds(duration));
         }
 
-        private async void InternalShowHint(string internalName, string content)
+        private async void InternalShowHint(string internalAssemblyName, string content, DateTime expireTime)
         {
             try
             {
                 //Check if the hint is already cached
                 if (HintCache.TryGetValue(content, out var cachedHintList))
                 {
-                    _playerDisplay.InternalClearHint(internalName, false);
-                    _playerDisplay.InternalAddHint(internalName, cachedHintList);
+                    _playerDisplay.InternalClearHint(internalAssemblyName, false);
+                    _playerDisplay.InternalAddHint(internalAssemblyName, cachedHintList);
                     return;
                 }
 
@@ -108,17 +114,13 @@ namespace HintServiceMeow.Core.Utilities
                     }
                     catch (Exception e)
                     {
-                        Log.Error($"Error while generating hint for {internalName}: {e}");
+                        Log.Error($"Error while generating hint for {internalAssemblyName}: {e}");
                     }
 
                     return new List<Hint>();
                 });
 
                 if (hintList is null || hintList.IsEmpty())
-                    return;
-
-                //Make sure for low performance server
-                if (DateTime.Now - startTime > TimeSpan.FromSeconds(0.45f))
                     return;
 
                 //Cache
@@ -136,9 +138,13 @@ namespace HintServiceMeow.Core.Utilities
                     }
                 });
 
+                //Make sure for low performance server or if the duration is shorter than converting time.
+                if (DateTime.Now - startTime > TimeSpan.FromSeconds(0.45f) || DateTime.Now > expireTime)
+                    return;
+
                 //Set up hint
-                _playerDisplay.InternalClearHint(internalName, false);
-                _playerDisplay.InternalAddHint(internalName, hintList);
+                _playerDisplay.InternalClearHint(internalAssemblyName, false);
+                _playerDisplay.InternalAddHint(internalAssemblyName, hintList);
             }
             catch(Exception ex)
             {
