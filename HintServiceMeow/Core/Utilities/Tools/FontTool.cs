@@ -37,15 +37,15 @@ namespace HintServiceMeow.Core.Utilities.Tools
                         {
                             char c = (char)i;
 
-                            if (!char.IsControl(c))
-                                continue;
-
                             float width = DefaultFontWidth;
                             try
                             {
                                 width = graphics.MeasureString(c.ToString(), regularFont).Width;
                             }
                             catch (Exception) { }//Do not handle error since some system might not support certain character
+
+                            if (char.IsControl(c))// 0 width for control characters like \n
+                                width = 0;
 
                             if (width.Equals(DefaultFontWidth))
                                 continue;
@@ -57,7 +57,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
                 catch(Exception ex)
                 {
                     Log.Warning("This error can be ignored");
-                    Log.Warning($"Failed to initializer font tool: {ex}");
+                    Log.Warning($"Failed to initialize font tool: {ex}");
                 }
             });
         }
