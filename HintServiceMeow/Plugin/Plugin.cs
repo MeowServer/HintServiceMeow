@@ -138,6 +138,10 @@ using PluginAPI.Events;
 // *    V5.3.3
 // *        Fix an issue in Timing.CallDelayed
 // *        Improve code quality
+// *    V5.3.4
+// *        Fix a bug in COmpatibilityAdapter that appear when negative duration is passed
+// *        Fix a thread safety issue in TaskScheduler
+// *        Fix a issue in FontTool
 
 
 namespace HintServiceMeow
@@ -229,7 +233,7 @@ namespace HintServiceMeow
         public PluginConfig Config;
         public PluginConfig PluginConfig => Config;
 
-        [PluginEntryPoint("HintServiceMeow", "5.3.3", "A hint framework", "MeowServer")]
+        [PluginEntryPoint("HintServiceMeow", "5.3.4", "A hint framework", "MeowServer")]
         public void LoadPlugin()
         {
             Plugin.OnEnabled(this);
@@ -279,7 +283,7 @@ namespace HintServiceMeow
     {
         public static string Name => "HintServiceMeow";
         public static string Author => "MeowServer";
-        public static Version Version => new Version(5, 3, 3);
+        public static Version Version => new Version(5, 3, 4);
 
         public static PluginConfig Config = new PluginConfig();//Default if no config
 

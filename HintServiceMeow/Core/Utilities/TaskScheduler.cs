@@ -86,7 +86,7 @@ namespace HintServiceMeow.Core.Utilities
 
         public bool IsReadyForNextAction()
         {
-            _coroutineLock.EnterReadLock();
+            _actionTimeLock.EnterReadLock();
 
             try
             {
@@ -94,7 +94,7 @@ namespace HintServiceMeow.Core.Utilities
             }
             finally
             {
-                _coroutineLock.ExitReadLock();
+                _actionTimeLock.ExitReadLock();
             }
         }
 
@@ -115,7 +115,7 @@ namespace HintServiceMeow.Core.Utilities
 
         public void ResumeAction()
         {
-            _actionTimeLock.EnterWriteLock();
+            _coroutineLock.EnterWriteLock();
 
             try
             {
@@ -124,7 +124,7 @@ namespace HintServiceMeow.Core.Utilities
             }
             finally
             {
-                _actionTimeLock.ExitWriteLock();
+                _coroutineLock.ExitWriteLock();
             }
         }
 
@@ -158,16 +158,19 @@ namespace HintServiceMeow.Core.Utilities
                 {
                     LastActionTime = DateTime.Now;
                     NextActionTime = DateTime.MaxValue;
-
-                    _action.Invoke();
-                }
-                catch(Exception ex)
-                {
-                    Log.Error(ex.ToString());
                 }
                 finally
                 {
                     _actionTimeLock.ExitWriteLock();
+                }
+
+                try
+                {
+                    _action.Invoke();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex.ToString());
                 }
             }
         }

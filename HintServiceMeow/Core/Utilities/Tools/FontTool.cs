@@ -25,31 +25,39 @@ namespace HintServiceMeow.Core.Utilities.Tools
             //Initialize ch width
             Task.Run(() =>
             {
-                using (var bmp = new Bitmap(1, 1))
-                using (var graphics = Graphics.FromImage(bmp))
-                using (var regularFont = GetFont(BaseFontSize, FontStyle.Regular))
+                try
                 {
-                    graphics.PageUnit = GraphicsUnit.Pixel;
-
-                    for (int i = char.MinValue; i <= char.MaxValue; i++)
+                    using (var bmp = new Bitmap(1, 1))
+                    using (var graphics = Graphics.FromImage(bmp))
+                    using (var regularFont = GetFont(BaseFontSize, FontStyle.Regular))
                     {
-                        char c = (char)i;
+                        graphics.PageUnit = GraphicsUnit.Pixel;
 
-                        if (!char.IsControl(c))
-                            continue;
-
-                        float width = DefaultFontWidth;
-                        try
+                        for (int i = char.MinValue; i <= char.MaxValue; i++)
                         {
-                             width = graphics.MeasureString(c.ToString(), regularFont).Width;
+                            char c = (char)i;
+
+                            if (!char.IsControl(c))
+                                continue;
+
+                            float width = DefaultFontWidth;
+                            try
+                            {
+                                width = graphics.MeasureString(c.ToString(), regularFont).Width;
+                            }
+                            catch (Exception) { }//Do not handle error since some system might not support certain character
+
+                            if (width.Equals(DefaultFontWidth))
+                                continue;
+
+                            ChWidth[c] = width;
                         }
-                        catch (Exception) { }//Do not handle error since some system might not support certain character
-
-                        if (width.Equals(DefaultFontWidth))
-                            continue;
-
-                        ChWidth[c] = width;
                     }
+                }
+                catch(Exception ex)
+                {
+                    Log.Warning("This error can be ignored");
+                    Log.Warning($"Failed to initializer font tool: {ex}");
                 }
             });
         }
