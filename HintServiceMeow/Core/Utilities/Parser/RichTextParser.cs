@@ -637,7 +637,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
         }
     }
 
-    internal class CharacterInfo
+    internal record CharacterInfo
     {
         public char Character { get; }
         public float FontSize { get; }
@@ -655,7 +655,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
         }
     }
 
-    internal class LineInfo
+    internal record LineInfo
     {
         /// <summary>
         /// A list of character info that include all the characters after parsed. Include the line break at the end(if exist).

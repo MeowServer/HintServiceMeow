@@ -14,7 +14,11 @@ namespace HintServiceMeow
         public bool UseHintCompatibilityAdapter { get; set; } = true;
 
         [Description("The assembly that you do not want to included in the Compatibility Adapter. Use command GetCompatAssemblyName to get the name of all the assemblies")]
-        public List<string> DisabledCompatAdapter { get; set; } = new List<string>();
+        public List<string> DisabledCompatAdapter { get; set; } = new List<string>
+        {
+            "Some Plugin",
+            "Some Other Plugin"
+        };
 
         [Description("The default time to show for each type of common hint. Short means that the hint has on title but not decription")]
         public int ItemHintDisplayTime { get; set; } = 10;

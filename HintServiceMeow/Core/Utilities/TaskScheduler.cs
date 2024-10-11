@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Diagnostics;
+using System.Reflection;
 
 using PluginAPI.Core;
 using MEC;
-using static HintServiceMeow.Core.Utilities.TaskScheduler;
 
 namespace HintServiceMeow.Core.Utilities
 {
@@ -16,14 +17,27 @@ namespace HintServiceMeow.Core.Utilities
         private readonly CoroutineHandle _actionCoroutine;
         private readonly ReaderWriterLockSlim _coroutineLock = new ReaderWriterLockSlim();
 
-        public DateTime LastActionTime { get; private set; } = DateTime.MinValue;
-        public DateTime NextActionTime { get; private set; } = DateTime.MaxValue;
+        public Stopwatch LastActionStopwatch { get; private set; } = Stopwatch.StartNew();
+        public DateTime NextActionTime { get; private set; } = new DateTime();
         private readonly ReaderWriterLockSlim _actionTimeLock = new ReaderWriterLockSlim();
 
         public TaskScheduler(TimeSpan interval, Action action)
         {
             this.Interval = interval;
             this._action = action ?? throw new ArgumentNullException(nameof(action));
+
+            //Force change the elapsed time of the stopwatch
+            //This is evil......
+            _actionTimeLock.EnterWriteLock();
+            try
+            {
+                var field = typeof(Stopwatch).GetField("elapsed", BindingFlags.NonPublic | BindingFlags.Instance);
+                field.SetValue(LastActionStopwatch, interval.Ticks);
+            }
+            finally
+            {
+                _actionTimeLock.ExitWriteLock();
+            }
 
             _coroutineLock.EnterWriteLock();
             try
@@ -90,7 +104,7 @@ namespace HintServiceMeow.Core.Utilities
 
             try
             {
-                return DateTime.Now > LastActionTime + Interval;
+                return Interval < LastActionStopwatch.Elapsed;
             }
             finally
             {
@@ -106,6 +120,8 @@ namespace HintServiceMeow.Core.Utilities
             {
                 if(_actionCoroutine.IsRunning)
                     Timing.PauseCoroutines(_actionCoroutine);
+
+                LastActionStopwatch.Stop();
             }
             finally
             {
@@ -121,6 +137,8 @@ namespace HintServiceMeow.Core.Utilities
             {
                 if(_actionCoroutine.IsAliveAndPaused)
                     Timing.ResumeCoroutines(_actionCoroutine);
+
+                LastActionStopwatch.Start();
             }
             finally
             {
@@ -138,7 +156,7 @@ namespace HintServiceMeow.Core.Utilities
 
                     try
                     {
-                        if (DateTime.Now < LastActionTime + Interval)
+                        if (Interval > LastActionStopwatch.Elapsed)
                             return false;
 
                         if (DateTime.Now < NextActionTime)
@@ -156,7 +174,7 @@ namespace HintServiceMeow.Core.Utilities
 
                 try
                 {
-                    LastActionTime = DateTime.Now;
+                    LastActionStopwatch.Restart();
                     NextActionTime = DateTime.MaxValue;
                 }
                 finally

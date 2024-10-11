@@ -16,7 +16,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
     internal static class FontTool
     {
         private const float BaseFontSize = 34.7f;
-        private const float DefaultFontWidth = 36.52988f;
+        private const float DefaultFontWidth = 36.529877f;
 
         private static readonly ConcurrentDictionary<char, float> ChWidth = new ConcurrentDictionary<char, float>();
 

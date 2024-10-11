@@ -4,25 +4,23 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{097B585F-438D-4D50-A8AC-0FE0E3A7DE77}</ProjectGuid>
+    <ProjectGuid>{44C64CED-8BCC-46AE-AA1D-310F12775262}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>HintServiceMeow</RootNamespace>
-    <AssemblyName>HintServiceMeow</AssemblyName>
+    <RootNamespace>HintServiceTest</RootNamespace>
+    <AssemblyName>HintServiceTest</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;EXILED</DefineConstants>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,34 +29,9 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x64\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;EXILED</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <LangVersion>9.0</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\x64\Release\</OutputPath>
-    <DefineConstants>TRACE;EXILED</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <LangVersion>9.0</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="0Harmony, Version=2.3.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Lib.Harmony.2.3.3\lib\net48\0Harmony.dll</HintPath>
-    </Reference>
-    <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>..\..\..\SCPSL插件依赖\Master\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp-Publicized">
@@ -88,8 +61,10 @@
     <Reference Include="Exiled.Permissions, Version=8.11.0.0, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\EXILEDOFFICIAL.8.11.0\lib\net48\Exiled.Permissions.dll</HintPath>
     </Reference>
-    <Reference Include="Mirror, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="HintServiceMeow">
+      <HintPath>..\HintServiceMeow\bin\x64\Release\HintServiceMeow.dll</HintPath>
+    </Reference>
+    <Reference Include="Mirror">
       <HintPath>..\..\..\SCPSL插件依赖\Master\Mirror.dll</HintPath>
     </Reference>
     <Reference Include="NorthwoodLib, Version=1.3.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -99,64 +74,36 @@
       <HintPath>..\packages\EXILEDOFFICIAL.8.11.0\lib\net48\PluginAPI.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+    <Reference Include="UnityEngine">
+      <HintPath>..\..\..\SCPSL插件依赖\Master\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\..\..\SCPSL插件依赖\Master\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>..\..\..\SCPSL插件依赖\Master\UnityEngine.PhysicsModule.dll</HintPath>
     </Reference>
     <Reference Include="YamlDotNet, Version=11.0.0.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e, processorArchitecture=MSIL">
       <HintPath>..\packages\EXILEDOFFICIAL.8.11.0\lib\net48\YamlDotNet.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\Utilities\Pools\RichTextParserPool.cs" />
-    <Compile Include="Plugin\Commands\GetCompatAssemblyName.cs" />
-    <Compile Include="Core\Enum\CaseStyle.cs" />
-    <Compile Include="Core\Enum\FontStyle.cs" />
-    <Compile Include="Core\Enum\ScriptStyle.cs" />
-    <Compile Include="Core\Extension\HintExtension.cs" />
-    <Compile Include="Core\Extension\PlayerDisplayExtension.cs" />
-    <Compile Include="Core\Interface\IUpdateAnalyser.cs" />
-    <Compile Include="Core\Models\HintCollection.cs" />
-    <Compile Include="Core\Models\HintContent\AutoContent.cs" />
-    <Compile Include="Core\Models\HintContent\AbstractHintContent.cs" />
-    <Compile Include="Core\Models\HintContent\StringContent.cs" />
-    <Compile Include="Core\Utilities\CompatibilityAdaptor.cs" />
-    <Compile Include="Core\Utilities\Pools\StringBuilderPool.cs" />
-    <Compile Include="Core\Utilities\TaskScheduler.cs" />
-    <Compile Include="Core\Utilities\Tools\CoordinateTools.cs" />
-    <Compile Include="Core\Utilities\Parser\HintParser.cs" />
-    <Compile Include="Core\Utilities\Patch\Patcher.cs" />
-    <Compile Include="Core\Utilities\Tools\FontTool.cs" />
-    <Compile Include="Core\Utilities\UpdateAnalyzer.cs" />
-    <Compile Include="Core\Extension\PlayerExtension.cs" />
-    <Compile Include="Core\Utilities\Parser\RichTextParser.cs" />
-    <Compile Include="Core\Models\Hints\AbstractHint.cs" />
-    <Compile Include="Core\Models\Hints\DynamicHint.cs" />
-    <Compile Include="Core\Utilities\Patch\Patches.cs" />
-    <Compile Include="Core\Enum\HintParameters .cs" />
-    <Compile Include="Plugin\IPlugin.cs" />
-    <Compile Include="UI\Extension\Extension.cs" />
-    <Compile Include="UI\Utilities\CommonHint.cs" />
-    <Compile Include="UI\Utilities\PlayerUI.cs" />
-    <Compile Include="Plugin\Plugin.cs" />
-    <Compile Include="Plugin\PluginConfig.cs" />
-    <Compile Include="Core\Models\Hints\Hint.cs" />
-    <Compile Include="Core\Utilities\PlayerDisplay.cs" />
+    <Compile Include="Plugin.cs" />
+    <Compile Include="Config.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UI\Utilities\Style.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <EmbeddedResource Include="Roboto-Light" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="UI\Models\" />
+    <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -14,6 +14,7 @@ using HintServiceMeow.Core.Utilities.Parser;
 
 //Plugin API
 using PluginAPI.Core;
+using Hints;
 
 namespace HintServiceMeow.Core.Utilities
 {
@@ -39,7 +40,7 @@ namespace HintServiceMeow.Core.Utilities
         private static readonly HashSet<PlayerDisplay> PlayerDisplayList = new HashSet<PlayerDisplay>();
         private static readonly object PlayerDisplayListLock = new object();
 
-        private static readonly Hints.TextHint HintTemplate = new Hints.TextHint("", new Hints.HintParameter[] { new Hints.StringHintParameter("") }, new Hints.HintEffect[] { Hints.HintEffectPresets.TrailingPulseAlpha(1, 1, 1) }, float.MaxValue);
+        private readonly Hints.HintMessage _hintMessageTemplate = new Hints.HintMessage(new Hints.TextHint("", new Hints.HintParameter[] { new Hints.StringHintParameter("") }, new Hints.HintEffect[] { Hints.HintEffectPresets.TrailingPulseAlpha(1, 1, 1) }, float.MaxValue));
 
         private readonly HintCollection _hints = new HintCollection();
         private readonly HintParser _hintParser = new HintParser();
@@ -150,7 +151,7 @@ namespace HintServiceMeow.Core.Utilities
                 }
 
                 //Periodic update
-                if (_taskScheduler.LastActionTime + TimeSpan.FromSeconds(5) < DateTime.Now)
+                if (_taskScheduler.LastActionStopwatch.Elapsed > TimeSpan.FromSeconds(5) && _currentParserTask == null)
                     ScheduleUpdate();
             }
         }
@@ -162,26 +163,20 @@ namespace HintServiceMeow.Core.Utilities
             if(_updatingHints.Contains(hint))
                 return;
 
-            switch (hint.SyncSpeed)
+            if(hint.SyncSpeed == HintSyncSpeed.UnSync)
+                return;
+
+            var maxWaitingTime = hint.SyncSpeed switch
             {
-                case HintSyncSpeed.Fastest:
-                    ScheduleUpdate();
-                    break;
-                case HintSyncSpeed.Fast:
-                    ScheduleUpdate(0.1f, hint);
-                    break;
-                case HintSyncSpeed.Normal:
-                    ScheduleUpdate(0.3f, hint);
-                    break;
-                case HintSyncSpeed.Slow:
-                    ScheduleUpdate(1f, hint);
-                    break;
-                case HintSyncSpeed.Slowest:
-                    ScheduleUpdate(3f, hint);
-                    break;
-                case HintSyncSpeed.UnSync:
-                    break;
-            }
+                HintSyncSpeed.Fastest => 0,
+                HintSyncSpeed.Fast => 0.1f,
+                HintSyncSpeed.Normal => 0.3f,
+                HintSyncSpeed.Slow => 1f,
+                HintSyncSpeed.Slowest => 3f,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
+            ScheduleUpdate(maxWaitingTime, hint);
 
             _updatingHints.Add(hint);
             Timing.CallDelayed(Timing.WaitForOneFrame, () => _updatingHints.Remove(hint));//Suppress the hint from scheduling update for one frame
@@ -248,8 +243,8 @@ namespace HintServiceMeow.Core.Utilities
                 if(ConnectionToClient == null || !ConnectionToClient.isReady)
                     return;
 
-                HintTemplate.Text = text;
-                ConnectionToClient.Send(new Hints.HintMessage(HintTemplate));
+                ((TextHint)_hintMessageTemplate.Content).Text = text;
+                ConnectionToClient.Send(_hintMessageTemplate);
             }
             catch (Exception ex)
             {

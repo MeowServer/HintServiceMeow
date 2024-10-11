@@ -1,5 +1,5 @@
 # Language
 
-- [English](https://github.com/MeowServer/HintServiceMeow/blob/main/ReadMe/README_en.md)
+- [English](ReadMe/English/README_en.md)
 
-- [中文](https://github.com/MeowServer/HintServiceMeow/blob/main/ReadMe/README_zh.md)
+- [中文](ReadMe/SimplifiedChinese/README_zh.md)

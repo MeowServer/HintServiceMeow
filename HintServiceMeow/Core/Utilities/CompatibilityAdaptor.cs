@@ -1,6 +1,6 @@
 ﻿using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Models.Hints;
-using HintServiceMeow.Core.Utilities.Parser;
+
 using MEC;
 using PluginAPI.Core;
 
@@ -8,8 +8,8 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
+using HintServiceMeow.Core.Utilities.Pools;
 
 namespace HintServiceMeow.Core.Utilities
 {
@@ -57,7 +57,10 @@ namespace HintServiceMeow.Core.Utilities
                 return;
             }
 
-            //Remove after period of time
+            if(duration > float.MaxValue - 0.1f)
+                duration = float.MaxValue - 0.1f; //Prevent overflow (Max value is 0.1f less than float.MaxValue)
+
+            //Start new remove action, remove after the duration
             _removeDelayedActions[internalAssemblyName] = Timing.CallDelayed(duration + 0.1f, () => _playerDisplay.InternalClearHint(internalAssemblyName));
 
             InternalShowHint(internalAssemblyName, content, DateTime.Now.AddSeconds(duration));
@@ -72,6 +75,7 @@ namespace HintServiceMeow.Core.Utilities
                 {
                     _playerDisplay.InternalClearHint(internalAssemblyName, false);
                     _playerDisplay.InternalAddHint(internalAssemblyName, cachedHintList);
+
                     return;
                 }
 
@@ -82,21 +86,20 @@ namespace HintServiceMeow.Core.Utilities
                 {
                     try
                     {
-                        var parser = new RichTextParser();
-
-                        var lineInfoList = parser.ParseText(content, 40);
+                        var lineInfoList = RichTextParserPool.ParseText(content, 40);
 
                         if (lineInfoList is null || lineInfoList.IsEmpty())
                             return new List<Hint>();
 
                         var totalHeight = lineInfoList.Sum(x => x.Height);
                         var accumulatedHeight = 0f;
-
                         List<Hint> generatedHintList = new List<Hint>();
+
                         foreach (var lineInfo in lineInfoList)
                         {
                             //If not empty line, then add hint
                             if (!string.IsNullOrEmpty(lineInfo.RawText.Trim()) && !lineInfo.Characters.IsEmpty())
+                            {
                                 generatedHintList.Add(new Hint
                                 {
                                     Text = lineInfo.RawText,
@@ -106,6 +109,7 @@ namespace HintServiceMeow.Core.Utilities
                                     Alignment = lineInfo.Alignment,
                                     FontSize = (int)lineInfo.Characters.First().FontSize,
                                 });
+                            }  
 
                             accumulatedHeight += lineInfo.Height;
                         }
@@ -115,9 +119,8 @@ namespace HintServiceMeow.Core.Utilities
                     catch (Exception e)
                     {
                         Log.Error($"Error while generating hint for {internalAssemblyName}: {e}");
+                        return new List<Hint>();
                     }
-
-                    return new List<Hint>();
                 });
 
                 if (hintList is null || hintList.IsEmpty())

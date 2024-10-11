@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using Hints;
 
 namespace HintServiceMeow.Core.Utilities.Patch
 {
@@ -12,9 +11,9 @@ namespace HintServiceMeow.Core.Utilities.Patch
             Harmony = new Harmony("HintServiceMeowHarmony" + Plugin.Version);
 
             //Unpatch all other patches
-            var hintDisplayMethod = typeof(HintDisplay).GetMethod(nameof(HintDisplay.Show));
+            var hintDisplayMethod = typeof(Hints.HintDisplay).GetMethod(nameof(Hints.HintDisplay.Show));
             var receiveHintMethod1 = typeof(PluginAPI.Core.Player).GetMethod(nameof(PluginAPI.Core.Player.ReceiveHint), new[] { typeof(string), typeof(float) });
-            var receiveHintMethod2 = typeof(PluginAPI.Core.Player).GetMethod(nameof(PluginAPI.Core.Player.ReceiveHint), new[] { typeof(string), typeof(HintEffect[]), typeof(float) });
+            var receiveHintMethod2 = typeof(PluginAPI.Core.Player).GetMethod(nameof(PluginAPI.Core.Player.ReceiveHint), new[] { typeof(string), typeof(Hints.HintEffect[]), typeof(float) });
             Harmony.Unpatch(hintDisplayMethod, HarmonyPatchType.All);
             Harmony.Unpatch(receiveHintMethod1, HarmonyPatchType.All);
             Harmony.Unpatch(receiveHintMethod2, HarmonyPatchType.All);

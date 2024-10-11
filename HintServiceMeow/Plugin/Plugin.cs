@@ -139,10 +139,13 @@ using PluginAPI.Events;
 // *        Fix an issue in Timing.CallDelayed
 // *        Improve code quality
 // *    V5.3.4
-// *        Fix a bug in COmpatibilityAdapter that appear when negative duration is passed
+// *        Fix a bug in CompatibilityAdapter that appear when negative duration is passed
 // *        Fix a thread safety issue in TaskScheduler
 // *        Fix a issue in FontTool
-
+// *    V5.3.5
+// *        Fix a bug that can cause update rate to be higher than expected
+// *        Improve stability of compatibility adaptor
+// *        Improve performance
 
 namespace HintServiceMeow
 {
