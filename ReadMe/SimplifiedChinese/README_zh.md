@@ -7,12 +7,12 @@ HintServiceMeow(HSM)是一个的Hint框架，用于在玩家的屏幕上显示�
 2. 如果您正在使用PluginAPI（默认的API），请将Harmony.dll放入dependencies文件夹
 3. 将这个文件粘贴于插件文件夹中，并重启服务器即可安装。
 
-### Documents
+## 文档
 - [功能简介](Features.md)
 - [开始使用](GettingStarted.md)
 - [核心功能](CoreFeatures.md)
 
-### 常见问题
+## 常见问题
 1. 为何插件安装后没有工作?
 - 确保HSM被正确安装
 - 检查是否有和HSM冲突的插件
