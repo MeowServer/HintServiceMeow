@@ -13,9 +13,9 @@ To install this plugin, please
 - [Core Features](CoreFeatures.md)
 
 ### FAQ
-1. Why doesn't the plugin works?
+1. Why doesn't the plugin work?
 - Make sure that HintServiceMeow is correctly installed.
 - Check if there's any plugin that conflicts with HintServiceMeow
-- Check if there's any error occurs when activating plugins.
-2. Why does hints overlaps with each others
-- This might happen when multiple plugins put their hint on the same position. You can check the config file for each plugin to adjust the position of their UI. If you cannot adjust the position using config file, please contact the author of the plugins.
+- Check if any error occurs when activating plugins.
+2. Why do hints overlaps with each other
+- This might happen when multiple plugins put their hint in the same position. You can check the config file for each plugin to adjust the position of their UI. If you cannot adjust the position using the config file, please contact the author of the plugins.
