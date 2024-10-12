@@ -10,7 +10,7 @@ namespace HintServiceMeow.Core.Models
     /// The collection of hints. This class is used to store and manage hints in PlayerDisplay.
     /// HintList are used for API and HintGroup are used for internal usage.
     /// </summary>
-    internal class HintCollection
+    public class HintCollection
     {
         private readonly Dictionary<string, HashSet<AbstractHint>> _hintGroups = new Dictionary<string, HashSet<AbstractHint>>();
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
@@ -121,6 +121,10 @@ namespace HintServiceMeow.Core.Models
                 _lock.ExitReadLock();
             }
         }
-    }
 
+        public IEnumerable<AbstractHint> GetHints(string assemblyName, Func<AbstractHint, bool> predicate)
+        {
+            return GetHints(assemblyName).Where(predicate);
+        }
+    }
 }

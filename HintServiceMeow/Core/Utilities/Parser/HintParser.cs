@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 using HintServiceMeow.Core.Enum;
+using HintServiceMeow.Core.Interface;
 using HintServiceMeow.Core.Models;
 using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities.Pools;
@@ -16,20 +17,20 @@ namespace HintServiceMeow.Core.Utilities.Parser
     /// <summary>
     /// Used to parse AbstractHint to rich text message
     /// </summary>
-    internal class HintParser
+    internal class HintParser : IHintParser
     {
         private readonly RichTextParser _richTextParser = new RichTextParser();
 
         private readonly ConcurrentDictionary<Guid, ValueTuple<float, float>> _dynamicHintPositionCache = new ConcurrentDictionary<Guid, ValueTuple<float, float>>();
 
-        public string GetMessage(HintCollection collection)
+        public string Parse(HintCollection collection)
         {
             List<List<Hint>> orderedHintGroups = new List<List<Hint>>();
 
             foreach (var group in collection.AllGroups.ToList())
             {
                 List<Hint> orderedGroup = new List<Hint>();
-                
+
                 List<DynamicHint> dynamicHints = new List<DynamicHint>();
                 List<Hint> handledDynamicHints = new List<Hint>();
 
@@ -46,11 +47,11 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 }
 
                 //Convert Dynamic Hint
-                dynamicHints.Sort((a,b) => b.Priority - a.Priority);
-                foreach(var dynamicHint in dynamicHints)
+                dynamicHints.Sort((a, b) => b.Priority - a.Priority);
+                foreach (var dynamicHint in dynamicHints)
                 {
                     var effectiveHintList = collection.AllHints.OfType<Hint>().Concat(handledDynamicHints);
-                    var dh = ConvertDynamicHint(dynamicHint, effectiveHintList);
+                    var dh = ParseDynamicHintToHint(dynamicHint, effectiveHintList);
                     if (dh != null)
                         handledDynamicHints.Add(dh);
                 }
@@ -65,9 +66,9 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
             StringBuilder messageBuilder = StringBuilderPool.Rent(5000);
 
-            int availableArea = ushort.MaxValue 
-                - "</size></b></i>".Length 
-                -"<line-height=0><voffset=-9999>P</voffset>".Length;
+            int availableArea = ushort.MaxValue
+                - "</size></b></i>".Length
+                - "<line-height=0><voffset=-9999>P</voffset>".Length;
 
             messageBuilder.AppendLine("<line-height=0><voffset=9999>P</voffset>");//Place Holder
 
@@ -78,12 +79,12 @@ namespace HintServiceMeow.Core.Utilities.Parser
                     if (messageBuilder.Length > availableArea)
                         break; //Prevent hint message to be overflow
 
-                    var text = ToRichText(hint);
+                    var text = ParseHintToRichText(hint);
                     if (!string.IsNullOrEmpty(text))
                         messageBuilder.Append(text); //ToRichText already added \n at the end
                 }
 
-                if(!hintList.IsEmpty())
+                if (!hintList.IsEmpty())
                     messageBuilder.AppendLine("</align></size></b></i>"); //Make sure one group will not affect another group
             }
 
@@ -95,7 +96,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
             return StringBuilderPool.ToStringReturn(messageBuilder);
         }
 
-        private Hint ConvertDynamicHint(DynamicHint dynamicHint, IEnumerable<Hint> existingHints)
+        private Hint ParseDynamicHintToHint(DynamicHint dynamicHint, IEnumerable<Hint> existingHints)
         {
             List<TextArea> textAreas = existingHints
                 .Where(hint => hint != null && !hint.Hide && !string.IsNullOrEmpty(hint.Content.GetText()))
@@ -164,9 +165,9 @@ namespace HintServiceMeow.Core.Utilities.Parser
                     return new Hint(dynamicHint, x, y);
                 }
 
-                if(y < dynamicHint.BottomBoundary)
+                if (y < dynamicHint.BottomBoundary)
                     queue.Enqueue(ValueTuple.Create(x, y + 10));
-                if(y > dynamicHint.TopBoundary)
+                if (y > dynamicHint.TopBoundary)
                     queue.Enqueue(ValueTuple.Create(x, y - 10));
                 if (x < dynamicHint.RightBoundary)
                     queue.Enqueue(ValueTuple.Create(x + 50, y));
@@ -180,7 +181,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
             return null;
         }
 
-        private string ToRichText(Hint hint)
+        private string ParseHintToRichText(Hint hint)
         {
             //Remove illegal tags
             string text = Regex
@@ -194,11 +195,11 @@ namespace HintServiceMeow.Core.Utilities.Parser
             //Parse into line infos
             var lineList = _richTextParser.ParseText(text, hint.FontSize);
 
-            if(lineList is null || lineList.IsEmpty())
+            if (lineList is null || lineList.IsEmpty())
                 return null;
 
             //Get the bottom y coordinate of first line
-            float vOffset = 
+            float vOffset =
                 700
                 - CoordinateTools.GetYCoordinate(_richTextParser, hint, HintVerticalAlign.Top)
                 - lineList[0].Height;

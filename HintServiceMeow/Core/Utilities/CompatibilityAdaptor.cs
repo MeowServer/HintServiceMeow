@@ -1,5 +1,8 @@
 ﻿using HintServiceMeow.Core.Enum;
+using HintServiceMeow.Core.Interface;
+using HintServiceMeow.Core.Models.Arguments;
 using HintServiceMeow.Core.Models.Hints;
+using HintServiceMeow.Core.Utilities.Pools;
 
 using MEC;
 using PluginAPI.Core;
@@ -9,14 +12,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using HintServiceMeow.Core.Utilities.Pools;
 
 namespace HintServiceMeow.Core.Utilities
 {
     /// <summary>
     /// Used to adapt other plugins' hint system to HintServiceMeow's hint system
     /// </summary>
-    internal class CompatibilityAdaptor
+    internal class CompatibilityAdaptor : ICompatibilityAdaptor
     {
         internal static readonly HashSet<string> RegisteredAssemblies = new HashSet<string>();
         private static readonly ConcurrentDictionary<string, IReadOnlyList<Hint>> HintCache = new ConcurrentDictionary<string, IReadOnlyList<Hint>>();
@@ -31,8 +33,12 @@ namespace HintServiceMeow.Core.Utilities
             this._playerDisplay = playerDisplay;
         }
 
-        public void ShowHint(string assemblyName, string content, float duration)
+        public void ShowHint(CompatibilityAdaptorArg ev)
         {
+            var assemblyName = ev.AssemblyName;
+            var content = ev.Content;
+            var duration = ev.Duration;
+
             RegisteredAssemblies.Add(assemblyName);
 
             if (Plugin.Config.DisabledCompatAdapter.Contains(assemblyName) //Config limitation
@@ -50,17 +56,17 @@ namespace HintServiceMeow.Core.Utilities
             if (_removeDelayedActions.TryGetValue(internalAssemblyName, out var removeTime) && removeTime.IsRunning)
                 Timing.KillCoroutines(removeTime);
 
-            //Check duration, if duration is less than 0, then only clear the hints but don't generate new hints.
+            //Check Duration, if Duration is less than 0, then only clear the hints but don't generate new hints.
             if (duration <= 0)
             {
                 _playerDisplay.InternalClearHint(internalAssemblyName);
                 return;
             }
 
-            if(duration > float.MaxValue - 0.1f)
+            if (duration > float.MaxValue - 0.1f)
                 duration = float.MaxValue - 0.1f; //Prevent overflow (Max value is 0.1f less than float.MaxValue)
 
-            //Start new remove action, remove after the duration
+            //Start new remove action, remove after the Duration
             _removeDelayedActions[internalAssemblyName] = Timing.CallDelayed(duration + 0.1f, () => _playerDisplay.InternalClearHint(internalAssemblyName));
 
             InternalShowHint(internalAssemblyName, content, DateTime.Now.AddSeconds(duration));
@@ -109,7 +115,7 @@ namespace HintServiceMeow.Core.Utilities
                                     Alignment = lineInfo.Alignment,
                                     FontSize = (int)lineInfo.Characters.First().FontSize,
                                 });
-                            }  
+                            }
 
                             accumulatedHeight += lineInfo.Height;
                         }
@@ -141,7 +147,7 @@ namespace HintServiceMeow.Core.Utilities
                     }
                 });
 
-                //Make sure for low performance server or if the duration is shorter than converting time.
+                //Make sure for low performance server or if the Duration is shorter than converting time.
                 if (DateTime.Now - startTime > TimeSpan.FromSeconds(0.45f) || DateTime.Now > expireTime)
                     return;
 
@@ -149,7 +155,7 @@ namespace HintServiceMeow.Core.Utilities
                 _playerDisplay.InternalClearHint(internalAssemblyName, false);
                 _playerDisplay.InternalAddHint(internalAssemblyName, hintList);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Log.Error(ex.ToString());
             }

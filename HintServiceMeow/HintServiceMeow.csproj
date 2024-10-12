@@ -114,6 +114,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\Interface\ICompatibilityAdaptor.cs" />
+    <Compile Include="Core\Interface\IDisplayOutput.cs" />
+    <Compile Include="Core\Interface\IHintParser.cs" />
+    <Compile Include="Core\Models\Arguments\CompatibilityAdaptorArg.cs" />
+    <Compile Include="Core\Models\Arguments\DisplayOutputArg.cs" />
+    <Compile Include="Core\Utilities\DefaultDisplayOutput.cs" />
     <Compile Include="Core\Utilities\Pools\RichTextParserPool.cs" />
     <Compile Include="Plugin\Commands\GetCompatAssemblyName.cs" />
     <Compile Include="Core\Enum\CaseStyle.cs" />
