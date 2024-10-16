@@ -8,9 +8,9 @@ Para instalar esse plug-in, por favor
 3. Reinicie seu servidor.
 
 ### Documentos
-- [Features Introduction](Features.md)
-- [Getting Started](GettingStarted.md)
-- [Core Features](CoreFeatures.md)
+- [Introdução de Funções](Features.md)
+- [Introdução](GettingStarted.md)
+- [Funções Principais](CoreFeatures.md)
 
 ### FAQ
 1. Why doesn't the plugin work?
