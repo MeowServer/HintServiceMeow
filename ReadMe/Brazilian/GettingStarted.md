@@ -1,4 +1,4 @@
-## Introduzindo
+## Introdução
 ### Defina dependências
 1. Crie seu projeto C#
 2. Inclua o arquivo .dll instalado do lançamento nas dependências do seu projeto
