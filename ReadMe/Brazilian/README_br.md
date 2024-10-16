@@ -1,13 +1,13 @@
-## Introduction
-HintServiceMeow(HSM) is a framework that allows plugins to display text on a selected position on a player's screen.
+## Introdução
+HintServiceMeow(HSM) é um framework que permite que plug-ins exibam texto em uma posição selecionada na tela de um jogador.
 
-## Installation
-To install this plugin, please 
-1. go to the release page and download the newest HintServiceMeow.dll. Then, paste it into the plugin folder.
-2. If you are using PluginAPI (The default API), put Harmony.dll into the dependencies folder.
-3. Restart your server.
+## Instalação
+Para instalar esse plug-in, por favor
+1. Vá à página de lançamento e baixe o HintServiceMeow.dll mais recente. Então, cole-o na pasta de plug-in.
+2. Se você estiver usando a PluginAPI (A API padrão), ponha o Harmony.dll na pasta de dependências.
+3. Reinicie seu servidor.
 
-### Documents
+### Documentos
 - [Features Introduction](Features.md)
 - [Getting Started](GettingStarted.md)
 - [Core Features](CoreFeatures.md)
