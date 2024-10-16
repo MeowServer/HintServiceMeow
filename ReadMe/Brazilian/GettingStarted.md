@@ -1,26 +1,26 @@
-## Getting Started
-### Set up dependencies
-1. Create your C# project
-2. Include the dll file downloaded from release into your project's dependecies
-### Show your first hint
-The following code show "Hello World" on the left bottom side of player's screen.
+## Introduzindo
+### Defina dependências
+1. Crie seu projeto C#
+2. Inclua o arquivo .dll instalado do lançamento nas dependências do seu projeto
+### Mostre sua primeira hint
+O código a seguir exibe "Hello World" no canto inferior esquerdo da tela do jogador.
 ```CSharp
-//Bind this to player verified(player joined) event
+//Associe isso ao evento de jogador verificado(jogador entrou)
 public static void OnVerified(VerifiedEventArgs ev)
 {
-    //Create a hint instance
+    //Cria uma instância de hint
     Hint hint = new Hint
     {
         Text = "Hello World"
     };
 
-    //Set hint's properties(optional)
+    //Define propriedades da hint(opcional)
     hint.YCoordinate = 200;
     hint.Alignment = HintAlignment.Left;
 
-    //Get player display, and add hint into player display
+    //Obtém a exibição do jogador e adiciona hint à exibição do jogador
     PlayerDisplay playerDisplay = PlayerDisplay.Get(ev.Player);
     playerDisplay.AddHint(hint);
 }
 ```
-![The hint view](Images/GettingStartedExample.jpg)
+![A visualização da hint](Images/GettingStartedExample.jpg)
