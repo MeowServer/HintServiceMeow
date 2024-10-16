@@ -1,11 +1,11 @@
-# Documentation
-This documentation introduces the usage and features of HintServiceMeow.
+# Documentação
+Essa documentação introduz o uso e recursos do HintServiceMeow.
 ## Hint
-Hint is a primary feature that allows you to add text to a specific position on a player's screen. The following example adds text to the lower left side of the player's screen.
+Hint (dica) é um recurso primário que permite que você adicione texto para uma posição específica na tela de um jogador. O exemplo a seguir adiciona texto na parte esquerda inferior da tela do jogador.
 ```Csharp
  Hint hint = new Hint
  {
-     Text = "Hello World",
+     Text = "Olá, Mundo",
      FontSize = 40,
      YCoordinate = 700,
      Alignment = HintAlignment.Left
@@ -14,61 +14,61 @@ Hint is a primary feature that allows you to add text to a specific position on 
  PlayerDisplay playerDisplay = PlayerDisplay.Get(player);
  playerDisplay.AddHint(hint);
 ```
-Since HSM has an auto-update feature, any changes to a property (like Text, FontSize, Alignment, etc.) will automatically reflect on the player's screen without any further method calls.
+Já que o HSM tem uma mecânica de atualização automática, quaisquer mudanças a uma propriedade (como Text, FontSize, Alignment, etc.) serão automaticamente refletidas na tela do jogador sem nenhumas outras chamadas de método.
 ```Csharp
-hint.Text = "Some New Text";
-// You do not have to call any method after updating properties
+hint.Text = "Algum Texto Novo";
+// Você não precisa chamar qualquer método após atualizar propriedades
 ``` 
-#### Properties
-| Properties | Description |
+#### Propriedades
+| Propriedades | Descrição |
 | - | - |
-| Guid (Readonly) | A generated Guid for the hint |
-| Id | A custom string id |
-| SyncSpeed | The priority of hint's update. The faster it is, the faster it will be updated after the content is updated |
-| FontSize | The size of the text |
-| LineHeight | The extra space between each line of text |
-| Content | The content of the hint. The text displayed will be obtained from this property. |
-| Text | Setting this property will overwrite Content with static text. |
-| AutoText | Setting this property will overwrite Content with a string delegate. |
-| Hide | Whether to hide this hint or not |
-| XCoordinate | The horizontal position of the text. The higher the X coordinate is, the righter the text will be displayed |
-| YCoordinate | The vertical position of the text. The higher the Y coordinate is, the lower the text will be displayed ![The position of Y coordinate](Images/YCoordinateExample.jpg) |
-| Alignment | The alignment of the text. |
-| YCoordinateAlign | The alignment of text to y coordinate. For example, Top means that the y coordinate represents the top of the text |
+| Guid (Somente leitura) | Um Guid gerado para a dica |
+| Id | Um ID de string personalizado |
+| SyncSpeed | A prioridade de atualização da dica. Quanto mais rápido for, mais rápido ela será atualizada depois do conteúdo ser atualizado |
+| FontSize | O tamanho do texto |
+| LineHeight | O espaço extra entre cada linha de texto |
+| Content | O conteúdo da dica. O texto exibido será obtido dessa propriedade. |
+| Text | Definir essa propriedade irá sobrescrever o Content com texto estático. |
+| AutoText | Definir essa propriedade irá sobrescrever o Content com um delegado de string. |
+| Hide | Se deve ocultar essa dica ou não |
+| XCoordinate | A posição horizontal do texto. Quanto maior a coordenada X for, mais à direita o texto será exibido |
+| YCoordinate | A posição vertical do texto. Quanto maior a coordenada Y for, mais abaixo o texto será exibido ![A posição da coordenada Y](Images/YCoordinateExample.jpg) |
+| Alignment | O alinhamento do texto. |
+| YCoordinateAlign | O alinhamento do texto para a coordenada y. Por exemplo, Top significa que a coordenada y representa o topo do texto |
 ## DynamicHint
-Dynamic hints allow you to display text without specifying a fixed position. Dynamic hints are automatically positioned on the screen in areas where they won’t overlap with other text elements, ensuring optimal readability. The following example adds text to the player's screen without setting a fixed position.
+Dicas dinâmicas permitem que você exiba texto sem especificar uma posição fixa. Dicas dinâmicas são automaticamente posicionadas na tela em áreas onde elas não sobreporão a outros elementos de texto, assegurando legibilidade máxima. O exemplo a seguir adiciona texto à tela do jogador sem definir uma posição fixa.
 ```CSharp
 var dynamicHint = new DynamicHint
 {
-    Text = "Hello Dynamic Hint"
+    Text = "Olá, Dica Dinâmica"
 };
 
 PlayerDisplay playerDisplay = PlayerDisplay.Get(player);
 playerDisplay.AddHint(dynamicHint);
 ```
-#### Properties
-| Properties | Description |
+#### Propriedades
+| Propriedades | Descrição |
 | - | - |
-| Guid (Readonly) | A generated Guid for the hint |
-| Id | A custom string id |
-| SyncSpeed | The priority of hint's update. The faster it is, the faster it will be updated after the content is updated |
-| FontSize | The size of the text |
-| LineHeight | The extra space between each line of text |
-| Content | The content of the hint. The text displayed in Hint will be obtained from this property. |
-| Text | Setting this property will overwrite content with static text. |
-| AutoText | Setting this property will overwrite content with a string delegate. |
-| Hide | Whether to hide this hint or not |
-| TopBoundary, BottomBoundary, LeftBoundary, RightBoundary | The boundary for dynamic hint to arrange its text |
-| TargetX, TargetY | The dynamic hint will try to move toward these coordinates, but the final placement depends on available space. |
-| TopMargin, BottomMargin, LeftMargin, RightMargin | The extra space the hint will add to its surroundings when arranging |
-| Priority | The priority of dynamic hint. The higher the priority, the former it will be arranged |
-| Strategy | The strategy dynamic hint will be used when arranging |
+| Guid (Somente leitura) | Um Guid gerado para a dica |
+| Id | Um ID de string personalizado |
+| SyncSpeed | A prioridade de atualização da dica. Quanto mais rápido for, mais rápido ela será atualizada depois do conteúdo ser atualizado |
+| FontSize | O tamanho do texto |
+| LineHeight | O espaço extra entre cada linha de texto |
+| Content | O conteúdo da dica. O texto exibido será obtido dessa propriedade. |
+| Text | Definir essa propriedade irá sobrescrever o Content com texto estático. |
+| AutoText | Definir essa propriedade irá sobrescrever o Content com um delegado de string. |
+| Hide | Se deve ocultar essa dica ou não |
+| TopBoundary, BottomBoundary, LeftBoundary, RightBoundary | O limite para dica dinâmica organizar seu texto |
+| TargetX, TargetY | A dica dinâmica tentará mover em direção a essas coordenadas, mas o local final depende do espaço disponível. |
+| TopMargin, BottomMargin, LeftMargin, RightMargin | O espaço extra que a dica tentará adicionar aos seus arredores ao organizar |
+| Priority | A propriedade da dica dinâmica. Quanto maior a propriedade, mais cedo ela será organizada |
+| Strategy | A dica dinâmica de estratégia será usada ao organizar |
 ## CommonHint
-CommonHint is a component that allows you to display text in a preset position. The following example uses CommonHint to display multiple messages to the player.
+CommonHint é um componente que permite que você exiba texto em uma posição predefinida. O exemplo a seguir usa CommonHint para exibir múltiplas mensagens ao jogador.
 ```CSharp
 var ui = PlayerUI.Get(player);
-ui.CommonHint.ShowRoleHint("SCP173", new[] { "Kill all humans", "Use your skills" });
-ui.CommonHint.ShowMapHint("Heavy Containment Zone", "The place where most SCPs spawn");
-ui.CommonHint.ShowItemHint("Keycard", "Used to open doors");
-ui.CommonHint.ShowOtherHint("The server is starting!");
+ui.CommonHint.ShowRoleHint("SCP173", new[] { "Mate todos humanos", "Use suas habilidades" });
+ui.CommonHint.ShowMapHint("Zona de Contenção Pesada", "O lugar que a maioria dos SCPs nascem");
+ui.CommonHint.ShowItemHint("Cartão", "Usado para abrir portas");
+ui.CommonHint.ShowOtherHint("O servidor está iniciando!");
 ```
