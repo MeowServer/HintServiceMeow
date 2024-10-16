@@ -1,5 +1,5 @@
 # Documentação
-Essa documentação introduz o uso e recursos do HintServiceMeow.
+Essa documentação introduz o uso e funções do HintServiceMeow.
 ## Hint
 Hint (dica) é um recurso primário que permite que você adicione texto para uma posição específica na tela de um jogador. O exemplo a seguir adiciona texto na parte esquerda inferior da tela do jogador.
 ```Csharp
