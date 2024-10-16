@@ -5,7 +5,7 @@ Hint (dica) é um recurso primário que permite que você adicione texto para um
 ```Csharp
  Hint hint = new Hint
  {
-     Text = "Olá, Mundo",
+     Text = "Hello World",
      FontSize = 40,
      YCoordinate = 700,
      Alignment = HintAlignment.Left
