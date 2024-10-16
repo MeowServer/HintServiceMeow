@@ -1,10 +1,10 @@
-# Introdução dos Recursos
-HintServiceMeow inclui os seguintes recursos
+# Introdução das Funções
+HintServiceMeow inclui as seguintes funções
 
 #### Adaptador de Hint
   HintServiceMeow inclui um adaptador de hint que converte automaticamente outras hints de plug-ins para Hints compatíveis ao HintServiceMeow. Isso permite que pessoas utilizem qualquer plug-in que use hints, mesmo que não seja compatíveis entre si ou com o HintServiceMeow.
 
-## Recursos de Desenvolvedor
+## Funções de Desenvolvedor
 #### Funções de Hint
   Esse framework fornece métodos para exibir texto em uma posição específica na tela sem entrar em conflito com outros plug-ins.
 #### Texto automático
