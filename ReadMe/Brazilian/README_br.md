@@ -33,7 +33,3 @@ Aqui estão alguns recursos úteis para você começar:
 ### 2. Por que as hints se sobrepõem?
 - Isso pode acontecer quando múltiplos plug-ins colocam suas hints na mesma posição. Você pode verificar o arquivo de configuração de cada plug-in para ajustar a posição da UI.
 - Se você não puder ajustar a posição usando o arquivo de configuração, por favor, entre em contato com o autor dos plug-ins para assistência.
-
----
-
-Consulte a documentação para mais detalhes!
