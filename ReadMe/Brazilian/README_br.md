@@ -7,7 +7,7 @@
 
 Para instalar esse plug-in, siga os passos abaixo:
 
-1. Vá à [página de lançamento](#) e baixe o arquivo mais recente `HintServiceMeow.dll`. Em seguida, cole-o na pasta de plug-ins.
+1. Vá à [página de lançamento](https://github.com/MeowServer/HintServiceMeow/releases) e baixe o arquivo mais recente `HintServiceMeow.dll`. Em seguida, cole-o na pasta de plug-ins.
 2. Se você estiver usando a **PluginAPI** (API padrão), coloque o arquivo `Harmony.dll` na pasta de **dependências**.
 3. Reinicie o servidor para concluir a instalação.
 
