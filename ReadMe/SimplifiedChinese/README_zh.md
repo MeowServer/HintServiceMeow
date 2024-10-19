@@ -7,7 +7,7 @@
 
 请按照以下步骤安装该插件：
 
-1. 进入 [发行页面](#)，下载最新的 `HintServiceMeow.dll` 文件。
+1. 进入 [发行页面](https://github.com/MeowServer/HintServiceMeow/releases)，下载最新的 `HintServiceMeow.dll` 文件。
 2. 如果您使用的是 **PluginAPI**（默认 API），请将 `Harmony.dll` 放入 **dependencies** 文件夹。
 3. 将这些文件粘贴到插件文件夹中，然后重启服务器完成安装。
 
