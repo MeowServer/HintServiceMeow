@@ -1,5 +1,5 @@
 # 简介
-**HintServiceMeow (HSM)** 是一个用于在玩家屏幕指定位置显示文字的提示框架。
+**HintServiceMeow (HSM)** 是一个用于在玩家屏幕指定位置显示文字的Hint框架。
 
 ---
 
