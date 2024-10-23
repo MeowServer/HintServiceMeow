@@ -14,7 +14,6 @@ namespace HintServiceMeow.Core.Utilities
         private readonly object _lock = new object();
 
         private readonly TimeSpan _leastInterval = TimeSpan.FromMilliseconds(50f);
-
         private readonly List<DateTime> _updateTimestamps = new List<DateTime>();
 
         public void OnUpdate()

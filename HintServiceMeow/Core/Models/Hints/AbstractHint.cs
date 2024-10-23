@@ -6,13 +6,15 @@ using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.Core.Models.HintContent.HintContent;
 using HintServiceMeow.Core.Interface;
 
+using PluginAPI.Core;
+
 namespace HintServiceMeow.Core.Models.Hints
 {
     public abstract class AbstractHint
     {
         protected ReaderWriterLockSlim Lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
 
-        internal readonly IUpdateAnalyser Analyser = new UpdateAnalyzer();
+        private IUpdateAnalyser _analyser = new UpdateAnalyzer();
 
         private readonly Guid _guid = Guid.NewGuid();
         private string _id = string.Empty;
@@ -66,6 +68,34 @@ namespace HintServiceMeow.Core.Models.Hints
         #endregion
 
         #region Properties
+
+        public IUpdateAnalyser UpdateAnalyser
+        {
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return _analyser;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
+            set
+            {
+                Lock.EnterWriteLock();
+                try
+                {
+                    _analyser = value;
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
+            }
+        }
 
         public Guid Guid
         {
@@ -275,6 +305,10 @@ namespace HintServiceMeow.Core.Models.Hints
 
                     OnHintUpdated();
                 }
+                catch (Exception ex)
+                {
+                    Log.Error(ex.ToString());
+                }
                 finally
                 {
                     Lock.ExitWriteLock();
@@ -361,7 +395,7 @@ namespace HintServiceMeow.Core.Models.Hints
 
         protected virtual void OnHintUpdated()
         {
-            Analyser.OnUpdate();
+            _analyser.OnUpdate();
 
             if (!_hide)
             {

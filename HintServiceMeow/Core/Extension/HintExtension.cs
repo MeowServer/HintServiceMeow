@@ -18,7 +18,7 @@ namespace HintServiceMeow.Core.Extension
             if (!HideTime.TryGetValue(hint, out var scheduler))
                 HideTime.Add(hint, scheduler = new TaskScheduler(TimeSpan.Zero, () => hint.Hide = true));
 
-            scheduler.StartAction(delay, TaskScheduler.DelayType.Latest);
+            scheduler.StartAction(delay, TaskScheduler.DelayType.Normal);
         }
     }
 }

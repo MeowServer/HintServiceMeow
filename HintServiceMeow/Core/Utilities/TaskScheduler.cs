@@ -110,6 +110,8 @@ namespace HintServiceMeow.Core.Utilities
             {
                 _actionTimeLock.ExitReadLock();
             }
+
+            return false;
         }
 
         public void PauseAction()
@@ -164,6 +166,11 @@ namespace HintServiceMeow.Core.Utilities
 
                         return true;
                     }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex.ToString());
+                        return false;
+                    }
                     finally
                     {
                         _actionTimeLock.ExitReadLock();
@@ -176,6 +183,10 @@ namespace HintServiceMeow.Core.Utilities
                 {
                     LastActionStopwatch.Restart();
                     NextActionTime = DateTime.MaxValue;
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex.ToString());
                 }
                 finally
                 {

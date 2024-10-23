@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Exiled.API.Features;
 
 using Exiled.API.Features.Roles;
@@ -14,7 +15,7 @@ using HintServiceMeow.UI.Utilities;
 
 using MEC;
 using PlayerRoles;
-
+using UnityEngine;
 using Hint = HintServiceMeow.Core.Models.Hints.Hint;
 
 namespace HintServiceTest
@@ -24,101 +25,78 @@ namespace HintServiceTest
     /// </summary>
     public class Plugin : Plugin<Config>
     {
-        public override string Name => "HintServiceExample";
+        public override string Name => "HintServiceTest";
 
         public override void OnEnabled()
         {
-            Exiled.Events.Handlers.Player.Verified += OnVerified;
-            Exiled.Events.Handlers.Player.Verified += EventHandler.OnVerified;
+            Timing.RunCoroutine(TestB.Hud());
 
             base.OnEnabled();
         }
 
         public override void OnDisabled()
         {
-            Exiled.Events.Handlers.Player.Verified -= OnVerified;
-            Exiled.Events.Handlers.Player.Verified -= EventHandler.OnVerified;
-
             base.OnDisabled();
-        }
-
-        public static void OnVerified(VerifiedEventArgs ev)
-        {
-
         }
     }
 
-    public static class EventHandler
+    public static class TestB
     {
-        public static void OnVerified(VerifiedEventArgs ev)
-        {
-            //Reported 
-            Timing.RunCoroutine(Hud());
-        }
-
         public static IEnumerator<float> Hud()
         {
             while (true)
             {
-                foreach (Player player in Player.List)
+                try
                 {
-                    if (player.Role != RoleTypeId.Spectator)
+                    foreach (Player player in Player.List)
                     {
-                        string color = player.Role.Color.ToHex();
+                        //Get the hint from the PlayerDisplay
+                        var hint = player.GetPlayerDisplay().GetHint(player.Nickname + "HudHint");
 
-                        ShowMeowHint(player, 2f, $" <b><color=#F0FFF0>:credit_card: Имя:</color> <color={color}>{player.DisplayNickname}</b></color>", HintVerticalAlign.Middle, 1025, 55, HintAlignment.Left, 20);
-                    }
-                    else
-                    {
-                        var role = (SpectatorRole)player.Role; ;
-                        Player spectator = player;
-                        Player target = role.SpectatedPlayer;
-
-                        if (target != null)
+                        //If hint not added, then add it.
+                        if (hint == null)
                         {
-                            string color = target.Role.Color.ToHex();
-
-                            ShowMeowHint(spectator, 2f, $"<b><color=#F0FFF0>:tv: Наблюдаемый игрок:</color> <color={color}>{target.DisplayNickname}</b></color>", HintVerticalAlign.Middle, 1025, 55, HintAlignment.Left, 20);
+                            hint = new Hint
+                            {
+                                Id = player.Nickname + "HudHint",
+                                Alignment = HintAlignment.Left,
+                                YCoordinate = 1080,
+                                YCoordinateAlign = HintVerticalAlign.Bottom,
+                                FontSize = 20,
+                                XCoordinate = 70,
+                                Hide = true
+                            };
+                            player.GetPlayerDisplay().AddHint(hint);
                         }
+
+                        if(!player.IsAlive || player.IsOverwatchEnabled || player.Role.Type == RoleTypeId.Spectator || player.Role.Type == RoleTypeId.Overwatch)
+                            continue;
+
+                        //Set hint's text
+                        string color = player.Role.Color.ToHex();
+                        string roleColor = ColorUtility.ToHtmlStringRGB(player.Role.Color);
+                        string roleInfo = player.CustomInfo ?? GetCustomRoleName(player.Role.Type, player.Role.Color);
+                        string roundTime = $"{Math.Floor(Round.ElapsedTime.TotalMinutes)}:{Round.ElapsedTime.Seconds:D2}";
+                        hint.Text = $"Ваш ник: {player.Nickname} \nВаша роль: <color=#{roleColor}> {roleInfo}</color> \nРаунд идёт: {roundTime}</voffset></align></size>";
+                        hint.Hide = false;
+
+                        hint.HideAfter(1.5f);
                     }
                 }
+                catch(Exception e)
+                {
+                    Log.Error(e);
+                }
+
                 yield return Timing.WaitForSeconds(1f);
             }
         }
 
-        public static void ShowMeowHint(this Player ply, float time, string text, HintVerticalAlign Verticalalign = HintVerticalAlign.Top, int ycoordinate = 725, int xcoordinate = 0, HintAlignment aligmenthint = HintAlignment.Center, int fontsize = 27, int degradation = 30)
+        private static string GetCustomRoleName(RoleTypeId role, Color roleColor)
         {
-            if (text.Contains("\n"))
-            {
-                string[] lines = text.Split('\n');
-                int totalYCoordinate = ycoordinate;
-
-                foreach (string line in lines)
-                {
-                    ShowMeowHint(ply, time, line, Verticalalign, totalYCoordinate, xcoordinate, aligmenthint, fontsize);
-                    totalYCoordinate += degradation;
-                }
-            }
-            else
-            {
-                text += "</s></color></b></u></i>";
-                var hint = new Hint()
-                {
-                    Text = text,
-                    YCoordinateAlign = Verticalalign,
-                    YCoordinate = ycoordinate,
-                    XCoordinate = xcoordinate,
-                    Alignment = aligmenthint,
-                    FontSize = fontsize
-                };
-                var playerDisplay = PlayerDisplay.Get(ply);
-                playerDisplay.AddHint(hint);
-                Timing.CallDelayed(time, () =>
-                {
-                    playerDisplay.RemoveHint(hint);
-                    playerDisplay.ForceUpdate();
-                });
-            }
+            string roleName = role.ToString();
+            string colorString = ColorUtility.ToHtmlStringRGB(roleColor);
+            return $"<color=#{colorString}>{roleName}</color>";
         }
     }
 }

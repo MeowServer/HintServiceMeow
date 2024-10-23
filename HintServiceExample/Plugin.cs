@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Discord;
 using Exiled.API.Features;
@@ -15,6 +16,7 @@ using HintServiceMeow.UI.Utilities;
 using MEC;
 using PlayerRoles;
 using UnityEngine;
+using static System.Net.Mime.MediaTypeNames;
 using Hint = HintServiceMeow.Core.Models.Hints.Hint;
 
 namespace HintServiceExample

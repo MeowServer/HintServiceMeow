@@ -2,7 +2,7 @@
 
 namespace HintServiceMeow.Core.Interface
 {
-    internal interface IUpdateAnalyser
+    public interface IUpdateAnalyser
     {
         void OnUpdate();
 

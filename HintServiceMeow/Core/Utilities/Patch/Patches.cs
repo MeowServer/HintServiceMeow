@@ -20,7 +20,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
                     var assemblyName = Assembly.GetCallingAssembly().FullName;
                     var content = textHint.Text;
                     var duration = textHint.DurationScalar;
-                    PlayerDisplay.Get(referenceHub).Adapter.ShowHint(assemblyName, content, duration);
+                    PlayerDisplay.Get(referenceHub).ShowCompatibilityHint(assemblyName, content, duration);
                 }
             }
             catch(Exception ex)
@@ -39,7 +39,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
                     return false;
             
                 var assemblyName = Assembly.GetCallingAssembly().FullName;
-                __instance.GetPlayerDisplay().Adapter.ShowHint(assemblyName, text, duration);
+                __instance.GetPlayerDisplay().ShowCompatibilityHint(assemblyName, text, duration);
             }
             catch (Exception ex)
             {
@@ -57,7 +57,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
                     return false;
 
                 var assemblyName = Assembly.GetCallingAssembly().FullName;
-                __instance.GetPlayerDisplay().Adapter.ShowHint(assemblyName, text, duration);
+                __instance.GetPlayerDisplay().ShowCompatibilityHint(assemblyName, text, duration);
             }
             catch (Exception ex)
             {
@@ -76,7 +76,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
                     return false;
 
                 var assemblyName = Assembly.GetCallingAssembly().FullName;
-                __instance.GetPlayerDisplay().Adapter.ShowHint(assemblyName, message, duration);
+                __instance.GetPlayerDisplay().ShowCompatibilityHint(assemblyName, message, duration);
             }
             catch (Exception ex)
             {
@@ -97,7 +97,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
                     return false;
                 
                 var assemblyName = Assembly.GetCallingAssembly().FullName;
-                __instance.GetPlayerDisplay().Adapter.ShowHint(assemblyName, hint.Content, hint.Duration);
+                __instance.GetPlayerDisplay().ShowCompatibilityHint(assemblyName, hint.Content, hint.Duration);
             }
             catch (Exception ex)
             {
