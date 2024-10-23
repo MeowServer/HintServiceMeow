@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -12,114 +13,49 @@ namespace HintServiceMeow.Core.Models
     /// </summary>
     public class HintCollection
     {
-        private readonly Dictionary<string, HashSet<AbstractHint>> _hintGroups = new Dictionary<string, HashSet<AbstractHint>>();
-        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
+        private readonly ConcurrentDictionary<string, ConcurrentDictionary<AbstractHint, byte>> _hintGroups = new ConcurrentDictionary<string, ConcurrentDictionary<AbstractHint, byte>>();
 
-        public IEnumerable<HashSet<AbstractHint>> AllGroups
+        public List<List<AbstractHint>> AllGroups
         {
             get
             {
-                _lock.EnterReadLock();
-                try
-                {
-                    return _hintGroups.Values.ToList(); //DO NOT REMOVE TO LIST WITHOUT CONSIDERING THREAD SAFETY
-                }
-                finally
-                {
-                    _lock.ExitReadLock();
-                }
+                return _hintGroups.Values.Select(x => x.Keys.ToList()).ToList();
             }
         }
 
-        public IEnumerable<AbstractHint> AllHints
+        internal void AddHint(string assemblyName, AbstractHint hint)
         {
-            get
-            {
-                _lock.EnterReadLock();
-                try
-                {
-                    return _hintGroups.Values.SelectMany(x => x).ToList(); //DO NOT REMOVE TO LIST WITHOUT CONSIDERING THREAD SAFETY
-                }
-                finally
-                {
-                    _lock.ExitReadLock();
-                }
-            }
+            _hintGroups.GetOrAdd(assemblyName, new ConcurrentDictionary<AbstractHint, byte>()).TryAdd(hint ?? throw new ArgumentNullException("hint"), 0);
         }
 
-        public void AddHint(string assemblyName, AbstractHint hint)
+        internal void RemoveHint(string assemblyName, AbstractHint hint)
         {
-            _lock.EnterWriteLock();
-            try
-            {
-                if (!_hintGroups.ContainsKey(assemblyName))
-                    _hintGroups[assemblyName] = new HashSet<AbstractHint>();
+            if (!_hintGroups.TryGetValue(assemblyName, out var hintDict))
+                return;
 
-                _hintGroups[assemblyName].Add(hint);
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
+            hintDict.TryRemove(hint ?? throw new ArgumentNullException("hint"), out _);
         }
 
-        public void RemoveHint(string assemblyName, AbstractHint hint)
+        internal void RemoveHint(string assemblyName, Func<AbstractHint, bool> predicate)
         {
-            _lock.EnterWriteLock();
-            try
-            {
-                if (!_hintGroups.TryGetValue(assemblyName, out var hintList))
-                    return;
+            if (!_hintGroups.TryGetValue(assemblyName, out var hintDict))
+                return;
 
-                hintList.Remove(hint);
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
+            foreach(var hint in hintDict.Keys.Where(predicate).ToList())
+                hintDict.TryRemove(hint, out _);
         }
 
-        public void RemoveHint(string assemblyName, Predicate<AbstractHint> predicate)
+        internal void ClearHints(string assemblyName)
         {
-            _lock.EnterWriteLock();
-            try
-            {
-                if (!_hintGroups.TryGetValue(assemblyName, out var hintList))
-                    return;
+            if (!_hintGroups.TryGetValue(assemblyName, out var hintDict))
+                return;
 
-                hintList.RemoveWhere(predicate);
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
-        }
-
-        public void ClearHints(string assemblyName)
-        {
-            _lock.EnterWriteLock();
-            try
-            {
-                if (_hintGroups.TryGetValue(assemblyName, out var hintList))
-                    hintList.Clear();
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
+            hintDict.Clear();
         }
 
         public IEnumerable<AbstractHint> GetHints(string assemblyName)
         {
-            _lock.EnterReadLock();
-            try
-            {
-                return _hintGroups.TryGetValue(assemblyName, out var hintList) ? hintList.ToList() : new List<AbstractHint>();
-            }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
+            return _hintGroups.GetOrAdd(assemblyName, new ConcurrentDictionary<AbstractHint, byte>()).Select(x => x.Key);
         }
 
         public IEnumerable<AbstractHint> GetHints(string assemblyName, Func<AbstractHint, bool> predicate)

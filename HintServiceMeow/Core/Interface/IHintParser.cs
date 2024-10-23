@@ -4,6 +4,6 @@ namespace HintServiceMeow.Core.Interface
 {
     public interface IHintParser
     {
-        string Parse(HintCollection collection);
+        string ParseToMessage(HintCollection collection);
     }
 }

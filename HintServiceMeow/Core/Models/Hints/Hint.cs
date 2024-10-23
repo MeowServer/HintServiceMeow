@@ -38,10 +38,10 @@ namespace HintServiceMeow.Core.Models.Hints
             Lock.EnterWriteLock();
             try
             {
-                this.YCoordinate = hint.YCoordinate;
-                this.XCoordinate = hint.XCoordinate;
-                this.Alignment = hint.Alignment;
-                this.YCoordinateAlign = hint.YCoordinateAlign;
+                this._yCoordinate = hint._yCoordinate;
+                this._xCoordinate = hint._xCoordinate;
+                this._alignment = hint._alignment;
+                this._yCoordinateAlign = hint._yCoordinateAlign;
             }
             finally
             {
@@ -54,9 +54,10 @@ namespace HintServiceMeow.Core.Models.Hints
             Lock.EnterWriteLock();
             try
             {
-                this.YCoordinate = y;
-                this.XCoordinate = x;
-                _yCoordinateAlign = HintVerticalAlign.Bottom;
+                this._yCoordinate = y;
+                this._xCoordinate = x;
+                this._alignment = HintAlignment.Center;
+                this._yCoordinateAlign = HintVerticalAlign.Bottom;
             }
             finally
             {
@@ -90,9 +91,6 @@ namespace HintServiceMeow.Core.Models.Hints
                 {
                     if (_yCoordinate.Equals(value))
                         return;
-
-                    value = Math.Max(0, value);
-                    value = Math.Min(1080, value);
 
                     _yCoordinate = value;
                     OnHintUpdated();
@@ -130,9 +128,6 @@ namespace HintServiceMeow.Core.Models.Hints
                     if (_xCoordinate.Equals(value))
                         return;
 
-                    value = Math.Max(-1200, value);
-                    value = Math.Min(1200, value);
-
                     _xCoordinate = value;
                     OnHintUpdated();
                 }
@@ -169,7 +164,7 @@ namespace HintServiceMeow.Core.Models.Hints
                         return;
 
                     _alignment = value;
-                    if (!Hide) OnHintUpdated();
+                    OnHintUpdated();
                 }
                 finally
                 {
@@ -204,7 +199,7 @@ namespace HintServiceMeow.Core.Models.Hints
                         return;
 
                     _yCoordinateAlign = value;
-                    if (!Hide) OnHintUpdated();
+                    OnHintUpdated();
                 }
                 finally
                 {

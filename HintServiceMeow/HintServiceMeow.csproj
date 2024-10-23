@@ -159,7 +159,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <EmbeddedResource Include="Roboto-Light" />
+    <EmbeddedResource Include="TextWidth" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="UI\Models\" />

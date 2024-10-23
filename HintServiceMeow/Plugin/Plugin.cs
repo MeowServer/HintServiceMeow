@@ -147,7 +147,10 @@ using PluginAPI.Events;
 // *        Improve stability of compatibility adaptor
 // *        Improve performance
 // *        Fix some bugs in extension
+// *        Fix some thread safety issues in Hint Collection
 // *        Add more customizable properties in PlayerDisplay
+// *        Minor change on code quality
+// *        Fix the bug that cause crush on Linux system
 
 namespace HintServiceMeow
 {
@@ -238,7 +241,7 @@ namespace HintServiceMeow
         public PluginConfig Config;
         public PluginConfig PluginConfig => Config;
 
-        [PluginEntryPoint("HintServiceMeow", "5.3.4", "A hint framework", "MeowServer")]
+        [PluginEntryPoint("HintServiceMeow", "5.3.5", "A hint framework", "MeowServer")]
         public void LoadPlugin()
         {
             Plugin.OnEnabled(this);
@@ -288,7 +291,7 @@ namespace HintServiceMeow
     {
         public static string Name => "HintServiceMeow";
         public static string Author => "MeowServer";
-        public static Version Version => new Version(5, 3, 4);
+        public static Version Version => new Version(5, 3, 5);
 
         public static PluginConfig Config = new PluginConfig();//Default if no config
 

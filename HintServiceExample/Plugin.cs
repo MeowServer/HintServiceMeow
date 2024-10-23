@@ -16,6 +16,7 @@ using HintServiceMeow.UI.Utilities;
 using MEC;
 using PlayerRoles;
 using UnityEngine;
+using static System.Net.Mime.MediaTypeNames;
 using Hint = HintServiceMeow.Core.Models.Hints.Hint;
 
 namespace HintServiceExample

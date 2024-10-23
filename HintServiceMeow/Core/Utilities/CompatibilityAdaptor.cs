@@ -56,15 +56,13 @@ namespace HintServiceMeow.Core.Utilities
             if (_removeDelayedActions.TryGetValue(internalAssemblyName, out var removeTime) && removeTime.IsRunning)
                 Timing.KillCoroutines(removeTime);
 
-            //Check Duration, if Duration is less than 0, then only clear the hints but don't generate new hints.
             if (duration <= 0)
             {
                 _playerDisplay.InternalClearHint(internalAssemblyName);
                 return;
             }
 
-            if (duration > float.MaxValue - 0.1f)
-                duration = float.MaxValue - 0.1f; //Prevent overflow (Max value is 0.1f less than float.MaxValue)
+            duration = Math.Min(float.MaxValue - 1f, duration);
 
             //Start new remove action, remove after the Duration
             _removeDelayedActions[internalAssemblyName] = Timing.CallDelayed(duration + 0.1f, () => _playerDisplay.InternalClearHint(internalAssemblyName));

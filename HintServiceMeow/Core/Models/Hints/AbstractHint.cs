@@ -6,6 +6,8 @@ using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.Core.Models.HintContent.HintContent;
 using HintServiceMeow.Core.Interface;
 
+using PluginAPI.Core;
+
 namespace HintServiceMeow.Core.Models.Hints
 {
     public abstract class AbstractHint
@@ -92,7 +94,6 @@ namespace HintServiceMeow.Core.Models.Hints
                 {
                     Lock.ExitWriteLock();
                 }
-
             }
         }
 
@@ -303,6 +304,10 @@ namespace HintServiceMeow.Core.Models.Hints
                     }
 
                     OnHintUpdated();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex.ToString());
                 }
                 finally
                 {

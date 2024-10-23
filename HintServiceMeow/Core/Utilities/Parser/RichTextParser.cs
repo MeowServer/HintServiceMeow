@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
+using Exiled.API.Features;
 using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Utilities.Tools;
 
@@ -157,28 +157,20 @@ namespace HintServiceMeow.Core.Utilities.Parser
                         continue;
                     }
 
-                    float currentWidth = 
-                        currentChInfos.IsEmpty() ? 0 : currentChInfos.Sum(x => x.Width);                      ;
-                    float rightX = 0;
-
-                    switch (_currentLineAlignment)
+                    float currentWidth = currentChInfos.IsEmpty() ? 0 : currentChInfos.Sum(x => x.Width);
+                    float overflowValue = _currentLineAlignment switch
                     {
-                        case HintAlignment.Center:
-                            rightX = currentWidth / 2 + _pos;
-                            break;
-                        case HintAlignment.Left:
-                            rightX = -1200 + currentWidth + _pos;
-                            break;
-                        case HintAlignment.Right:
-                            rightX = 1200 + _pos;
-                            break;
-                    }
+                        HintAlignment.Center => currentWidth / 2 + _pos,
+                        HintAlignment.Left => -1200 + currentWidth + _pos,
+                        HintAlignment.Right => 1200 + _pos,
+                        _ => 0,
+                    };
 
                     //Try change line
-                    if (text[_index] == '\n' || rightX > 1200)// Hint seems to only detect the right edge of the text
+                    if (text[_index] == '\n' || overflowValue > 1200)
                     {
                         if(text[_index] == '\n')
-                            currentChInfos.Add(GetChInfo(text[_index]));//Add \n if the line break at \n
+                            currentChInfos.Add(GetChInfo('\n'));//Add \n if the line break at \n
 
                         //Create new line info
                         lines.Add(GetLineInfo(currentChInfos, _currentLineAlignment));
@@ -282,7 +274,8 @@ namespace HintServiceMeow.Core.Utilities.Parser
             {
                 chWidth *= (float)Math.Pow(0.5, _scriptStyles.Count(x => x == ScriptStyle.Superscript));
             }
-            else if (_scriptStyles.Contains(ScriptStyle.Subscript))
+            
+            if (_scriptStyles.Contains(ScriptStyle.Subscript))
             {
                 chWidth *= (float)Math.Pow(0.5, _scriptStyles.Count(x => x == ScriptStyle.Subscript));
             }
