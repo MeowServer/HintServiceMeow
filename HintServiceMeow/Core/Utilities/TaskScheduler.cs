@@ -4,8 +4,9 @@ using System.Threading;
 using System.Diagnostics;
 using System.Reflection;
 
-using PluginAPI.Core;
 using MEC;
+
+using HintServiceMeow.Core.Utilities.Tools;
 
 namespace HintServiceMeow.Core.Utilities
 {
@@ -13,13 +14,16 @@ namespace HintServiceMeow.Core.Utilities
     {
         private readonly Action _action;
 
-        public readonly TimeSpan Interval;
-        private readonly CoroutineHandle _actionCoroutine;
-        private readonly ReaderWriterLockSlim _coroutineLock = new ReaderWriterLockSlim();
+        private readonly TimeSpan Interval;
+        private CoroutineHandle _actionCoroutine;
 
-        public Stopwatch LastActionStopwatch { get; private set; } = Stopwatch.StartNew();
-        public DateTime NextActionTime { get; private set; } = new DateTime();
+        public Stopwatch IntervalStopwatch { get; private set; } = Stopwatch.StartNew();
+        private readonly FieldInfo _timerElapsedField = typeof(Stopwatch).GetField("elapsed", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        public DateTime ScheduledActionTime { get; private set; } = new DateTime();
         private readonly ReaderWriterLockSlim _actionTimeLock = new ReaderWriterLockSlim();
+
+        private bool Paused { get; set; } = false;
 
         public TaskScheduler(TimeSpan interval, Action action)
         {
@@ -31,24 +35,14 @@ namespace HintServiceMeow.Core.Utilities
             _actionTimeLock.EnterWriteLock();
             try
             {
-                var field = typeof(Stopwatch).GetField("elapsed", BindingFlags.NonPublic | BindingFlags.Instance);
-                field.SetValue(LastActionStopwatch, interval.Ticks);
+                _timerElapsedField.SetValue(IntervalStopwatch, interval.Ticks);
             }
             finally
             {
                 _actionTimeLock.ExitWriteLock();
             }
 
-            _coroutineLock.EnterWriteLock();
-            try
-            {
-                this._actionCoroutine = Timing.RunCoroutine(TaskCoroutineMethod());
-            }
-            finally
-            {
-                _coroutineLock.ExitWriteLock();
-            }
-
+            MultithreadTool.EnqueueAction(() => _actionCoroutine = Timing.RunCoroutine(TaskCoroutineMethod()));
         }
 
         public void StartAction()
@@ -57,7 +51,7 @@ namespace HintServiceMeow.Core.Utilities
 
             try
             {
-                NextActionTime = DateTime.MinValue;
+                ScheduledActionTime = DateTime.MinValue;
             }
             finally
             {
@@ -71,24 +65,24 @@ namespace HintServiceMeow.Core.Utilities
 
             try
             {
-                if (NextActionTime == DateTime.MaxValue)
+                if (ScheduledActionTime == DateTime.MaxValue)
                 {
-                    NextActionTime = DateTime.Now.AddSeconds(delay);
+                    ScheduledActionTime = DateTime.Now.AddSeconds(delay);
                     return;
                 }
 
                 switch (delayType)
                 {
-                    case DelayType.Fastest:
-                        if (NextActionTime > DateTime.Now.AddSeconds(delay))
-                            NextActionTime = DateTime.Now.AddSeconds(delay);
+                    case DelayType.KeepFastest:
+                        if (ScheduledActionTime > DateTime.Now.AddSeconds(delay))
+                            ScheduledActionTime = DateTime.Now.AddSeconds(delay);
                         break;
-                    case DelayType.Latest:
-                        if (NextActionTime < DateTime.Now.AddSeconds(delay))
-                            NextActionTime = DateTime.Now.AddSeconds(delay);
+                    case DelayType.KeepLatest:
+                        if (ScheduledActionTime < DateTime.Now.AddSeconds(delay))
+                            ScheduledActionTime = DateTime.Now.AddSeconds(delay);
                         break;
-                    case DelayType.Normal:
-                        NextActionTime = DateTime.Now.AddSeconds(delay);
+                    case DelayType.Override:
+                        ScheduledActionTime = DateTime.Now.AddSeconds(delay);
                         break;
                 }
             }
@@ -104,48 +98,24 @@ namespace HintServiceMeow.Core.Utilities
 
             try
             {
-                return Interval < LastActionStopwatch.Elapsed;
+                return Interval < IntervalStopwatch.Elapsed;
             }
             finally
             {
                 _actionTimeLock.ExitReadLock();
             }
-
-            return false;
         }
 
-        public void PauseAction()
+        public void PauseIntervalStopwatch()
         {
-            _coroutineLock.EnterWriteLock();
-
-            try
-            {
-                if(_actionCoroutine.IsRunning)
-                    Timing.PauseCoroutines(_actionCoroutine);
-
-                LastActionStopwatch.Stop();
-            }
-            finally
-            {
-                _coroutineLock.ExitWriteLock();
-            }
+            IntervalStopwatch.Stop();
+            Paused = true;
         }
 
-        public void ResumeAction()
+        public void ResumeIntervalStopwatch()
         {
-            _coroutineLock.EnterWriteLock();
-
-            try
-            {
-                if(_actionCoroutine.IsAliveAndPaused)
-                    Timing.ResumeCoroutines(_actionCoroutine);
-
-                LastActionStopwatch.Start();
-            }
-            finally
-            {
-                _coroutineLock.ExitWriteLock();
-            }
+            IntervalStopwatch.Start();
+            Paused = false;
         }
 
         private IEnumerator<float> TaskCoroutineMethod()
@@ -158,17 +128,17 @@ namespace HintServiceMeow.Core.Utilities
 
                     try
                     {
-                        if (Interval > LastActionStopwatch.Elapsed)
+                        if (Interval > IntervalStopwatch.Elapsed)
                             return false;
 
-                        if (DateTime.Now < NextActionTime)
+                        if (DateTime.Now < ScheduledActionTime)
                             return false;
 
-                        return true;
+                        return !Paused;
                     }
                     catch (Exception ex)
                     {
-                        Log.Error(ex.ToString());
+                        PluginAPI.Core.Log.Error(ex.ToString());
                         return false;
                     }
                     finally
@@ -177,29 +147,29 @@ namespace HintServiceMeow.Core.Utilities
                     }
                 });
 
-                _actionTimeLock.EnterWriteLock();
-
-                try
-                {
-                    LastActionStopwatch.Restart();
-                    NextActionTime = DateTime.MaxValue;
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex.ToString());
-                }
-                finally
-                {
-                    _actionTimeLock.ExitWriteLock();
-                }
-
                 try
                 {
                     _action.Invoke();
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex.ToString());
+                    PluginAPI.Core.Log.Error(ex.ToString());
+                }
+
+                _actionTimeLock.EnterWriteLock();
+
+                try
+                {
+                    IntervalStopwatch.Restart();
+                    ScheduledActionTime = DateTime.MaxValue;
+                }
+                catch (Exception ex)
+                {
+                    PluginAPI.Core.Log.Error(ex.ToString());
+                }
+                finally
+                {
+                    _actionTimeLock.ExitWriteLock();
                 }
             }
         }
@@ -209,15 +179,15 @@ namespace HintServiceMeow.Core.Utilities
             /// <summary>
             /// Only save the fastest action time
             /// </summary>
-            Fastest,
+            KeepFastest,
             /// <summary>
             /// Only save the latest action time
             /// </summary>
-            Latest,
+            KeepLatest,
             /// <summary>
             /// Update the action time without comparing
             /// </summary>
-            Normal
+            Override
         }
     }
 }

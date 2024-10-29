@@ -411,6 +411,8 @@ namespace HintServiceMeow.Core.Models.Hints
             public AbstractHint Hint { get; }
             public PlayerDisplay PlayerDisplay { get; }
 
+            public float DelayTime { get; set; } = 0.1f;
+
             internal TextUpdateArg(AbstractHint hint, PlayerDisplay playerDisplay)
             {
                 this.Hint = hint;

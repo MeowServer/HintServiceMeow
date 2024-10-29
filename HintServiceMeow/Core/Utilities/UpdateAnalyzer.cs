@@ -1,24 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using HintServiceMeow.Core.Interface;
+using HintServiceMeow.Core.Utilities.Tools;
 using PluginAPI.Core;
 
 namespace HintServiceMeow.Core.Utilities
 {
     /// <summary>
-    /// Used to estimate the next update time.
+    /// Default implementation of UpdateAnalyser. Used to update hint's update
     /// </summary>
     internal class UpdateAnalyzer : IUpdateAnalyser
     {
-        private readonly object _lock = new object();
+        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
         private readonly TimeSpan _leastInterval = TimeSpan.FromMilliseconds(50f);
         private readonly List<DateTime> _updateTimestamps = new List<DateTime>();
 
+        private DateTime _cachedTime = DateTime.MaxValue;
+
         public void OnUpdate()
         {
-            lock (_lock)
+            _lock.EnterWriteLock();
+
+            try
             {
                 var now = DateTime.Now;
 
@@ -30,67 +37,55 @@ namespace HintServiceMeow.Core.Utilities
                 _updateTimestamps.Add(now);
                 _updateTimestamps.RemoveAll(x => now - x > TimeSpan.FromSeconds(30));
             }
+            finally
+            {
+                _lock.ExitWriteLock();
+            }
         }
 
         public DateTime EstimateNextUpdate()
         {
-            lock (_lock)
+            _lock.EnterReadLock();
+
+            try
             {
                 if (_updateTimestamps.Count <= 1)
                 {
                     return DateTime.MaxValue;
                 }
 
-                var now = DateTime.Now;
-                long nextTimestamp = long.MaxValue;
-
-                _updateTimestamps.Add(now);
-
-                try
+                if (_cachedTime != DateTime.MaxValue)
                 {
-                    //Calculate Interval
-                    List<long> intervals = new List<long>();
-                    for (int i = 1; i < _updateTimestamps.Count; i++)
-                    {
-                        intervals.Add(_updateTimestamps[i].Ticks - _updateTimestamps[i - 1].Ticks);
-                    }
-
-                    //Prepare data
-                    long[] xData = new long[intervals.Count];
-                    long[] yData = intervals.ToArray();
-                    for (int i = 0; i < xData.Length; i++)
-                    {
-                        xData[i] = i;
-                    }
-
-                    // Linear regression
-                    int n = xData.Length;
-                    float sumX = xData.Sum();
-                    float sumY = yData.Sum();
-                    float sumXY = 0;
-                    float sumX2 = 0;
-
-                    for (int i = 0; i < n; i++)
-                    {
-                        sumXY += xData[i] * yData[i];
-                        sumX2 += xData[i] * xData[i];
-                    }
-
-                    float slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-                    float intercept = (sumY - slope * sumX) / n;
-
-                    float nextInterval = slope * n + intercept;
-
-                    nextTimestamp = _updateTimestamps.Last().Ticks + (long)nextInterval;
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex.ToString());
+                    return _cachedTime;
                 }
 
-                _updateTimestamps.Remove(now);
+                long baseTicks = _updateTimestamps.First().Ticks;
+                List<double> timeOffsets = _updateTimestamps.Select(date => (double)(date.Ticks - baseTicks)).ToList();
+                List<int> xValues = Enumerable.Range(0, timeOffsets.Count).ToList();
 
-                return new DateTime(nextTimestamp);
+                double avgX = xValues.Average();
+                double avgY = timeOffsets.Average();
+
+                double sumXY = xValues.Zip(timeOffsets, (x, y) => (x - avgX) * (y - avgY)).Sum();
+                double sumXX = xValues.Sum(x => Math.Pow(x - avgX, 2));
+
+                double slope = sumXY / sumXX;
+                double intercept = avgY - slope * avgX;
+
+                double nextOffset = slope * timeOffsets.Count + intercept;
+
+                MultithreadTool.EnqueueAction(() => _cachedTime = DateTime.MaxValue);
+                _cachedTime = new DateTime((long)(baseTicks + nextOffset));
+                return _cachedTime;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.ToString());
+                return DateTime.MaxValue;
+            }
+            finally
+            {
+                _lock.ExitReadLock();
             }
         }
     }

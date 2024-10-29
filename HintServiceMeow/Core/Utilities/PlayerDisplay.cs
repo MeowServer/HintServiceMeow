@@ -13,8 +13,8 @@ using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Models;
 using HintServiceMeow.Core.Utilities.Parser;
 using HintServiceMeow.Core.Interface;
-using Utils.NonAllocLINQ;
-using Exiled.API.Features;
+using Discord;
+using HintServiceMeow.Core.Utilities.Tools;
 
 namespace HintServiceMeow.Core.Utilities
 {
@@ -30,7 +30,7 @@ namespace HintServiceMeow.Core.Utilities
         public NetworkConnection ConnectionToClient { get; }
 
         /// <summary>
-        /// Invoke every frame when ReferenceHub display is ready to update.
+        /// Invoke every 0.1 second when ReferenceHub display is ready to update.
         /// </summary>
         public event UpdateAvailableEventHandler UpdateAvailable;
         public delegate void UpdateAvailableEventHandler(UpdateAvailableEventArg ev);
@@ -45,20 +45,11 @@ namespace HintServiceMeow.Core.Utilities
         private IHintParser _hintParser = new HintParser();
         private ICompatibilityAdaptor _adapter;
 
-        private static readonly CoroutineHandle _updateCoroutine;
-        private static readonly CoroutineHandle _coroutine;
+        private readonly CoroutineHandle _coroutine;
 
-        private Task<string> _currentParserTask;
-        private readonly object _currentParserTaskLock = new object();
+        private Task _currentParserTask;
         
         #region Constructor and Destructors
-
-        static PlayerDisplay()
-        {
-            _updateCoroutine = Timing.RunCoroutine(UpdateCoroutineMethod());
-            _coroutine = Timing.RunCoroutine(CoroutineMethod());
-        }
-
         private PlayerDisplay(ReferenceHub referenceHub)
         {
             this.ConnectionToClient = referenceHub.netIdentity.connectionToClient;
@@ -67,9 +58,10 @@ namespace HintServiceMeow.Core.Utilities
             this._taskScheduler = new TaskScheduler(TimeSpan.FromSeconds(0.5f), () =>
             {
                 StartParserTask();
-                _taskScheduler?.PauseAction();//Pause action until the parser task is done
+                _taskScheduler?.PauseIntervalStopwatch();//Pause action until the parser task is done
             });
             this._adapter = new CompatibilityAdaptor(this);
+            this._coroutine = Timing.RunCoroutine(CoroutineMethod());
 
             lock (PlayerDisplayListLock)
             {
@@ -114,75 +106,31 @@ namespace HintServiceMeow.Core.Utilities
         #endregion
 
         #region Coroutine Methods
-        private static IEnumerator<float> UpdateCoroutineMethod()
+        private IEnumerator<float> CoroutineMethod()
         {
             while (true)
             {
                 yield return Timing.WaitForOneFrame;
 
-                lock (PlayerDisplayListLock)
+                try
                 {
-                    foreach (var pd in PlayerDisplayList)
-                    {
-                        lock (pd._currentParserTaskLock)
-                        {
-                            if (pd._currentParserTask is null || !pd._currentParserTask.IsCompleted)
-                                continue;
+                    //Periodic update
+                    if (_taskScheduler.IntervalStopwatch.Elapsed > TimeSpan.FromSeconds(5))
+                        ScheduleUpdate();
 
-                            try
-                            {
-                                pd.SendHint(pd._currentParserTask.Result);
-
-                                pd._taskScheduler.ResumeAction();
-
-                                pd._currentParserTask.Dispose();
-                                pd._currentParserTask = null;
-                            }
-                            catch (Exception ex)
-                            {
-                                PluginAPI.Core.Log.Error(ex.ToString());
-                            }
-
-                            yield return Timing.WaitForOneFrame;
-                        }
-                    }
+                    if (_taskScheduler.IsReadyForNextAction())
+                        UpdateAvailable?.Invoke(new UpdateAvailableEventArg(this));
                 }
-            }
-        }
-
-        private static IEnumerator<float> CoroutineMethod()
-        {
-            while (true)
-            {
-                yield return Timing.WaitForSeconds(0.1f);
-
-                lock (PlayerDisplayListLock)
+                catch (Exception ex)
                 {
-                    foreach (var pd in PlayerDisplayList)
-                    {
-                        if (pd._taskScheduler.IsReadyForNextAction())
-                        {
-                            try
-                            {
-                                pd.UpdateAvailable?.Invoke(new UpdateAvailableEventArg(pd));
-                            }
-                            catch (Exception ex)
-                            {
-                                PluginAPI.Core.Log.Error(ex.ToString());
-                            }
-                        }
-
-                        //Periodic update
-                        if (pd._taskScheduler.LastActionStopwatch.Elapsed > TimeSpan.FromSeconds(5) && pd._currentParserTask == null)
-                            pd.ScheduleUpdate();
-                    }
+                    PluginAPI.Core.Log.Error(ex.ToString());
                 }
             }
         }
         #endregion
 
         #region Update Management
-        internal void OnHintUpdate(AbstractHint hint)
+        private void OnHintUpdate(AbstractHint hint)
         {
             if (hint.SyncSpeed == HintSyncSpeed.UnSync)
                 return;
@@ -198,16 +146,12 @@ namespace HintServiceMeow.Core.Utilities
             };
 
             ScheduleUpdate(maxWaitingTime, hint);
-            
         }
 
         private void ScheduleUpdate(float maxWaitingTime = float.MinValue, AbstractHint updatingHint = null)
         {
-            lock(_currentParserTaskLock)
-            {
-                if (_currentParserTask is not null)
-                    return;
-            }
+            if (_currentParserTask is not null)
+                return;
 
             if (maxWaitingTime <= 0)
             {
@@ -236,7 +180,7 @@ namespace HintServiceMeow.Core.Utilities
             if(delay <= 0)
                 _taskScheduler.StartAction();
             else
-                _taskScheduler.StartAction(delay, TaskScheduler.DelayType.Fastest);
+                _taskScheduler.StartAction(delay, TaskScheduler.DelayType.KeepFastest);
         }
 
         /// <summary>
@@ -254,8 +198,19 @@ namespace HintServiceMeow.Core.Utilities
             if (_currentParserTask is not null)
                 return;
 
-            lock (_currentParserTaskLock)
-                _currentParserTask = Task.Run(() => _hintParser.ParseToMessage(_hints));
+            _currentParserTask = 
+                Task.Run(() => _hintParser.ParseToMessage(_hints))
+                .ContinueWith((parserTask) => {
+                    MultithreadTool.EnqueueAction(() =>
+                    {
+                        SendHint(parserTask.Result);
+
+                        _taskScheduler.ResumeIntervalStopwatch();
+
+                        _currentParserTask.Dispose();
+                        _currentParserTask = null;
+                    });
+                });
         }
 
         private void SendHint(string text)

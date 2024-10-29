@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using PluginAPI.Core;
 using NorthwoodLib;
+using HintServiceMeow.Core.Utilities.Pools;
 
 namespace HintServiceMeow.Core.Utilities.Tools
 {
@@ -13,39 +14,33 @@ namespace HintServiceMeow.Core.Utilities.Tools
     /// </summary>
     internal class CoordinateTools
     {
-        public static float GetYCoordinate(RichTextParser parser, Hint hint, HintVerticalAlign to)
+        public static float GetYCoordinate(Hint hint, HintVerticalAlign to)
         {
-            return GetYCoordinate(parser, hint, hint.YCoordinateAlign, to);
+            return GetYCoordinate(hint, hint.YCoordinateAlign, to);
         }
 
-        public static float GetYCoordinate(RichTextParser parser, Hint hint, HintVerticalAlign from, HintVerticalAlign to)
+        public static float GetYCoordinate(Hint hint, HintVerticalAlign from, HintVerticalAlign to)
         {
-            return GetYCoordinate(hint.YCoordinate, GetTextHeight(parser, hint), from, to);
+            return GetYCoordinate(hint.YCoordinate, GetTextHeight(hint), from, to);
         }
 
         public static float GetYCoordinate(float rawYCoordinate, float textHeight, HintVerticalAlign from, HintVerticalAlign to)
         {
             float offset = 0;
 
-            switch (from)
+            offset += from switch
             {
-                case HintVerticalAlign.Top:
-                    offset += textHeight;
-                    break;
-                case HintVerticalAlign.Middle:
-                    offset += textHeight / 2;
-                    break;
-            }
+                HintVerticalAlign.Top => textHeight,
+                HintVerticalAlign.Middle => textHeight / 2,
+                _ => 0
+            };
 
-            switch (to)
+            offset -= to switch
             {
-                case HintVerticalAlign.Top:
-                    offset -= textHeight;
-                    break;
-                case HintVerticalAlign.Middle:
-                    offset -= textHeight / 2;
-                    break;
-            }
+                HintVerticalAlign.Top => textHeight,
+                HintVerticalAlign.Middle => textHeight / 2,
+                _ => 0
+            };
 
             return rawYCoordinate + offset;
         }
@@ -53,69 +48,58 @@ namespace HintServiceMeow.Core.Utilities.Tools
         /// <summary>
         /// Get the X coordinate of the hint with alignment's offset
         /// </summary>
-        public static float GetXCoordinateWithAlignment(RichTextParser parser, Hint hint)
+        public static float GetXCoordinateWithAlignment(Hint hint)
         {
-            return GetXCoordinateWithAlignment(parser, hint, hint.Alignment);
+            return GetXCoordinateWithAlignment(hint, hint.Alignment);
         }
 
         /// <summary>
         /// Get the X coordinate of the hint with alignment's offset
         /// </summary>
-        public static float GetXCoordinateWithAlignment(RichTextParser parser, Hint hint, HintAlignment alignment)
+        public static float GetXCoordinateWithAlignment(Hint hint, HintAlignment alignment)
         {
-            float alignOffset;
-
-            switch (alignment)
+            float alignOffset = alignment switch
             {
-                case HintAlignment.Left:
-                    alignOffset = -1200 + GetTextWidth(parser, hint) / 2;
-                    break;
-                case HintAlignment.Right:
-                    alignOffset = 1200 - GetTextWidth(parser, hint) / 2;
-                    break;
-                case HintAlignment.Center:
-                    alignOffset = 0;
-                    break;
-                default:
-                    alignOffset = 0;
-                    break;
-            }
+                HintAlignment.Left => -1200 + GetTextWidth(hint) / 2,
+                HintAlignment.Right => 1200 - GetTextWidth(hint) / 2,
+                _ => 0
+            };
 
             return hint.XCoordinate + alignOffset;
         }
 
-        public static float GetTextWidth(RichTextParser parser, AbstractHint hint)
+        public static float GetTextWidth(AbstractHint hint)
         {
-            return GetTextWidth(parser, hint.Content.GetText(), hint.FontSize);
+            return GetTextWidth(hint.Content.GetText(), hint.FontSize);
         }
 
-        public static float GetTextWidth(RichTextParser parser, string text, int fontSize, HintAlignment align = HintAlignment.Center)
+        public static float GetTextWidth(string text, int fontSize, HintAlignment align = HintAlignment.Center)
         {
-            var lineInfos = GetLineInfos(parser, text, fontSize, align);
+            var lineInfos = GetLineInfos(text, fontSize, align);
 
             return lineInfos.Max(x => x.Width);
         }
 
-        public static float GetTextHeight(RichTextParser parser, AbstractHint hint)
+        public static float GetTextHeight(AbstractHint hint)
         {
-            return GetTextHeight(parser, hint.Content.GetText(), hint.FontSize, hint.LineHeight);
+            return GetTextHeight(hint.Content.GetText(), hint.FontSize, hint.LineHeight);
         }
 
-        public static float GetTextHeight(RichTextParser parser, string text, int fontSize, float lineHeight)
+        public static float GetTextHeight(string text, int fontSize, float lineHeight)
         {
-            var lineInfos = GetLineInfos(parser, text, fontSize);
+            var lineInfos = GetLineInfos(text, fontSize);
 
             return lineInfos.Sum(x => x.Height) + lineInfos.Count * lineHeight;
         }
 
-        public static IReadOnlyCollection<LineInfo> GetLineInfos(RichTextParser parser, Hint hint)
+        public static IReadOnlyCollection<LineInfo> GetLineInfos(Hint hint)
         {
-            return GetLineInfos(parser, hint.Content.GetText(), hint.FontSize, hint.Alignment);
+            return GetLineInfos(hint.Content.GetText(), hint.FontSize, hint.Alignment);
         }
 
-        public static IReadOnlyCollection<LineInfo> GetLineInfos(RichTextParser parser, string text, int fontSize, HintAlignment align = HintAlignment.Center)
+        public static IReadOnlyCollection<LineInfo> GetLineInfos(string text, int fontSize, HintAlignment align = HintAlignment.Center)
         {
-            return parser.ParseText(text, fontSize, align);
+            return RichTextParserPool.ParseText(text, fontSize, align);
         }
     }
 }

@@ -1,12 +1,14 @@
 ﻿using System;
 using HintServiceMeow.Core.Models.Hints;
+using HintServiceMeow.Core.Utilities;
 using PluginAPI.Core;
 
 namespace HintServiceMeow.Core.Models.HintContent.HintContent
 {
     public class AutoContent : AbstractHintContent
     {
-        private string _oldText;
+        private DateTime NextUpdateTime;
+
         private string _text;
 
         public delegate string TextUpdateHandler(AbstractHint.TextUpdateArg ev);
@@ -23,22 +25,24 @@ namespace HintServiceMeow.Core.Models.HintContent.HintContent
             set => _autoText = value;
         }
 
-        public override string GetText()
-        {
-            return _text;
-        }
+        public override string GetText() => _text;
 
         public override void TryUpdate(AbstractHint.TextUpdateArg ev)
         {
+            if (NextUpdateTime > DateTime.Now)
+                return;
+
             try
             {
-                _text = _autoText.Invoke(ev);
+                string newText = _autoText.Invoke(ev);
 
-                if(_oldText != _text)
+                if(_text != newText)
                 {
-                    _oldText = _text;
+                    _text = newText;
                     OnUpdated();
                 }
+
+                NextUpdateTime = DateTime.Now.AddSeconds(ev.DelayTime);
             }
             catch(Exception ex)
             {

@@ -5,8 +5,6 @@ using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities.Pools;
 
 using MEC;
-using PluginAPI.Core;
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -122,7 +120,7 @@ namespace HintServiceMeow.Core.Utilities
                     }
                     catch (Exception e)
                     {
-                        Log.Error($"Error while generating hint for {internalAssemblyName}: {e}");
+                        PluginAPI.Core.Log.Error($"Error while generating hint for {internalAssemblyName}: {e}");
                         return new List<Hint>();
                     }
                 });
@@ -141,7 +139,7 @@ namespace HintServiceMeow.Core.Utilities
                     }
                     catch (Exception ex)
                     {
-                        Log.Error(ex.ToString());
+                        PluginAPI.Core.Log.Error(ex.ToString());
                     }
                 });
 
@@ -155,7 +153,7 @@ namespace HintServiceMeow.Core.Utilities
             }
             catch (Exception ex)
             {
-                Log.Error(ex.ToString());
+                PluginAPI.Core.Log.Error(ex.ToString());
             }
         }
     }

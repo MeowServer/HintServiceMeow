@@ -12,44 +12,15 @@ namespace HintServiceMeow.UI.Utilities
 {
     public class CommonHint
     {
+        private static readonly string HintGroupID = "HSM_CommonHint";
+
         private static PluginConfig Config => PluginConfig.Instance;
 
         private ReferenceHub ReferenceHub { get; }
         private PlayerDisplay PlayerDisplay => PlayerDisplay.Get(ReferenceHub);
 
-        #region Constructor and Destructors Methods
-
-        internal CommonHint(ReferenceHub referenceHub)
-        {
-            this.ReferenceHub = referenceHub;
-
-            //Add hint
-            PlayerDisplay.AddHint(_itemHints);
-            PlayerDisplay.AddHint(_mapHints);
-            PlayerDisplay.AddHint(_roleHints);
-
-            //Start coroutine
-            _commonHintUpdateCoroutine = Timing.RunCoroutine(CommonHintCoroutineMethod());
-        }
-
-        internal void Destruct()
-        {
-            if (_commonHintUpdateCoroutine.IsRunning)
-            {
-                Timing.KillCoroutines(_commonHintUpdateCoroutine);
-            }
-
-            PlayerDisplay.RemoveHint(_itemHints);
-            PlayerDisplay.RemoveHint(_mapHints);
-            PlayerDisplay.RemoveHint(_roleHints);
-        }
-
-        #endregion
-
         #region Common Hints
-        private CoroutineHandle _commonHintUpdateCoroutine;
-
-        private DateTime _itemHintTimeToRemove = DateTime.MinValue;
+        private readonly TaskScheduler _itemHintsHideScheduler;
         private readonly List<Hint> _itemHints = new List<Hint>
         {
             new Hint()
@@ -63,7 +34,7 @@ namespace HintServiceMeow.UI.Utilities
             }
         };
 
-        private DateTime _mapHintTimeToRemove = DateTime.MinValue;
+        private readonly TaskScheduler _mapHintsHideScheduler;
         private readonly List<Hint> _mapHints = new List<Hint>{
             new Hint()
             {
@@ -77,7 +48,7 @@ namespace HintServiceMeow.UI.Utilities
             }
         };
 
-        private DateTime _roleHintTimeToRemove = DateTime.MinValue;
+        private readonly TaskScheduler _roleHintsHideScheduler;
         private readonly List<Hint> _roleHints = new List<Hint>{
             new Hint()
             {
@@ -106,6 +77,29 @@ namespace HintServiceMeow.UI.Utilities
         };
         #endregion
 
+        #region Constructor and Destructors Methods
+
+        internal CommonHint(ReferenceHub referenceHub)
+        {
+            this.ReferenceHub = referenceHub;
+
+            _itemHintsHideScheduler = new TaskScheduler(TimeSpan.MinValue, () => _itemHints.ForEach(x => x.Hide = true));
+            _mapHintsHideScheduler = new TaskScheduler(TimeSpan.MinValue, () => _mapHints.ForEach(x => x.Hide = true));
+            _roleHintsHideScheduler = new TaskScheduler(TimeSpan.MinValue, () => _roleHints.ForEach(x => x.Hide = true));
+
+            //Add hint
+            PlayerDisplay.InternalAddHint(HintGroupID, _itemHints);
+            PlayerDisplay.InternalAddHint(HintGroupID, _mapHints);
+            PlayerDisplay.InternalAddHint(HintGroupID, _roleHints);
+        }
+
+        internal void Destruct()
+        {
+            PlayerDisplay.InternalClearHint(HintGroupID);
+        }
+
+        #endregion
+
         #region Common Hint Methods
 
         #region Common Item Hints Methods
@@ -121,7 +115,7 @@ namespace HintServiceMeow.UI.Utilities
 
         public void ShowItemHint(string itemName, string[] description, float time)
         {
-            _itemHintTimeToRemove = DateTime.Now + TimeSpan.FromSeconds(time);
+            _itemHintsHideScheduler.StartAction(time, TaskScheduler.DelayType.Override);
 
             _itemHints[0].Text = itemName;
             _itemHints[0].Hide = false;
@@ -150,7 +144,7 @@ namespace HintServiceMeow.UI.Utilities
 
         public void ShowMapHint(string roomName, string[] description, float time)
         {
-            _mapHintTimeToRemove = DateTime.Now + TimeSpan.FromSeconds(time);
+            _mapHintsHideScheduler.StartAction(time, TaskScheduler.DelayType.Override);
 
             _mapHints.ForEach(x => x.Hide = true);
 
@@ -181,7 +175,7 @@ namespace HintServiceMeow.UI.Utilities
 
         public void ShowRoleHint(string roleName, string[] description, float time)
         {
-            _roleHintTimeToRemove = DateTime.Now + TimeSpan.FromSeconds(time);
+            _roleHintsHideScheduler.StartAction(time, TaskScheduler.DelayType.Override);
 
             _roleHints.ForEach(x => x.Hide = true);
 
@@ -225,44 +219,8 @@ namespace HintServiceMeow.UI.Utilities
                 });
             }
         }
-
         #endregion Common Other Hints Methods
 
         #endregion Common Hint Methods
-
-        # region Private Common Hints Methods
-        private IEnumerator<float> CommonHintCoroutineMethod()
-        {
-            while (true)
-            {
-                DateTime currentTime = DateTime.Now;
-
-                try
-                {
-                    if (currentTime > _itemHintTimeToRemove)
-                    {
-                        _itemHints.ForEach(x => x.Hide = true);
-                    }
-
-                    if (currentTime > _mapHintTimeToRemove)
-                    {
-                        _mapHints.ForEach(x => x.Hide = true);
-                    }
-
-                    if (currentTime > _roleHintTimeToRemove)
-                    {
-                        _roleHints.ForEach(x => x.Hide = true);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex.ToString());
-                }
-
-                yield return Timing.WaitForOneFrame;
-            }
-        }
-
-        #endregion
     }
 }

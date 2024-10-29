@@ -1,5 +1,6 @@
 ﻿using HintServiceMeow.Core.Interface;
 using HintServiceMeow.Core.Models.Arguments;
+
 using System;
 
 namespace HintServiceMeow.Core.Utilities
