@@ -15,12 +15,11 @@ namespace HintServiceMeow.Core.Utilities
         private readonly Action _action;
 
         private readonly TimeSpan Interval;
-        private CoroutineHandle _actionCoroutine;
 
         public Stopwatch IntervalStopwatch { get; private set; } = Stopwatch.StartNew();
-        private readonly FieldInfo _timerElapsedField = typeof(Stopwatch).GetField("elapsed", BindingFlags.NonPublic | BindingFlags.Instance);
 
         public DateTime ScheduledActionTime { get; private set; } = new DateTime();
+
         private readonly ReaderWriterLockSlim _actionTimeLock = new ReaderWriterLockSlim();
 
         private bool Paused { get; set; } = false;
@@ -30,19 +29,23 @@ namespace HintServiceMeow.Core.Utilities
             this.Interval = interval;
             this._action = action ?? throw new ArgumentNullException(nameof(action));
 
-            //Force change the elapsed time of the stopwatch
-            //This is evil......
-            _actionTimeLock.EnterWriteLock();
-            try
+            if(interval > TimeSpan.Zero)
             {
-                _timerElapsedField.SetValue(IntervalStopwatch, interval.Ticks);
-            }
-            finally
-            {
-                _actionTimeLock.ExitWriteLock();
+                //Force change the elapsed time of the stopwatch
+                //This is evil......
+                _actionTimeLock.EnterWriteLock();
+                try
+                {
+                    FieldInfo _timerElapsedField = typeof(Stopwatch).GetField("elapsed", BindingFlags.IgnoreCase|BindingFlags.Instance|BindingFlags.NonPublic);
+                    _timerElapsedField.SetValue(IntervalStopwatch, interval.Ticks);
+                }
+                finally
+                {
+                    _actionTimeLock.ExitWriteLock();
+                }
             }
 
-            MultithreadTool.EnqueueAction(() => _actionCoroutine = Timing.RunCoroutine(TaskCoroutineMethod()));
+            MultithreadTool.EnqueueAction(() => Timing.RunCoroutine(TaskCoroutineMethod()));
         }
 
         public void StartAction()

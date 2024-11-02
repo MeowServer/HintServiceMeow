@@ -29,7 +29,6 @@ namespace HintServiceMeow.Core.Utilities.Tools
                 try
                 {
                     Assembly assembly = Assembly.GetExecutingAssembly();
-
                     using Stream infoStream = assembly.GetManifestResourceStream("HintServiceMeow.TextWidth");
                     using StreamReader reader = new StreamReader(infoStream);
 

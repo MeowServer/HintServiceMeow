@@ -375,7 +375,10 @@ namespace HintServiceMeow.Core.Models.Hints
                     _hide = value;
                     OnHintUpdated();
 
-                    if (_hide) HintUpdated?.Invoke(this);
+                    if (_hide)
+                    {
+                        HintUpdated?.Invoke(this);
+                    }
                 }
                 finally
                 {
@@ -388,7 +391,7 @@ namespace HintServiceMeow.Core.Models.Hints
 
         #region Methods
 
-        internal virtual void TryUpdateHint(PlayerDisplay.UpdateAvailableEventArg ev)
+        public virtual void TryUpdateHint(PlayerDisplay.UpdateAvailableEventArg ev)
         {
             Content.TryUpdate(new TextUpdateArg(this, ev.PlayerDisplay));
         }
@@ -411,7 +414,7 @@ namespace HintServiceMeow.Core.Models.Hints
             public AbstractHint Hint { get; }
             public PlayerDisplay PlayerDisplay { get; }
 
-            public float DelayTime { get; set; } = 0.1f;
+            public float NextUpdateDelay { get; set; } = 0.1f;
 
             internal TextUpdateArg(AbstractHint hint, PlayerDisplay playerDisplay)
             {

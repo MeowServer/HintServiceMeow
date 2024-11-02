@@ -42,7 +42,7 @@ namespace HintServiceMeow.Core.Models.HintContent.HintContent
                     OnUpdated();
                 }
 
-                NextUpdateTime = DateTime.Now.AddSeconds(ev.DelayTime);
+                NextUpdateTime = DateTime.Now.AddSeconds(ev.NextUpdateDelay);
             }
             catch(Exception ex)
             {

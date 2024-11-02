@@ -154,8 +154,9 @@ using PluginAPI.Events;
 // *        Fix the bug that cause crush on Linux system
 // *    V5.3.6
 // *        Improve code quality
-// *        Fix some issues
 // *        Add delay time in TextUpdateArg
+// *        Fix some issues
+// *        Fix a thread safety issue in PlayerDisplay
 
 namespace HintServiceMeow
 {

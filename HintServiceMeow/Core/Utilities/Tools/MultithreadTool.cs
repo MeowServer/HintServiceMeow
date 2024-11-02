@@ -10,7 +10,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
     /// <summary>
     /// Used to synchronize the action into the main thread
     /// </summary>
-    internal static class MultithreadTool
+    internal class MultithreadTool
     {
         private static ConcurrentQueue<Action> _actionQueue = new ConcurrentQueue<Action>();
 

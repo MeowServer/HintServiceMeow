@@ -83,9 +83,9 @@ namespace HintServiceMeow.UI.Utilities
         {
             this.ReferenceHub = referenceHub;
 
-            _itemHintsHideScheduler = new TaskScheduler(TimeSpan.MinValue, () => _itemHints.ForEach(x => x.Hide = true));
-            _mapHintsHideScheduler = new TaskScheduler(TimeSpan.MinValue, () => _mapHints.ForEach(x => x.Hide = true));
-            _roleHintsHideScheduler = new TaskScheduler(TimeSpan.MinValue, () => _roleHints.ForEach(x => x.Hide = true));
+            _itemHintsHideScheduler = new TaskScheduler(TimeSpan.Zero, () => _itemHints.ForEach(x => x.Hide = true));
+            _mapHintsHideScheduler = new TaskScheduler(TimeSpan.Zero, () => _mapHints.ForEach(x => x.Hide = true));
+            _roleHintsHideScheduler = new TaskScheduler(TimeSpan.Zero, () => _roleHints.ForEach(x => x.Hide = true));
 
             //Add hint
             PlayerDisplay.InternalAddHint(HintGroupID, _itemHints);

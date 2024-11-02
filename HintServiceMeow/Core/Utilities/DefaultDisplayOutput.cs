@@ -13,7 +13,7 @@ namespace HintServiceMeow.Core.Utilities
         {
             try
             {
-                if (ev.PlayerDisplay.ConnectionToClient == null || !ev.PlayerDisplay.ConnectionToClient.isReady)
+                if (ev.PlayerDisplay.ConnectionToClient is null || !ev.PlayerDisplay.ConnectionToClient.isReady)
                     return;
 
                 ((Hints.TextHint)_hintMessageTemplate.Content).Text = ev.Content;

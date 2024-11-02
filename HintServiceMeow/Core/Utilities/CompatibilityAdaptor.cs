@@ -5,6 +5,7 @@ using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities.Pools;
 
 using MEC;
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -18,7 +19,6 @@ namespace HintServiceMeow.Core.Utilities
     /// </summary>
     internal class CompatibilityAdaptor : ICompatibilityAdaptor
     {
-        internal static readonly HashSet<string> RegisteredAssemblies = new HashSet<string>();
         private static readonly ConcurrentDictionary<string, IReadOnlyList<Hint>> HintCache = new ConcurrentDictionary<string, IReadOnlyList<Hint>>();
 
         private readonly ConcurrentDictionary<string, CoroutineHandle> _removeDelayedActions = new ConcurrentDictionary<string, CoroutineHandle>();
@@ -26,7 +26,7 @@ namespace HintServiceMeow.Core.Utilities
 
         private readonly PlayerDisplay _playerDisplay;
 
-        public CompatibilityAdaptor(PlayerDisplay playerDisplay)
+        internal CompatibilityAdaptor(PlayerDisplay playerDisplay)
         {
             this._playerDisplay = playerDisplay;
         }
@@ -37,7 +37,7 @@ namespace HintServiceMeow.Core.Utilities
             var content = ev.Content;
             var duration = ev.Duration;
 
-            RegisteredAssemblies.Add(assemblyName);
+            GetCompatAssemblyName.RegisteredAssemblies.Add(assemblyName);
 
             if (Plugin.Config.DisabledCompatAdapter.Contains(assemblyName) //Config limitation
                 || content.Length > ushort.MaxValue //Length limitation
