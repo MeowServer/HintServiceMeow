@@ -20,7 +20,7 @@ namespace HintServiceMeow.Core.Extension
             if (!hintDict.TryGetValue(hint, out var scheduler))
                 hintDict.Add(hint, scheduler = new TaskScheduler(TimeSpan.Zero, () => playerDisplay.RemoveHint(hint)));
 
-            scheduler.StartAction(delay, TaskScheduler.DelayType.Normal);
+            scheduler.StartAction(delay, TaskScheduler.DelayType.Override);
         }
     }
 }

@@ -13,8 +13,8 @@ using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Models;
 using HintServiceMeow.Core.Utilities.Parser;
 using HintServiceMeow.Core.Interface;
-using Utils.NonAllocLINQ;
-using Exiled.API.Features;
+using HintServiceMeow.Core.Utilities.Tools;
+using HintServiceMeow.Core.Models.Arguments;
 
 namespace HintServiceMeow.Core.Utilities
 {
@@ -30,13 +30,13 @@ namespace HintServiceMeow.Core.Utilities
         public NetworkConnection ConnectionToClient { get; }
 
         /// <summary>
-        /// Invoke every frame when ReferenceHub display is ready to update.
+        /// Invoke every 0.1 second when ReferenceHub display is ready to update.
         /// </summary>
         public event UpdateAvailableEventHandler UpdateAvailable;
         public delegate void UpdateAvailableEventHandler(UpdateAvailableEventArg ev);
 
-        private static readonly object PlayerDisplayListLock = new object();
         private static readonly HashSet<PlayerDisplay> PlayerDisplayList = new HashSet<PlayerDisplay>();
+        private static readonly object _playerDisplayListLock = new object();
 
         private readonly ConcurrentBag<IDisplayOutput> _displayOutputs = new ConcurrentBag<IDisplayOutput> { new DefaultDisplayOutput() };
 
@@ -45,20 +45,12 @@ namespace HintServiceMeow.Core.Utilities
         private IHintParser _hintParser = new HintParser();
         private ICompatibilityAdaptor _adapter;
 
-        private static readonly CoroutineHandle _updateCoroutine;
-        private static readonly CoroutineHandle _coroutine;
+        private readonly CoroutineHandle _coroutine;
 
-        private Task<string> _currentParserTask;
+        private Task _currentParserTask;
         private readonly object _currentParserTaskLock = new object();
-        
+
         #region Constructor and Destructors
-
-        static PlayerDisplay()
-        {
-            _updateCoroutine = Timing.RunCoroutine(UpdateCoroutineMethod());
-            _coroutine = Timing.RunCoroutine(CoroutineMethod());
-        }
-
         private PlayerDisplay(ReferenceHub referenceHub)
         {
             this.ConnectionToClient = referenceHub.netIdentity.connectionToClient;
@@ -67,27 +59,29 @@ namespace HintServiceMeow.Core.Utilities
             this._taskScheduler = new TaskScheduler(TimeSpan.FromSeconds(0.5f), () =>
             {
                 StartParserTask();
-                _taskScheduler?.PauseAction();//Pause action until the parser task is done
+                _taskScheduler?.PauseIntervalStopwatch();//Pause action until the parser task is done
             });
             this._adapter = new CompatibilityAdaptor(this);
-
-            lock (PlayerDisplayListLock)
-            {
-                PlayerDisplayList.Add(this);
-            }
+            this._coroutine = Timing.RunCoroutine(CoroutineMethod());
         }
 
         internal static void Destruct(ReferenceHub referenceHub)
         {
-            lock (PlayerDisplayListLock)
+            lock (_playerDisplayListLock)
             {
-                PlayerDisplayList.RemoveWhere(x => x.ReferenceHub == referenceHub);
+                var pd = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
+
+                if(pd is null)
+                    return;
+
+                Timing.KillCoroutines(pd._coroutine);
+                PlayerDisplayList.Remove(pd);
             }
         }
 
         internal static void ClearInstance()
         {
-            lock (PlayerDisplayListLock)
+            lock (_playerDisplayListLock)
             {
                 PlayerDisplayList.Clear();
             }
@@ -114,75 +108,33 @@ namespace HintServiceMeow.Core.Utilities
         #endregion
 
         #region Coroutine Methods
-        private static IEnumerator<float> UpdateCoroutineMethod()
+        private IEnumerator<float> CoroutineMethod()
         {
             while (true)
             {
                 yield return Timing.WaitForOneFrame;
 
-                lock (PlayerDisplayListLock)
+                try
                 {
-                    foreach (var pd in PlayerDisplayList)
+                    //Periodic update
+                    if (_taskScheduler.IntervalStopwatch.Elapsed > TimeSpan.FromSeconds(5))
+                        ScheduleUpdate();
+
+                    if (_taskScheduler.IsReadyForNextAction())
                     {
-                        lock (pd._currentParserTaskLock)
-                        {
-                            if (pd._currentParserTask is null || !pd._currentParserTask.IsCompleted)
-                                continue;
-
-                            try
-                            {
-                                pd.SendHint(pd._currentParserTask.Result);
-
-                                pd._taskScheduler.ResumeAction();
-
-                                pd._currentParserTask.Dispose();
-                                pd._currentParserTask = null;
-                            }
-                            catch (Exception ex)
-                            {
-                                PluginAPI.Core.Log.Error(ex.ToString());
-                            }
-
-                            yield return Timing.WaitForOneFrame;
-                        }
+                        UpdateAvailable?.Invoke(new UpdateAvailableEventArg(this));
                     }
                 }
-            }
-        }
-
-        private static IEnumerator<float> CoroutineMethod()
-        {
-            while (true)
-            {
-                yield return Timing.WaitForSeconds(0.1f);
-
-                lock (PlayerDisplayListLock)
+                catch (Exception ex)
                 {
-                    foreach (var pd in PlayerDisplayList)
-                    {
-                        if (pd._taskScheduler.IsReadyForNextAction())
-                        {
-                            try
-                            {
-                                pd.UpdateAvailable?.Invoke(new UpdateAvailableEventArg(pd));
-                            }
-                            catch (Exception ex)
-                            {
-                                PluginAPI.Core.Log.Error(ex.ToString());
-                            }
-                        }
-
-                        //Periodic update
-                        if (pd._taskScheduler.LastActionStopwatch.Elapsed > TimeSpan.FromSeconds(5) && pd._currentParserTask == null)
-                            pd.ScheduleUpdate();
-                    }
+                    PluginAPI.Core.Log.Error(ex.ToString());
                 }
             }
         }
         #endregion
 
         #region Update Management
-        internal void OnHintUpdate(AbstractHint hint)
+        private void OnHintUpdate(AbstractHint hint)
         {
             if (hint.SyncSpeed == HintSyncSpeed.UnSync)
                 return;
@@ -198,16 +150,15 @@ namespace HintServiceMeow.Core.Utilities
             };
 
             ScheduleUpdate(maxWaitingTime, hint);
-            
         }
 
         private void ScheduleUpdate(float maxWaitingTime = float.MinValue, AbstractHint updatingHint = null)
         {
-            lock(_currentParserTaskLock)
+            lock (_currentParserTaskLock)
             {
                 if (_currentParserTask is not null)
                     return;
-            }
+            }  
 
             if (maxWaitingTime <= 0)
             {
@@ -236,7 +187,7 @@ namespace HintServiceMeow.Core.Utilities
             if(delay <= 0)
                 _taskScheduler.StartAction();
             else
-                _taskScheduler.StartAction(delay, TaskScheduler.DelayType.Fastest);
+                _taskScheduler.StartAction(delay, TaskScheduler.DelayType.KeepFastest);
         }
 
         /// <summary>
@@ -251,20 +202,37 @@ namespace HintServiceMeow.Core.Utilities
         #region Update Methods
         private void StartParserTask()
         {
-            if (_currentParserTask is not null)
-                return;
-
             lock (_currentParserTaskLock)
-                _currentParserTask = Task.Run(() => _hintParser.ParseToMessage(_hints));
+            {
+                if (_currentParserTask is not null)
+                    return;
+
+                _currentParserTask =
+                    Task.Run(() => _hintParser.ParseToMessage(_hints))
+                    .ContinueWith((parserTask) => {
+                        MultithreadTool.EnqueueAction(() =>
+                        {
+                            SendHint(parserTask.Result);
+
+                            _taskScheduler.ResumeIntervalStopwatch();
+
+                            lock (_currentParserTaskLock)
+                            {
+                                _currentParserTask.Dispose();
+                                _currentParserTask = null;
+                            }
+                        });
+                    });
+            }
         }
 
         private void SendHint(string text)
         {
-            foreach(var output in _displayOutputs)
+            foreach(var output in _displayOutputs.ToArray())
             {
                 try
                 {
-                    output.ShowHint(new Models.Arguments.DisplayOutputArg(this, text));
+                    output.ShowHint(new DisplayOutputArg(this, text));
                 }
                 catch(Exception ex)
                 {
@@ -275,7 +243,6 @@ namespace HintServiceMeow.Core.Utilities
         #endregion
 
         #region Player Display Management Methods
-
         /// <summary>
         /// Get the PlayerDisplay instance of the player. If the instance have not been created yet, then it will create one.
         /// Not Thread Safe
@@ -285,11 +252,18 @@ namespace HintServiceMeow.Core.Utilities
             if (referenceHub is null)
                 throw new ArgumentNullException(nameof(referenceHub));
 
-            lock (PlayerDisplayListLock)
+            lock (_playerDisplayListLock)
             {
-                return PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub) ?? new PlayerDisplay(referenceHub);
+                var existing = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
+
+                if(existing is not null)
+                    return existing;
+
+                var newPlayerDisplay = new PlayerDisplay(referenceHub);
+                PlayerDisplayList.Add(newPlayerDisplay);
+                return newPlayerDisplay;
             }
-    }
+        }
 
         /// <summary>
         /// Get the PlayerDisplay instance of the player. If the instance have not been created yet, then it will create one.
@@ -323,7 +297,7 @@ namespace HintServiceMeow.Core.Utilities
 
         public void AddHint(AbstractHint hint)
         {
-            if (hint == null)
+            if (hint is null)
                 return;
 
             this.InternalAddHint(Assembly.GetCallingAssembly().FullName, hint);
@@ -331,7 +305,7 @@ namespace HintServiceMeow.Core.Utilities
 
         public void AddHint(IEnumerable<AbstractHint> hints)
         {
-            if (hints == null)
+            if (hints is null)
                 return;
 
             this.InternalAddHint(Assembly.GetCallingAssembly().FullName, hints);
@@ -339,7 +313,7 @@ namespace HintServiceMeow.Core.Utilities
 
         public void RemoveHint(AbstractHint hint)
         {
-            if (hint == null)
+            if (hint is null)
                 return;
 
             this.InternalRemoveHint(Assembly.GetCallingAssembly().FullName, hint);
@@ -347,7 +321,7 @@ namespace HintServiceMeow.Core.Utilities
 
         public void RemoveHint(IEnumerable<AbstractHint> hints)
         {
-            if (hints == null)
+            if (hints is null)
                 return;
 
             this.InternalRemoveHint(Assembly.GetCallingAssembly().FullName, hints);
@@ -448,7 +422,7 @@ namespace HintServiceMeow.Core.Utilities
                 return;
 
             hint.HintUpdated -= OnHintUpdate;
-            UpdateAvailable -= hint.TryUpdateHint;
+             UpdateAvailable -= hint.TryUpdateHint;
 
             _hints.RemoveHint(name, x => x.Id.Equals(id));
 

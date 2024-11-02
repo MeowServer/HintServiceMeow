@@ -2,6 +2,7 @@
 
 using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.Core.Utilities.Patch;
+using HintServiceMeow.Core.Utilities.Tools;
 using HintServiceMeow.UI.Utilities;
 
 using PluginAPI.Core.Attributes;
@@ -151,6 +152,11 @@ using PluginAPI.Events;
 // *        Add more customizable properties in PlayerDisplay
 // *        Minor change on code quality
 // *        Fix the bug that cause crush on Linux system
+// *    V5.3.6
+// *        Improve code quality
+// *        Add delay time in TextUpdateArg
+// *        Fix some issues
+// *        Fix a thread safety issue in PlayerDisplay
 
 namespace HintServiceMeow
 {
@@ -241,7 +247,7 @@ namespace HintServiceMeow
         public PluginConfig Config;
         public PluginConfig PluginConfig => Config;
 
-        [PluginEntryPoint("HintServiceMeow", "5.3.5", "A hint framework", "MeowServer")]
+        [PluginEntryPoint("HintServiceMeow", "5.3.6", "A hint framework", "MeowServer")]
         public void LoadPlugin()
         {
             Plugin.OnEnabled(this);
@@ -291,7 +297,7 @@ namespace HintServiceMeow
     {
         public static string Name => "HintServiceMeow";
         public static string Author => "MeowServer";
-        public static Version Version => new Version(5, 3, 5);
+        public static Version Version => new Version(5, 3, 6);
 
         public static PluginConfig Config = new PluginConfig();//Default if no config
 
@@ -310,6 +316,12 @@ namespace HintServiceMeow
 
             //Register events
             plugin.BindEvent();
+
+            //Initialize MultithreadTool
+            MultithreadTool.EnqueueAction(() => {});
+
+            //Initialalize Font Tool
+            FontTool.GetCharWidth('a', 40, Core.Enum.TextStyle.Normal);
         }
 
         public static void OnDisabled(IPlugin plugin)

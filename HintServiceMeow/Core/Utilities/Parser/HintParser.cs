@@ -19,9 +19,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
     /// </summary>
     internal class HintParser : IHintParser
     {
-        private readonly RichTextParser _richTextParser = new RichTextParser();
-
-        private static readonly ConcurrentDictionary<Guid, ValueTuple<float, float>> _dynamicHintPositionCache = new ConcurrentDictionary<Guid, ValueTuple<float, float>>();
+        private readonly ConcurrentDictionary<Guid, ValueTuple<float, float>> _dynamicHintPositionCache = new ConcurrentDictionary<Guid, ValueTuple<float, float>>();
 
         public string ParseToMessage(HintCollection collection)
         {
@@ -57,7 +55,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 }
 
                 //Sort and add to ordered hint groups
-                orderedHints.Sort((x, y) => CoordinateTools.GetYCoordinate(_richTextParser, x, HintVerticalAlign.Bottom).CompareTo(CoordinateTools.GetYCoordinate(_richTextParser, y, HintVerticalAlign.Bottom)));
+                orderedHints.Sort((x, y) => CoordinateTools.GetYCoordinate(x, HintVerticalAlign.Bottom).CompareTo(CoordinateTools.GetYCoordinate(y, HintVerticalAlign.Bottom)));
                 orderedHintGroups.Add(orderedHints);
             }
 
@@ -88,19 +86,34 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
         private Hint ParseToHint(DynamicHint dynamicHint, IEnumerable<TextArea> colliders)
         {
-            //Try find cache
+            var dhWidth = CoordinateTools.GetTextWidth(dynamicHint);
+            var dhHeight = CoordinateTools.GetTextHeight(dynamicHint);
+
+            TextArea DynamicHintToArea(ValueTuple<float, float> tuple)
+            {
+                return new TextArea
+                {
+                    Left = tuple.Item1 - dhWidth / 2 - dynamicHint.LeftMargin,
+                    Right = tuple.Item1 + dhWidth / 2 + dynamicHint.RightMargin,
+                    Top = tuple.Item2 - dhHeight - dynamicHint.TopMargin,
+                    Bottom = tuple.Item2 + dynamicHint.BottomMargin,
+                };
+            }
+
+            //Check target position before checking the cache
+            var targetArea = DynamicHintToArea(ValueTuple.Create(dynamicHint.TargetX, dynamicHint.TargetY));
+            if (!colliders.Any(targetArea.HasIntersection))
+            {
+                //Clear previous cached position since the target position is usable again
+                _dynamicHintPositionCache.TryRemove(dynamicHint.Guid, out _);
+
+                return new Hint(dynamicHint, dynamicHint.TargetX, dynamicHint.TargetY);
+            }
+
             if (_dynamicHintPositionCache.TryGetValue(dynamicHint.Guid, out var cachedPosition))
             {
-                var cachedArea = new TextArea
-                {
-                    Left = cachedPosition.Item1 - CoordinateTools.GetTextWidth(_richTextParser, dynamicHint) / 2 - dynamicHint.LeftMargin,
-                    Right = cachedPosition.Item1 + CoordinateTools.GetTextWidth(_richTextParser, dynamicHint) / 2 + dynamicHint.RightMargin,
-                    Top = cachedPosition.Item2 - CoordinateTools.GetTextHeight(_richTextParser, dynamicHint) - dynamicHint.TopMargin,
-                    Bottom = cachedPosition.Item2 + dynamicHint.BottomMargin,
-                };
-
-                //If cached position is not intersected with any hint, use it
-                if (!colliders.Any(cachedArea.HasIntersection))
+                var dhArea = DynamicHintToArea(cachedPosition);
+                if (!colliders.Any(dhArea.HasIntersection))
                 {
                     return new Hint(dynamicHint, cachedPosition.Item1, cachedPosition.Item2);
                 }
@@ -112,66 +125,59 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
             queue.Enqueue(ValueTuple.Create(dynamicHint.TargetX, dynamicHint.TargetY));
 
-            while (queue.Count > 0)
+            while (queue.TryDequeue(out var tuple))
             {
-                //Represent bottom center coordinate of the hint
-                var (x, y) = queue.Dequeue();
-
-                if (visited.Contains(ValueTuple.Create(x, y)))
+                //The tuple represent bottom center coordinate, Item 1: x, Item 2: y
+                if (visited.Contains(tuple))
                     continue;
 
-                visited.Add(ValueTuple.Create(x, y));
+                visited.Add(tuple);
 
-                var dhArea = new TextArea
-                {
-                    Left = x - CoordinateTools.GetTextWidth(_richTextParser, dynamicHint) / 2 - dynamicHint.LeftMargin,
-                    Right = x + CoordinateTools.GetTextWidth(_richTextParser, dynamicHint) / 2 + dynamicHint.RightMargin,
-                    Top = y - CoordinateTools.GetTextHeight(_richTextParser, dynamicHint) - dynamicHint.TopMargin,
-                    Bottom = y + dynamicHint.BottomMargin,
-                };
-
+                var dhArea = DynamicHintToArea(tuple);
                 if (!colliders.Any(dhArea.HasIntersection))
                 {
-                    _dynamicHintPositionCache[dynamicHint.Guid] = ValueTuple.Create(x, y);
+                    _dynamicHintPositionCache[dynamicHint.Guid] = tuple;
 
-                    return new Hint(dynamicHint, x, y);
+                    return new Hint(dynamicHint, tuple.Item1, tuple.Item2);
                 }
 
-                if (y < dynamicHint.BottomBoundary)
-                    queue.Enqueue(ValueTuple.Create(x, y + 10));
-                if (y > dynamicHint.TopBoundary)
-                    queue.Enqueue(ValueTuple.Create(x, y - 10));
-                if (x < dynamicHint.RightBoundary)
-                    queue.Enqueue(ValueTuple.Create(x + 50, y));
-                if (x > dynamicHint.LeftBoundary)
-                    queue.Enqueue(ValueTuple.Create(x - 50, y));
+                if (tuple.Item2 < dynamicHint.BottomBoundary)
+                    queue.Enqueue(ValueTuple.Create(tuple.Item1, tuple.Item2 + 10));
+                if (tuple.Item2 > dynamicHint.TopBoundary)
+                    queue.Enqueue(ValueTuple.Create(tuple.Item1, tuple.Item2 - 10));
+                if (tuple.Item1 < dynamicHint.RightBoundary)
+                    queue.Enqueue(ValueTuple.Create(tuple.Item1 + 50, tuple.Item2));
+                if (tuple.Item1 > dynamicHint.LeftBoundary)
+                    queue.Enqueue(ValueTuple.Create(tuple.Item1 - 50, tuple.Item2));
             }
 
-            if (dynamicHint.Strategy == DynamicHintStrategy.StayInPosition)
-                return new Hint(dynamicHint, dynamicHint.TargetX, dynamicHint.TargetY);
-
-            return null;
+            //Failed to find a position, return according to DynamicHintStrategy
+            return dynamicHint.Strategy switch
+            {
+                DynamicHintStrategy.StayInPosition => new Hint(dynamicHint, dynamicHint.TargetX, dynamicHint.TargetY),
+                DynamicHintStrategy.Hide => null,
+                _ => null
+            };
         }
 
         private TextArea ParseToArea(Hint hint)
         {
-            var xCoordinate = CoordinateTools.GetXCoordinateWithAlignment(_richTextParser, hint);
-            var yCoordinate = CoordinateTools.GetYCoordinate(_richTextParser, hint, HintVerticalAlign.Bottom);
+            var xCoordinate = CoordinateTools.GetXCoordinateWithAlignment(hint);
+            var yCoordinate = CoordinateTools.GetYCoordinate(hint, HintVerticalAlign.Bottom);
 
             return new TextArea
             {
-                Top = yCoordinate - CoordinateTools.GetTextHeight(_richTextParser, hint),
+                Top = yCoordinate - CoordinateTools.GetTextHeight(hint),
                 Bottom = yCoordinate,
-                Left = xCoordinate - CoordinateTools.GetTextWidth(_richTextParser, hint) / 2,
-                Right = xCoordinate + CoordinateTools.GetTextWidth(_richTextParser, hint) / 2,
+                Left = xCoordinate - CoordinateTools.GetTextWidth(hint) / 2,
+                Right = xCoordinate + CoordinateTools.GetTextWidth(hint) / 2,
             };
         }
 
         private string ParseToRichText(Hint hint)
         {
             //Remove illegal tags
-            string text = Regex
-                .Replace(
+            string text = Regex.Replace(
                     hint.Content.GetText() ?? string.Empty,
                     @"<line-height=[^>]*>|<voffset=[^>]*>|<pos=[^>]*>|</voffset>|{|}",
                     string.Empty,
@@ -179,7 +185,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 );
 
             //Parse into line infos
-            var lineList = _richTextParser.ParseText(text, hint.FontSize);
+            var lineList = RichTextParserPool.ParseText(text, hint.FontSize);
 
             if (lineList is null || lineList.IsEmpty())
                 return null;
@@ -187,8 +193,8 @@ namespace HintServiceMeow.Core.Utilities.Parser
             //Get the bottom y coordinate of first line
             float vOffset =
                 700
-                - CoordinateTools.GetYCoordinate(_richTextParser, hint, HintVerticalAlign.Top)//Move to the top of the first line
-                + hint.LineHeight;//Add extra line height so that the line height will not be calculate for the first line
+                - CoordinateTools.GetYCoordinate(hint, HintVerticalAlign.Top)// Start at the top of the first line
+                + hint.LineHeight;// Add extra line height on top of the first line so that the line height will not be calculate for the first line
 
             //Start to generate rich text
             StringBuilder richTextBuilder = StringBuilderPool.Rent(text.Length + 200);
@@ -205,10 +211,10 @@ namespace HintServiceMeow.Core.Utilities.Parser
                     continue;
 
                 if (hint.XCoordinate != 0) richTextBuilder.AppendFormat("<pos={0:0.#}>", hint.XCoordinate);//X coordinate
-                richTextBuilder.Append("<line-height=0>");
+                richTextBuilder.Append("<line-height=0>");//Make sure each line will not affect each other's position
                 if (vOffset != 0) richTextBuilder.AppendFormat("<voffset={0:0.#}>", vOffset);//Y coordinate
-                richTextBuilder.Append(line.RawText);
-                if (vOffset != 0) richTextBuilder.Append("</voffset>");//End y coordinate
+                richTextBuilder.Append(line.RawText);//Content
+                if (vOffset != 0) richTextBuilder.Append("</voffset>");//End Y coordinate
                 richTextBuilder.AppendLine(); //Break line
             }
 
@@ -216,7 +222,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
             if (hint.Alignment != HintAlignment.Center) richTextBuilder.Append("</align>");
             richTextBuilder.Append("</size>");
 
-            return richTextBuilder.ToString();
+            return StringBuilderPool.ToStringReturn(richTextBuilder);
         }
 
         private class TextArea

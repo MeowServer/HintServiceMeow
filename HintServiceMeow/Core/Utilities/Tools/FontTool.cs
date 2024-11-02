@@ -1,8 +1,13 @@
 ﻿using HintServiceMeow.Core.Enum;
+
+using PluginAPI.Core;
+
+using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
+
 using YamlDotNet.Serialization;
 
 namespace HintServiceMeow.Core.Utilities.Tools
@@ -19,18 +24,29 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         static FontTool()
         {
-            Assembly assembly = Assembly.GetExecutingAssembly();
-
-            using (Stream infoStream = assembly.GetManifestResourceStream("HintServiceMeow.TextWidth"))
+            Task.Run(() =>
             {
-                StreamReader reader = new StreamReader(infoStream);
-                var dict = new DeserializerBuilder().Build().Deserialize<ConcurrentDictionary<int, float>>(reader.ReadToEnd());
-
-                foreach(var kvp in dict)
+                try
                 {
-                    ChWidth.TryAdd((char)kvp.Key, kvp.Value);
+                    Assembly assembly = Assembly.GetExecutingAssembly();
+                    using Stream infoStream = assembly.GetManifestResourceStream("HintServiceMeow.TextWidth");
+                    using StreamReader reader = new StreamReader(infoStream);
+
+                    string yamlFile = reader.ReadToEnd();
+                    IDeserializer deserializer = new DeserializerBuilder().Build();
+
+                    ConcurrentDictionary<int, float> dictionary = deserializer.Deserialize<ConcurrentDictionary<int, float>>(yamlFile);
+
+                    foreach (var kvp in dictionary)
+                    {
+                        ChWidth.TryAdd((char)kvp.Key, kvp.Value);
+                    }
                 }
-            }
+                catch (Exception ex)
+                {
+                    Log.Error(ex.ToString());
+                }
+            });
         }
 
         public static float GetCharWidth(char c, float fontSize, TextStyle style)

@@ -7,11 +7,9 @@ namespace HintServiceMeow.Core.Utilities.Pools
     internal static class StringBuilderPool
     {
         private const int DefaultSmallSize = 500;
-
         private const int DefaultLargeSize = 5000;
 
         private static readonly ConcurrentQueue<StringBuilder> SmallStringBuilderQueue = new ConcurrentQueue<StringBuilder>();
-
         private static readonly ConcurrentQueue<StringBuilder> LargeStringBuilderQueue = new ConcurrentQueue<StringBuilder>();
 
         public static StringBuilder Rent(int capacity = DefaultSmallSize)
