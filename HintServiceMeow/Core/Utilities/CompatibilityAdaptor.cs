@@ -3,7 +3,7 @@ using HintServiceMeow.Core.Interface;
 using HintServiceMeow.Core.Models.Arguments;
 using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities.Pools;
-
+using HintServiceMeow.Core.Utilities.Tools;
 using MEC;
 
 using System;
@@ -120,7 +120,7 @@ namespace HintServiceMeow.Core.Utilities
                     }
                     catch (Exception e)
                     {
-                        PluginAPI.Core.Log.Error($"Error while generating hint for {internalAssemblyName}: {e}");
+                        LogTool.Error($"Error while generating hint for {internalAssemblyName}: {e}");
                         return new List<Hint>();
                     }
                 });
@@ -139,7 +139,7 @@ namespace HintServiceMeow.Core.Utilities
                     }
                     catch (Exception ex)
                     {
-                        PluginAPI.Core.Log.Error(ex.ToString());
+                        LogTool.Error(ex);
                     }
                 });
 
@@ -153,7 +153,7 @@ namespace HintServiceMeow.Core.Utilities
             }
             catch (Exception ex)
             {
-                PluginAPI.Core.Log.Error(ex.ToString());
+                LogTool.Error(ex.ToString());
             }
         }
     }

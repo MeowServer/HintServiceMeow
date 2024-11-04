@@ -44,7 +44,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex.ToString());
+                    LogTool.Error(ex);
                 }
             });
         }

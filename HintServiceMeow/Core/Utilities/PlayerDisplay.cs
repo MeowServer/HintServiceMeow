@@ -30,7 +30,7 @@ namespace HintServiceMeow.Core.Utilities
         public NetworkConnection ConnectionToClient { get; }
 
         /// <summary>
-        /// Invoke every 0.1 second when ReferenceHub display is ready to update.
+        /// Invoke every tick when ReferenceHub display is ready to update.
         /// </summary>
         public event UpdateAvailableEventHandler UpdateAvailable;
         public delegate void UpdateAvailableEventHandler(UpdateAvailableEventArg ev);
@@ -59,7 +59,7 @@ namespace HintServiceMeow.Core.Utilities
             this._taskScheduler = new TaskScheduler(TimeSpan.FromSeconds(0.5f), () =>
             {
                 StartParserTask();
-                _taskScheduler?.PauseIntervalStopwatch();//Pause action until the parser task is done
+                _taskScheduler?.PauseIntervalStopwatch();//Pause action until the parser task is finishing
             });
             this._adapter = new CompatibilityAdaptor(this);
             this._coroutine = Timing.RunCoroutine(CoroutineMethod());
@@ -127,7 +127,7 @@ namespace HintServiceMeow.Core.Utilities
                 }
                 catch (Exception ex)
                 {
-                    PluginAPI.Core.Log.Error(ex.ToString());
+                    LogTool.Error(ex);
                 }
             }
         }
@@ -208,18 +208,38 @@ namespace HintServiceMeow.Core.Utilities
                     return;
 
                 _currentParserTask =
-                    Task.Run(() => _hintParser.ParseToMessage(_hints))
+                    Task.Run<string>(() =>
+                    {
+                        try
+                        {
+                            return _hintParser.ParseToMessage(_hints);
+                        }
+                        catch(Exception ex)
+                        {
+                            LogTool.Error(ex);
+                            return string.Empty;
+                        }
+                    })
                     .ContinueWith((parserTask) => {
                         MultithreadTool.EnqueueAction(() =>
                         {
-                            SendHint(parserTask.Result);
-
-                            _taskScheduler.ResumeIntervalStopwatch();
-
-                            lock (_currentParserTaskLock)
+                            try
                             {
-                                _currentParserTask.Dispose();
-                                _currentParserTask = null;
+                                SendHint(parserTask.Result);
+                            }
+                            catch(Exception ex)
+                            {
+                                LogTool.Error(ex);
+                            }
+                            finally
+                            {
+                                _taskScheduler.ResumeIntervalStopwatch();
+
+                                lock (_currentParserTaskLock)
+                                {
+                                    _currentParserTask.Dispose();
+                                    _currentParserTask = null;
+                                }
                             }
                         });
                     });
@@ -236,7 +256,7 @@ namespace HintServiceMeow.Core.Utilities
                 }
                 catch(Exception ex)
                 {
-                    PluginAPI.Core.Log.Error(ex.ToString());
+                    LogTool.Error(ex);
                 }
             }
         }

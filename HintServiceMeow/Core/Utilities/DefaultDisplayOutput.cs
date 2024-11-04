@@ -1,5 +1,6 @@
 ﻿using HintServiceMeow.Core.Interface;
 using HintServiceMeow.Core.Models.Arguments;
+using HintServiceMeow.Core.Utilities.Tools;
 
 using System;
 
@@ -21,7 +22,7 @@ namespace HintServiceMeow.Core.Utilities
             }
             catch (Exception ex)
             {
-                PluginAPI.Core.Log.Error(ex.ToString());
+                LogTool.Error(ex);
             }
         }
     }

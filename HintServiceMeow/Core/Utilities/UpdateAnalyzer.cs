@@ -80,7 +80,7 @@ namespace HintServiceMeow.Core.Utilities
             }
             catch (Exception ex)
             {
-                Log.Error(ex.ToString());
+                LogTool.Error(ex);
                 return DateTime.MaxValue;
             }
             finally
