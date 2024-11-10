@@ -24,6 +24,9 @@ namespace HintServiceMeow.Core.Utilities.Tools
         /// </summary>
         public static void EnqueueAction(Action action)
         {
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
+
             _actionQueue.Enqueue(action);
         }
 

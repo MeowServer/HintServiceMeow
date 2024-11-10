@@ -35,7 +35,8 @@ namespace HintServiceMeow.Core.Utilities.Parser
             foreach (var group in collection.AllGroups)
             {
                 //Filter invisible hints
-                IEnumerable<AbstractHint> visibleGroup = group.Where(x => x is not null && !x.Hide && !string.IsNullOrEmpty(x.Content.GetText()));
+                IEnumerable<AbstractHint> visibleGroup = group
+                    .Where(x => x is not null && !x.Hide && !string.IsNullOrEmpty(x.Content.GetText()));
 
                 //Group by type
                 List<Hint> orderedHints = visibleGroup.OfType<Hint>().ToList();

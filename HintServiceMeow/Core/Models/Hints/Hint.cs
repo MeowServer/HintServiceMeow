@@ -6,26 +6,10 @@ namespace HintServiceMeow.Core.Models.Hints
 {
     public class Hint : AbstractHint
     {
-        /// <summary>
-        /// Represent the hint alignment. This value directly related to Align tag
-        /// </summary>
         private HintAlignment _alignment = HintAlignment.Center;
-
-        /// <summary>
-        /// Represent the vertical alignment of the hint.
-        /// </summary>
         private HintVerticalAlign _yCoordinateAlign = HintVerticalAlign.Middle;
 
-        /// <summary>
-        /// Represent the X Coordinate of the hint. This value directly related to Pos tag
-        /// Higher X coordinate means more to the right
-        /// </summary>
         private float _xCoordinate = 0;
-
-        /// <summary>
-        /// Represent the Y coordinate of the hint. This value directly related to VOffset tag
-        /// Higher Y coordinate means lower position. Select from 0 to 1080
-        /// </summary>
         private float _yCoordinate = 700;
 
         #region Constructors
@@ -68,7 +52,7 @@ namespace HintServiceMeow.Core.Models.Hints
 
         /// <summary>
         /// The Y coordinate of the hint. Higher Y coordinate means lower position
-        /// Select from 0 to 1080
+        /// Select from 0 to 1080 on any screen
         /// </summary>
         public float YCoordinate
         {

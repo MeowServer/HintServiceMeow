@@ -41,11 +41,11 @@ namespace HintServiceMeow.Core.Utilities
         private readonly ConcurrentBag<IDisplayOutput> _displayOutputs = new ConcurrentBag<IDisplayOutput> { new DefaultDisplayOutput() };
 
         private readonly HintCollection _hints = new HintCollection();
-        private readonly TaskScheduler _taskScheduler;
+        private readonly TaskScheduler _taskScheduler;//Initialize in constructor
         private IHintParser _hintParser = new HintParser();
-        private ICompatibilityAdaptor _adapter;
+        private ICompatibilityAdaptor _adapter;//Initialize in constructor
 
-        private readonly CoroutineHandle _coroutine;
+        private CoroutineHandle _coroutine;//Initialize in constructor(MultiThreadTool)
 
         private Task _currentParserTask;
         private readonly object _currentParserTaskLock = new object();
@@ -61,8 +61,9 @@ namespace HintServiceMeow.Core.Utilities
                 StartParserTask();
                 _taskScheduler?.PauseIntervalStopwatch();//Pause action until the parser task is finishing
             });
+
             this._adapter = new CompatibilityAdaptor(this);
-            this._coroutine = Timing.RunCoroutine(CoroutineMethod());
+            MultithreadTool.EnqueueAction(() => this._coroutine = Timing.RunCoroutine(CoroutineMethod()));
         }
 
         internal static void Destruct(ReferenceHub referenceHub)
