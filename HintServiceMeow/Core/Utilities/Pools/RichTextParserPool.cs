@@ -1,11 +1,8 @@
 ﻿using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Utilities.Parser;
-using System;
+
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HintServiceMeow.Core.Utilities.Pools
 {
@@ -15,8 +12,8 @@ namespace HintServiceMeow.Core.Utilities.Pools
 
         public static RichTextParser Rent()
         {
-            if(RichTextParserQueue.TryDequeue(out var sb))
-                return sb;
+            if(RichTextParserQueue.TryDequeue(out var rtp))
+                return rtp;
 
             return new RichTextParser();
         }
@@ -35,11 +32,7 @@ namespace HintServiceMeow.Core.Utilities.Pools
 
         public static IReadOnlyList<LineInfo> ParseText(string text, int size = 20, HintAlignment alignment = HintAlignment.Center)
         {
-            var parser = Rent();
-
-            var result = parser.ParseText(text, size, alignment);
-            Return(parser);
-            return result;
+            return ParseTextReturn(Rent(), text, size, alignment);
         }
     }
 }

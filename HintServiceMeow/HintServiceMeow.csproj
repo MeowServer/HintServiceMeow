@@ -45,7 +45,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>bin\x64\Release\</OutputPath>
-    <DefineConstants>TRACE;EXILED</DefineConstants>
+    <DefineConstants>TRACE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
@@ -121,6 +121,7 @@
     <Compile Include="Core\Models\Arguments\DisplayOutputArg.cs" />
     <Compile Include="Core\Utilities\DefaultDisplayOutput.cs" />
     <Compile Include="Core\Utilities\Pools\RichTextParserPool.cs" />
+    <Compile Include="Core\Utilities\Tools\LogTool.cs" />
     <Compile Include="Core\Utilities\Tools\MultithreadTool.cs" />
     <Compile Include="Plugin\Commands\GetCompatAssemblyName.cs" />
     <Compile Include="Core\Enum\CaseStyle.cs" />

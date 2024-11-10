@@ -1,9 +1,8 @@
 ﻿using HintServiceMeow.Core.Enum;
 
-using PluginAPI.Core;
-
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -28,14 +27,10 @@ namespace HintServiceMeow.Core.Utilities.Tools
             {
                 try
                 {
-                    Assembly assembly = Assembly.GetExecutingAssembly();
-                    using Stream infoStream = assembly.GetManifestResourceStream("HintServiceMeow.TextWidth");
+                    using Stream infoStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("HintServiceMeow.TextWidth");
                     using StreamReader reader = new StreamReader(infoStream);
 
-                    string yamlFile = reader.ReadToEnd();
-                    IDeserializer deserializer = new DeserializerBuilder().Build();
-
-                    ConcurrentDictionary<int, float> dictionary = deserializer.Deserialize<ConcurrentDictionary<int, float>>(yamlFile);
+                    Dictionary<int, float> dictionary = new DeserializerBuilder().Build().Deserialize<Dictionary<int, float>>(reader);
 
                     foreach (var kvp in dictionary)
                     {
@@ -44,7 +39,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex.ToString());
+                    LogTool.Error(ex);
                 }
             });
         }

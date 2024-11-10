@@ -128,6 +128,8 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 return new List<LineInfo>(cachedResult);
             }
 
+            text.Replace("<br>", "\n");
+
             List<LineInfo> lines = new List<LineInfo>();
             List<CharacterInfo> currentChInfos = new List<CharacterInfo>();
 
@@ -341,7 +343,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 TryHandleTag(tag);
 
             //Return whether the text is the start of the tag
-            return isTag;
+            return tag != string.Empty && isTag;
         }
 
         private bool TryHandleTag(string tag)

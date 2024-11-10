@@ -157,6 +157,9 @@ using PluginAPI.Events;
 // *        Add delay time in TextUpdateArg
 // *        Fix some issues
 // *        Fix a thread safety issue in PlayerDisplay
+// *    V5.3.7
+// *        Add error handling issue in PlayerDisplay.StartParserTask
+// *        Add support for <br> tag in text
 
 namespace HintServiceMeow
 {
@@ -247,7 +250,7 @@ namespace HintServiceMeow
         public PluginConfig Config;
         public PluginConfig PluginConfig => Config;
 
-        [PluginEntryPoint("HintServiceMeow", "5.3.6", "A hint framework", "MeowServer")]
+        [PluginEntryPoint("HintServiceMeow", "5.3.7", "A hint framework", "MeowServer")]
         public void LoadPlugin()
         {
             Plugin.OnEnabled(this);
@@ -297,7 +300,7 @@ namespace HintServiceMeow
     {
         public static string Name => "HintServiceMeow";
         public static string Author => "MeowServer";
-        public static Version Version => new Version(5, 3, 6);
+        public static Version Version => new Version(5, 3, 7);
 
         public static PluginConfig Config = new PluginConfig();//Default if no config
 

@@ -2,6 +2,7 @@
 using System.Reflection;
 using Hints;
 using HintServiceMeow.Core.Extension;
+using HintServiceMeow.Core.Utilities.Tools;
 using PluginAPI.Core;
 
 namespace HintServiceMeow.Core.Utilities.Patch
@@ -25,7 +26,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
             }
             catch(Exception ex)
             {
-                Log.Error(ex.ToString());
+                LogTool.Error(ex);
             }
 
             return false;
@@ -43,7 +44,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
             }
             catch (Exception ex)
             {
-                Log.Error(ex.ToString());
+                LogTool.Error(ex);
             }
 
             return false;
@@ -61,7 +62,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
             }
             catch (Exception ex)
             {
-                Log.Error(ex.ToString());
+                LogTool.Error(ex);
             }
 
             return false;
@@ -80,7 +81,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
             }
             catch (Exception ex)
             {
-                Log.Error(ex.ToString());
+                LogTool.Error(ex);
             }
 
             return false;
@@ -101,7 +102,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
             }
             catch (Exception ex)
             {
-                Log.Error(ex.ToString());
+                LogTool.Error(ex);
             }
 
             return false;

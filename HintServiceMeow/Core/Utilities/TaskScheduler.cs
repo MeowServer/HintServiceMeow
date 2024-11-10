@@ -141,7 +141,7 @@ namespace HintServiceMeow.Core.Utilities
                     }
                     catch (Exception ex)
                     {
-                        PluginAPI.Core.Log.Error(ex.ToString());
+                        LogTool.Error(ex);
                         return false;
                     }
                     finally
@@ -156,7 +156,7 @@ namespace HintServiceMeow.Core.Utilities
                 }
                 catch (Exception ex)
                 {
-                    PluginAPI.Core.Log.Error(ex.ToString());
+                    LogTool.Error(ex);
                 }
 
                 _actionTimeLock.EnterWriteLock();
@@ -168,7 +168,7 @@ namespace HintServiceMeow.Core.Utilities
                 }
                 catch (Exception ex)
                 {
-                    PluginAPI.Core.Log.Error(ex.ToString());
+                    LogTool.Error(ex);
                 }
                 finally
                 {

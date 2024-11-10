@@ -44,17 +44,11 @@ namespace HintServiceMeow.Core.Utilities.Tools
             return rawYCoordinate + offset;
         }
 
-        /// <summary>
-        /// Get the X coordinate of the hint with alignment's offset
-        /// </summary>
         public static float GetXCoordinateWithAlignment(Hint hint)
         {
             return GetXCoordinateWithAlignment(hint, hint.Alignment);
         }
 
-        /// <summary>
-        /// Get the X coordinate of the hint with alignment's offset
-        /// </summary>
         public static float GetXCoordinateWithAlignment(Hint hint, HintAlignment alignment)
         {
             float alignOffset = alignment switch
