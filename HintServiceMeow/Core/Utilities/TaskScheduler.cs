@@ -45,7 +45,7 @@ namespace HintServiceMeow.Core.Utilities
                 }
             }
 
-            MultithreadTool.EnqueueAction(() => Timing.RunCoroutine(TaskCoroutineMethod()));
+            MainThreadDispatcher.Dispatch(() => Timing.RunCoroutine(TaskCoroutineMethod()));
         }
 
         public void StartAction()

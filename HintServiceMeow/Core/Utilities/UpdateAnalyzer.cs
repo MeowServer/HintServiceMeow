@@ -74,7 +74,7 @@ namespace HintServiceMeow.Core.Utilities
 
                 double nextOffset = slope * timeOffsets.Count + intercept;
 
-                MultithreadTool.EnqueueAction(() => _cachedTime = DateTime.MaxValue);
+                MainThreadDispatcher.Dispatch(() => _cachedTime = DateTime.MaxValue);
                 _cachedTime = new DateTime((long)(baseTicks + nextOffset));
                 return _cachedTime;
             }

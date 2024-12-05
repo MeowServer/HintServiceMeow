@@ -63,7 +63,7 @@ namespace HintServiceMeow.Core.Utilities
             });
 
             this._adapter = new CompatibilityAdaptor(this);
-            MultithreadTool.EnqueueAction(() => this._coroutine = Timing.RunCoroutine(CoroutineMethod()));
+            MainThreadDispatcher.Dispatch(() => this._coroutine = Timing.RunCoroutine(CoroutineMethod()));
         }
 
         internal static void Destruct(ReferenceHub referenceHub)
@@ -222,7 +222,7 @@ namespace HintServiceMeow.Core.Utilities
                         }
                     })
                     .ContinueWith((parserTask) => {
-                        MultithreadTool.EnqueueAction(() =>
+                        MainThreadDispatcher.Dispatch(() =>
                         {
                             try
                             {

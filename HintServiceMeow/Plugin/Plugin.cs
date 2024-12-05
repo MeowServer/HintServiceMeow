@@ -160,6 +160,9 @@ using PluginAPI.Events;
 // *    V5.3.7
 // *        Add error handling issue in PlayerDisplay.StartParserTask
 // *        Add support for <br> tag in text
+// *    V5.3.8
+// *       Use MainThreadDispatcher to replace MultiThreadTool
+// *       Fix a issue in StringBuilderPool that could cause memory leak
 
 namespace HintServiceMeow
 {
@@ -300,7 +303,7 @@ namespace HintServiceMeow
     {
         public static string Name => "HintServiceMeow";
         public static string Author => "MeowServer";
-        public static Version Version => new Version(5, 3, 7);
+        public static Version Version => new Version(5, 3, 8);
 
         public static PluginConfig Config = new PluginConfig();//Default if no config
 
@@ -319,9 +322,6 @@ namespace HintServiceMeow
 
             //Register events
             plugin.BindEvent();
-
-            //Initialize MultithreadTool
-            MultithreadTool.EnqueueAction(() => {});
 
             //Initialalize Font Tool
             FontTool.GetCharWidth('a', 40, Core.Enum.TextStyle.Normal);
