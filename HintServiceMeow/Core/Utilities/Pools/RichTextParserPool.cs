@@ -12,7 +12,7 @@ namespace HintServiceMeow.Core.Utilities.Pools
 
         public static RichTextParser Rent()
         {
-            if (RichTextParserQueue.TryDequeue(out var rtp))
+            if (RichTextParserQueue.TryDequeue(out RichTextParser rtp))
                 return rtp;
 
             return new RichTextParser();
@@ -25,7 +25,7 @@ namespace HintServiceMeow.Core.Utilities.Pools
 
         public static IReadOnlyList<LineInfo> ParseTextReturn(RichTextParser parser, string text, int size = 20, HintAlignment alignment = HintAlignment.Center)
         {
-            var result = parser.ParseText(text, size, alignment);
+            IReadOnlyList<LineInfo> result = parser.ParseText(text, size, alignment);
             Return(parser);
             return result;
         }

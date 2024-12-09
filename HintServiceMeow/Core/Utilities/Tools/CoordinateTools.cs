@@ -68,7 +68,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         public static float GetTextWidth(string text, int fontSize, HintAlignment align = HintAlignment.Center)
         {
-            var lineInfos = GetLineInfos(text, fontSize, align);
+            IReadOnlyList<LineInfo> lineInfos = GetLineInfos(text, fontSize, align);
 
             return lineInfos.Max(x => x.Width);
         }
@@ -80,17 +80,17 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         public static float GetTextHeight(string text, int fontSize, float lineHeight)
         {
-            var lineInfos = GetLineInfos(text, fontSize);
+            IReadOnlyList<LineInfo> lineInfos = GetLineInfos(text, fontSize);
 
             return lineInfos.Sum(x => x.Height) + lineInfos.Count * lineHeight;
         }
 
-        public static IReadOnlyCollection<LineInfo> GetLineInfos(Hint hint)
+        public static IReadOnlyList<LineInfo> GetLineInfos(Hint hint)
         {
             return GetLineInfos(hint.Content.GetText(), hint.FontSize, hint.Alignment);
         }
 
-        public static IReadOnlyCollection<LineInfo> GetLineInfos(string text, int fontSize, HintAlignment align = HintAlignment.Center)
+        public static IReadOnlyList<LineInfo> GetLineInfos(string text, int fontSize, HintAlignment align = HintAlignment.Center)
         {
             return RichTextParserPool.ParseText(text, fontSize, align);
         }

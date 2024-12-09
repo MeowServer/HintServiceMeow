@@ -34,11 +34,11 @@ namespace HintServiceMeow.Core.Utilities
         public delegate void UpdateAvailableEventHandler(UpdateAvailableEventArg ev);
 
         private static readonly HashSet<PlayerDisplay> PlayerDisplayList = new HashSet<PlayerDisplay>();
-        private static readonly object _playerDisplayListLock = new object();
+        private static readonly object _playerDisplayListLock = new();
 
         private readonly ConcurrentBag<IDisplayOutput> _displayOutputs = new ConcurrentBag<IDisplayOutput> { new DefaultDisplayOutput() };
 
-        private readonly HintCollection _hints = new HintCollection();
+        private readonly HintCollection _hints = new();
         private readonly TaskScheduler _taskScheduler;//Initialize in constructor
         private IHintParser _hintParser = new HintParser();
         private ICompatibilityAdaptor _adapter;//Initialize in constructor
@@ -46,7 +46,7 @@ namespace HintServiceMeow.Core.Utilities
         private CoroutineHandle _coroutine;//Initialize in constructor(MultiThreadTool)
 
         private Task _currentParserTask;
-        private readonly object _currentParserTaskLock = new object();
+        private readonly object _currentParserTaskLock = new();
 
         private PlayerDisplay(ReferenceHub referenceHub)
         {
@@ -67,7 +67,7 @@ namespace HintServiceMeow.Core.Utilities
         {
             lock (_playerDisplayListLock)
             {
-                var pd = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
+                PlayerDisplay pd = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
 
                 if (pd is null)
                     return;
@@ -128,7 +128,7 @@ namespace HintServiceMeow.Core.Utilities
             if (hint.SyncSpeed == HintSyncSpeed.UnSync)
                 return;
 
-            var maxWaitingTime = hint.SyncSpeed switch
+            float maxWaitingTime = hint.SyncSpeed switch
             {
                 HintSyncSpeed.Fastest => 0,
                 HintSyncSpeed.Fast => 0.1f,
@@ -155,15 +155,15 @@ namespace HintServiceMeow.Core.Utilities
                 return;
             }
 
-            var predictingHints = _hints.AllGroups.SelectMany(x => x);
+            IEnumerable<AbstractHint> predictingHints = _hints.AllGroups.SelectMany(x => x);
 
             if (updatingHint != null)
             {
                 predictingHints = predictingHints.Where(h => h.SyncSpeed >= updatingHint.SyncSpeed && h != updatingHint);
             }
 
-            var maxWaitingTimeSpan = TimeSpan.FromSeconds(maxWaitingTime);
-            var now = DateTime.Now;
+            TimeSpan maxWaitingTimeSpan = TimeSpan.FromSeconds(maxWaitingTime);
+            DateTime now = DateTime.Now;
 
             DateTime predictedUpdatingTime = predictingHints
                 .Select(h => h.UpdateAnalyser.EstimateNextUpdate())
@@ -171,7 +171,7 @@ namespace HintServiceMeow.Core.Utilities
                 .DefaultIfEmpty(now)
                 .Max();
 
-            var delay = (float)(predictedUpdatingTime - now).TotalSeconds;
+            float delay = (float)(predictedUpdatingTime - now).TotalSeconds;
 
             if (delay <= 0)
                 _taskScheduler.StartAction();
@@ -207,7 +207,7 @@ namespace HintServiceMeow.Core.Utilities
                             return string.Empty;
                         }
                     })
-                    .ContinueWith((parserTask) =>
+                    .ContinueWith(parserTask =>
                     {
                         MainThreadDispatcher.Dispatch(() =>
                         {
@@ -235,7 +235,7 @@ namespace HintServiceMeow.Core.Utilities
 
         private void SendHint(string text)
         {
-            foreach (var output in _displayOutputs.ToArray())
+            foreach (IDisplayOutput output in _displayOutputs.ToArray())
             {
                 try
                 {
@@ -259,12 +259,12 @@ namespace HintServiceMeow.Core.Utilities
 
             lock (_playerDisplayListLock)
             {
-                var existing = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
+                PlayerDisplay existing = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
 
                 if (existing is not null)
                     return existing;
 
-                var newPlayerDisplay = new PlayerDisplay(referenceHub);
+                PlayerDisplay newPlayerDisplay = new PlayerDisplay(referenceHub);
                 PlayerDisplayList.Add(newPlayerDisplay);
                 return newPlayerDisplay;
             }
@@ -289,7 +289,7 @@ namespace HintServiceMeow.Core.Utilities
         /// </summary>
         public static PlayerDisplay Get(Exiled.API.Features.Player player)
         {
-            if(player is null)
+            if (player is null)
                 throw new ArgumentNullException(nameof(player));
 
             return Get(player.ReferenceHub);
@@ -378,7 +378,7 @@ namespace HintServiceMeow.Core.Utilities
 
         internal void InternalAddHint(string name, IEnumerable<AbstractHint> hints, bool update = true)
         {
-            foreach (var hint in hints)
+            foreach (AbstractHint hint in hints)
             {
                 hint.HintUpdated += OnHintUpdate;
                 UpdateAvailable += hint.TryUpdateHint;
@@ -403,7 +403,7 @@ namespace HintServiceMeow.Core.Utilities
 
         internal void InternalRemoveHint(string name, IEnumerable<AbstractHint> hints, bool update = true)
         {
-            foreach (var hint in hints)
+            foreach (AbstractHint hint in hints)
             {
                 hint.HintUpdated -= OnHintUpdate;
                 UpdateAvailable -= hint.TryUpdateHint;
@@ -417,7 +417,7 @@ namespace HintServiceMeow.Core.Utilities
 
         internal void InternalRemoveHint(string name, Guid id, bool update = true)
         {
-            var hint = _hints.GetHints(name).FirstOrDefault(x => x.Id.Equals(id));
+            AbstractHint hint = _hints.GetHints(name).FirstOrDefault(x => x.Id.Equals(id));
 
             if (hint == null)
                 return;
@@ -433,7 +433,7 @@ namespace HintServiceMeow.Core.Utilities
 
         internal void InternalRemoveHint(string name, string id, bool update = true)
         {
-            var hint = _hints.GetHints(name).FirstOrDefault(x => x.Id.Equals(id));
+            AbstractHint hint = _hints.GetHints(name).FirstOrDefault(x => x.Id.Equals(id));
 
             if (hint == null)
                 return;
@@ -449,7 +449,7 @@ namespace HintServiceMeow.Core.Utilities
 
         internal void InternalClearHint(string name, bool update = true)
         {
-            foreach (var hint in _hints.GetHints(name).ToList())
+            foreach (AbstractHint hint in _hints.GetHints(name).ToList())
             {
                 hint.HintUpdated -= OnHintUpdate;
                 UpdateAvailable -= hint.TryUpdateHint;

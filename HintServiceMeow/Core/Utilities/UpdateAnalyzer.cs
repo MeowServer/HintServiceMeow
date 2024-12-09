@@ -25,7 +25,7 @@ namespace HintServiceMeow.Core.Utilities
 
             try
             {
-                var now = DateTime.Now;
+                DateTime now = DateTime.Now;
 
                 //Check if the Interval is too short
                 if (!_updateTimestamps.IsEmpty() && now - _updateTimestamps.Last() < _leastInterval)

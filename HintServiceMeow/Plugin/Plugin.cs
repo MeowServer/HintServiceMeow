@@ -15,25 +15,23 @@ namespace HintServiceMeow
 
         public override Exiled.API.Enums.PluginPriority Priority => Exiled.API.Enums.PluginPriority.First;
 
-        private NwapiPlugin PluginInstance = new NwapiPlugin();
-
         public override void OnEnabled()
         {
-            Plugin.OnEnabled(PluginInstance, this.Config);
+            Plugin.OnEnabled(new NWAPIPlugin(), this.Config);
 
             base.OnEnabled();
         }
 
         public override void OnDisabled()
         {
-            Plugin.OnDisabled(PluginInstance);
+            Plugin.OnDisabled(new NWAPIPlugin());
 
             base.OnDisabled();
         }
     }
 #endif
 
-    internal class NwapiPlugin
+    internal class NWAPIPlugin
     {
         [PluginAPI.Core.Attributes.PluginConfig]
         public PluginConfig Config;
@@ -63,24 +61,27 @@ namespace HintServiceMeow
         public static bool HasInitiated = false;
 
         public static PluginConfig Config;//Default if there's no config
+        public static NWAPIPlugin PluginInstance;
 
-        public static void OnEnabled(NwapiPlugin plugin, PluginConfig config)
+        public static void OnEnabled(NWAPIPlugin plugin, PluginConfig config)
         {
             if (HasInitiated)
                 return;
 
             HasInitiated = true;
+            PluginInstance = plugin;
             Config = config;
 
-            PluginAPI.Events.EventManager.RegisterEvents<NwapiPlugin>(plugin);
+            PluginAPI.Events.EventManager.RegisterEvents<NWAPIPlugin>(plugin);
 
-            //Initialalize Font Tool
+            //Initialize Font Tool
             FontTool.GetCharWidth('a', 40, Core.Enum.TextStyle.Normal);
         }
 
-        public static void OnDisabled(NwapiPlugin plugin)
+        public static void OnDisabled(NWAPIPlugin plugin)
         {
             HasInitiated = false;
+            PluginInstance = null;
             Config = null;
 
             PluginAPI.Events.EventManager.UnregisterEvents(plugin);

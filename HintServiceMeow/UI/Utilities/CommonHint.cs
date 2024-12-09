@@ -198,9 +198,9 @@ namespace HintServiceMeow.UI.Utilities
 
         public void ShowOtherHint(string[] messages, float time)
         {
-            foreach (var message in messages)
+            foreach (string message in messages)
             {
-                var dynamicHint = new DynamicHint
+                DynamicHint dynamicHint = new DynamicHint
                 {
                     Text = message,
                     TopBoundary = 400,

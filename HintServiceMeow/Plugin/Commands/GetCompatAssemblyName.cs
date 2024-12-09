@@ -2,6 +2,7 @@
 using HintServiceMeow.Core.Utilities.Pools;
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace HintServiceMeow
 {
@@ -18,11 +19,11 @@ namespace HintServiceMeow
 
         public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
         {
-            var sb = StringBuilderPool.Rent();
+            StringBuilder sb = StringBuilderPool.Rent();
 
             sb.AppendLine("The following assemblies are using Compatibility Adaptor in HintServiceMeow:");
 
-            foreach (var name in RegisteredAssemblies)
+            foreach (string name in RegisteredAssemblies)
             {
                 sb.Append("- ");
                 sb.AppendLine(name);

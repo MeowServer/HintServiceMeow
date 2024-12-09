@@ -32,7 +32,7 @@ namespace HintServiceMeow.Core.Utilities.Pools
 
         public static string ToStringReturn(StringBuilder sb)
         {
-            var str = sb.ToString();
+            string str = sb.ToString();
             Return(sb);
             return str;
         }

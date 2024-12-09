@@ -2,6 +2,7 @@
 using HintServiceMeow.Core.Interface;
 using HintServiceMeow.Core.Models.Arguments;
 using HintServiceMeow.Core.Models.Hints;
+using HintServiceMeow.Core.Utilities.Parser;
 using HintServiceMeow.Core.Utilities.Pools;
 using HintServiceMeow.Core.Utilities.Tools;
 using MEC;
@@ -33,9 +34,9 @@ namespace HintServiceMeow.Core.Utilities
 
         public void ShowHint(CompatibilityAdaptorArg ev)
         {
-            var assemblyName = ev.AssemblyName;
-            var content = ev.Content;
-            var duration = ev.Duration;
+            string assemblyName = ev.AssemblyName;
+            string content = ev.Content;
+            float duration = ev.Duration;
 
             GetCompatAssemblyName.RegisteredAssemblies.Add(assemblyName);
 
@@ -48,10 +49,10 @@ namespace HintServiceMeow.Core.Utilities
             _suppressedAssemblies.Add(assemblyName);
             Timing.CallDelayed(0.45f, () => _suppressedAssemblies.Remove(assemblyName));
 
-            var internalAssemblyName = "CompatibilityAdaptor-" + assemblyName;
+            string internalAssemblyName = "CompatibilityAdaptor-" + assemblyName;
 
             //Stop previous remove action
-            if (_removeDelayedActions.TryGetValue(internalAssemblyName, out var removeTime) && removeTime.IsRunning)
+            if (_removeDelayedActions.TryGetValue(internalAssemblyName, out CoroutineHandle removeTime) && removeTime.IsRunning)
                 Timing.KillCoroutines(removeTime);
 
             if (duration <= 0)
@@ -73,7 +74,7 @@ namespace HintServiceMeow.Core.Utilities
             try
             {
                 //Check if the hint is already cached
-                if (HintCache.TryGetValue(content, out var cachedHintList))
+                if (HintCache.TryGetValue(content, out IReadOnlyList<Hint> cachedHintList))
                 {
                     _playerDisplay.InternalClearHint(internalAssemblyName, false);
                     _playerDisplay.InternalAddHint(internalAssemblyName, cachedHintList);
@@ -81,23 +82,23 @@ namespace HintServiceMeow.Core.Utilities
                     return;
                 }
 
-                var startTime = DateTime.Now;
+                DateTime startTime = DateTime.Now;
 
                 //If not cached, then generate hint
                 List<Hint> hintList = await Task.Run(() =>
                 {
                     try
                     {
-                        var lineInfoList = RichTextParserPool.ParseText(content, 40);
+                        IReadOnlyList<LineInfo> lineInfoList = RichTextParserPool.ParseText(content, 40);
 
                         if (lineInfoList is null || lineInfoList.IsEmpty())
                             return new List<Hint>();
 
-                        var totalHeight = lineInfoList.Sum(x => x.Height);
-                        var accumulatedHeight = 0f;
+                        float totalHeight = lineInfoList.Sum(x => x.Height);
+                        float accumulatedHeight = 0f;
                         List<Hint> generatedHintList = new List<Hint>();
 
-                        foreach (var lineInfo in lineInfoList)
+                        foreach (LineInfo lineInfo in lineInfoList)
                         {
                             //If not empty line, then add hint
                             if (!string.IsNullOrEmpty(lineInfo.RawText.Trim()) && !lineInfo.Characters.IsEmpty())
