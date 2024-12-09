@@ -155,3 +155,6 @@
 -   V5.3.9
 -      Fix a issue in RichTextParser that caused line break not working correclty
 -      Add support for \n(text)
+-	V3.3.10
+-		Standardize the code style
+-		Re-implemented API for the plugin frameworks

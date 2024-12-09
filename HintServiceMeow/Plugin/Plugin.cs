@@ -11,7 +11,7 @@ namespace HintServiceMeow
     {
         public override string Name => "HintServiceMeow";
         public override string Author => "MeowServer";
-        public override Version Version => new Version(5, 3, 9);
+        public override Version Version => new Version(5, 3, 10);
 
         public override Exiled.API.Enums.PluginPriority Priority => Exiled.API.Enums.PluginPriority.First;
 
@@ -36,7 +36,7 @@ namespace HintServiceMeow
         [PluginAPI.Core.Attributes.PluginConfig]
         public PluginConfig Config;
 
-        [PluginAPI.Core.Attributes.PluginEntryPoint("HintServiceMeow", "5.3.9", "A hint framework", "MeowServer")]
+        [PluginAPI.Core.Attributes.PluginEntryPoint("HintServiceMeow", "5.3.10", "A hint framework", "MeowServer")]
         public void LoadPlugin()
         {
             Plugin.OnEnabled(this, Config);
