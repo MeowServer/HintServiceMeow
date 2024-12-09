@@ -1,22 +1,10 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Discord;
-using Exiled.API.Features;
-using Exiled.API.Features.Roles;
+﻿using Exiled.API.Features;
 using Exiled.Events.EventArgs.Player;
 using HintServiceMeow.Core.Enum;
-using HintServiceMeow.Core.Extension;
 using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities;
-using HintServiceMeow.UI.Extension;
 using HintServiceMeow.UI.Utilities;
-using MEC;
-using PlayerRoles;
 using UnityEngine;
-using static System.Net.Mime.MediaTypeNames;
 using Hint = HintServiceMeow.Core.Models.Hints.Hint;
 
 namespace HintServiceExample
