@@ -1,8 +1,7 @@
-﻿using HintServiceMeow.Core.Utilities;
+﻿using HintServiceMeow.Core.Models.Hints;
+using HintServiceMeow.Core.Utilities;
 using System;
 using System.Collections.Generic;
-using HintServiceMeow.Core.Models.Hints;
-using PluginAPI.Core;
 
 namespace HintServiceMeow.Core.Extension
 {

@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using System;
 
 namespace HintServiceMeow.Core.Utilities.Patch
 {
@@ -8,7 +9,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
 
         public static void Patch()
         {
-            Harmony = new Harmony("HintServiceMeowHarmony" + Plugin.Version);
+            Harmony = new Harmony("HintServiceMeowHarmony" + Guid.NewGuid());
 
             //Unpatch all other patches
             var hintDisplayMethod = typeof(Hints.HintDisplay).GetMethod(nameof(Hints.HintDisplay.Show));

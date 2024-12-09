@@ -1,9 +1,8 @@
-﻿using System;
+﻿using HintServiceMeow.Core.Models.Hints;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using HintServiceMeow.Core.Models.Hints;
 
 namespace HintServiceMeow.Core.Models
 {
@@ -41,7 +40,7 @@ namespace HintServiceMeow.Core.Models
             if (!_hintGroups.TryGetValue(assemblyName, out var hintDict))
                 return;
 
-            foreach(var hint in hintDict.Keys.Where(predicate).ToList())
+            foreach (var hint in hintDict.Keys.Where(predicate).ToList())
                 hintDict.TryRemove(hint, out _);
         }
 

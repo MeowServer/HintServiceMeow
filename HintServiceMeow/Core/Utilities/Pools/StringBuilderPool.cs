@@ -12,7 +12,7 @@ namespace HintServiceMeow.Core.Utilities.Pools
         {
             StringBuilder sb;
 
-            if(StringBuilderQueue.TryTake(out sb))
+            if (StringBuilderQueue.TryTake(out sb))
             {
                 if (sb.Capacity < capacity)
                     sb.Capacity = capacity;

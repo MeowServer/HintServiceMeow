@@ -1,11 +1,9 @@
-﻿using System;
+﻿using HintServiceMeow.Core.Interface;
+using HintServiceMeow.Core.Utilities.Tools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using HintServiceMeow.Core.Interface;
-using HintServiceMeow.Core.Utilities.Tools;
-using PluginAPI.Core;
 
 namespace HintServiceMeow.Core.Utilities
 {

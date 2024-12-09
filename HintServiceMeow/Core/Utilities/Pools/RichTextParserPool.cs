@@ -12,7 +12,7 @@ namespace HintServiceMeow.Core.Utilities.Pools
 
         public static RichTextParser Rent()
         {
-            if(RichTextParserQueue.TryDequeue(out var rtp))
+            if (RichTextParserQueue.TryDequeue(out var rtp))
                 return rtp;
 
             return new RichTextParser();

@@ -1,13 +1,12 @@
 ﻿using CommandSystem;
-using System;
-using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.Core.Utilities.Pools;
+using System;
 using System.Collections.Generic;
 
 namespace HintServiceMeow
 {
     [CommandHandler(typeof(RemoteAdminCommandHandler))]
-    internal class GetCompatAssemblyName: ICommand
+    internal class GetCompatAssemblyName : ICommand
     {
         internal static readonly HashSet<string> RegisteredAssemblies = new HashSet<string>();
 

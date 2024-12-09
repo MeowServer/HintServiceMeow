@@ -1,7 +1,6 @@
-﻿using System;
-using HintServiceMeow.Core.Models.Hints;
+﻿using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities.Tools;
-using PluginAPI.Core;
+using System;
 
 namespace HintServiceMeow.Core.Models.HintContent.HintContent
 {

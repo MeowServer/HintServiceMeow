@@ -1,11 +1,9 @@
-﻿using System;
+﻿using HintServiceMeow.Core.Models.Hints;
+using HintServiceMeow.Core.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
-
 using UnityEngine;
-
-using HintServiceMeow.Core.Models.Hints;
-using HintServiceMeow.Core.Utilities;
 
 namespace HintServiceMeow.UI.Utilities
 {
@@ -77,7 +75,7 @@ namespace HintServiceMeow.UI.Utilities
                 BottomY = bottomY
             };
 
-            if((style & StyleType.Bold) != 0)
+            if ((style & StyleType.Bold) != 0)
             {
                 AddArea(area, _boldArea[name]);
             }
@@ -86,7 +84,7 @@ namespace HintServiceMeow.UI.Utilities
                 RemoveArea(area, _boldArea[name]);
             }
 
-            if((style & StyleType.Italic) != 0)
+            if ((style & StyleType.Italic) != 0)
             {
                 AddArea(area, _italicArea[name]);
             }
@@ -119,22 +117,22 @@ namespace HintServiceMeow.UI.Utilities
 
         private void TryInitialize(string name)
         {
-            if(!_boldArea.ContainsKey(name))
+            if (!_boldArea.ContainsKey(name))
             {
                 _boldArea.Add(name, new List<Area>());
             }
 
-            if(!_italicArea.ContainsKey(name))
+            if (!_italicArea.ContainsKey(name))
             {
                 _italicArea.Add(name, new List<Area>());
             }
 
-            if(!_colorArea.ContainsKey(name))
+            if (!_colorArea.ContainsKey(name))
             {
                 _colorArea.Add(name, new List<Area>());
             }
 
-            if(!_currentStyleHints.ContainsKey(name))
+            if (!_currentStyleHints.ContainsKey(name))
             {
                 _currentStyleHints.Add(name, new List<Hint>());
             }
@@ -145,9 +143,9 @@ namespace HintServiceMeow.UI.Utilities
             existingArea.Add(areaToAdd);
             existingArea.Sort((x, y) => x.TopY.CompareTo(y.TopY));
 
-            for(int i = 0; i < existingArea.Count - 1; i++)
+            for (int i = 0; i < existingArea.Count - 1; i++)
             {
-                if(IsIntersected(existingArea[i], existingArea[i + 1]))
+                if (IsIntersected(existingArea[i], existingArea[i + 1]))
                 {
                     existingArea[i].BottomY = Math.Max(existingArea[i].BottomY, existingArea[i + 1].BottomY);
                     existingArea.RemoveAt(i + 1);
@@ -159,16 +157,16 @@ namespace HintServiceMeow.UI.Utilities
 
         private void RemoveArea(Area areaToRemove, List<Area> existingArea)
         {
-            foreach(Area area in existingArea)
+            foreach (Area area in existingArea)
             {
-                if(IsIntersected(area, areaToRemove))
+                if (IsIntersected(area, areaToRemove))
                 {
-                    if(area.TopY > areaToRemove.TopY)
+                    if (area.TopY > areaToRemove.TopY)
                     {
                         area.TopY = areaToRemove.BottomY;
                     }
 
-                    if(area.BottomY < areaToRemove.BottomY)
+                    if (area.BottomY < areaToRemove.BottomY)
                     {
                         area.BottomY = areaToRemove.TopY;
                     }
@@ -180,12 +178,12 @@ namespace HintServiceMeow.UI.Utilities
 
         private void UpdateHint(string assemblyName)
         {
-            foreach(var hint in _currentStyleHints[assemblyName])
+            foreach (var hint in _currentStyleHints[assemblyName])
             {
                 PlayerDisplay.InternalRemoveHint(assemblyName, hint);
             }
 
-            foreach(var area in _boldArea[assemblyName])
+            foreach (var area in _boldArea[assemblyName])
             {
                 var startHint = new Hint(BoldStartHint)
                 {
@@ -203,7 +201,7 @@ namespace HintServiceMeow.UI.Utilities
                 _currentStyleHints[assemblyName].Add(stopHint);
             }
 
-            foreach(var area in _italicArea[assemblyName])
+            foreach (var area in _italicArea[assemblyName])
             {
                 var startHint = new Hint(ItalicStartHint)
                 {
@@ -221,7 +219,7 @@ namespace HintServiceMeow.UI.Utilities
                 _currentStyleHints[assemblyName].Add(stopHint);
             }
 
-            foreach(var area in _colorArea[assemblyName])
+            foreach (var area in _colorArea[assemblyName])
             {
                 var startHint = GetColorStartHint(((ColorArea)area).Color);
                 var stopHint = GetColorEndHint();

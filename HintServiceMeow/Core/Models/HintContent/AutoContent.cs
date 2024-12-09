@@ -1,8 +1,6 @@
-﻿using System;
-using HintServiceMeow.Core.Models.Hints;
-using HintServiceMeow.Core.Utilities;
+﻿using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities.Tools;
-using PluginAPI.Core;
+using System;
 
 namespace HintServiceMeow.Core.Models.HintContent.HintContent
 {
@@ -37,7 +35,7 @@ namespace HintServiceMeow.Core.Models.HintContent.HintContent
             {
                 string newText = _autoText.Invoke(ev);
 
-                if(_text != newText)
+                if (_text != newText)
                 {
                     _text = newText;
                     OnUpdated();
@@ -45,7 +43,7 @@ namespace HintServiceMeow.Core.Models.HintContent.HintContent
 
                 NextUpdateTime = DateTime.Now.AddSeconds(ev.NextUpdateDelay);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _text = string.Empty;
                 LogTool.Error(ex);

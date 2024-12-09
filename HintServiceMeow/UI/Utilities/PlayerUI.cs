@@ -1,6 +1,6 @@
-﻿using System.Linq;
+﻿using HintServiceMeow.Core.Utilities;
 using System.Collections.Generic;
-using HintServiceMeow.Core.Utilities;
+using System.Linq;
 
 namespace HintServiceMeow.UI.Utilities
 {
@@ -31,13 +31,6 @@ namespace HintServiceMeow.UI.Utilities
 
             //Add to list
             PlayerUIList.Add(this);
-        }
-
-        internal static PlayerUI TryCreate(ReferenceHub referenceHub)
-        {
-            var ui = PlayerUIList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
-
-            return ui ?? new PlayerUI(referenceHub);
         }
 
         internal static void Destruct(ReferenceHub referenceHub)

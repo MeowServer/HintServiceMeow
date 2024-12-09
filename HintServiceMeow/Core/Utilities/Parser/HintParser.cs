@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-
-using HintServiceMeow.Core.Enum;
+﻿using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Interface;
 using HintServiceMeow.Core.Models;
 using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities.Pools;
 using HintServiceMeow.Core.Utilities.Tools;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace HintServiceMeow.Core.Utilities.Parser
 {
@@ -79,7 +78,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 if (!hintList.IsEmpty())
                     messageBuilder.AppendLine("</align></size></b></i>"); //Make sure one group will not affect another group
             }
-            
+
             messageBuilder.AppendLine("<line-height=0><voffset=-9999>P</voffset>");//Place Holder
 
             return StringBuilderPool.ToStringReturn(messageBuilder);

@@ -1,13 +1,10 @@
-﻿using System;
-using System.Threading;
-
-using HintServiceMeow.Core.Enum;
-using HintServiceMeow.Core.Utilities;
-using HintServiceMeow.Core.Models.HintContent.HintContent;
+﻿using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Interface;
-
-using PluginAPI.Core;
+using HintServiceMeow.Core.Models.HintContent.HintContent;
+using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.Core.Utilities.Tools;
+using System;
+using System.Threading;
 
 namespace HintServiceMeow.Core.Models.Hints
 {
