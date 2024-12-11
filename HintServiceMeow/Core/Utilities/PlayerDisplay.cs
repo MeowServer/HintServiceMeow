@@ -1,20 +1,18 @@
-﻿using System;
+﻿using HintServiceMeow.Core.Enum;
+using HintServiceMeow.Core.Interface;
+using HintServiceMeow.Core.Models;
+using HintServiceMeow.Core.Models.Arguments;
+using HintServiceMeow.Core.Models.Hints;
+using HintServiceMeow.Core.Utilities.Parser;
+using HintServiceMeow.Core.Utilities.Tools;
+using MEC;
+using Mirror;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
-
-using Mirror;
-using MEC;
-
-using HintServiceMeow.Core.Enum;
-using HintServiceMeow.Core.Models.Hints;
-using HintServiceMeow.Core.Models;
-using HintServiceMeow.Core.Utilities.Parser;
-using HintServiceMeow.Core.Interface;
-using HintServiceMeow.Core.Utilities.Tools;
-using HintServiceMeow.Core.Models.Arguments;
 
 namespace HintServiceMeow.Core.Utilities
 {
@@ -36,11 +34,11 @@ namespace HintServiceMeow.Core.Utilities
         public delegate void UpdateAvailableEventHandler(UpdateAvailableEventArg ev);
 
         private static readonly HashSet<PlayerDisplay> PlayerDisplayList = new HashSet<PlayerDisplay>();
-        private static readonly object _playerDisplayListLock = new object();
+        private static readonly object _playerDisplayListLock = new();
 
         private readonly ConcurrentBag<IDisplayOutput> _displayOutputs = new ConcurrentBag<IDisplayOutput> { new DefaultDisplayOutput() };
 
-        private readonly HintCollection _hints = new HintCollection();
+        private readonly HintCollection _hints = new();
         private readonly TaskScheduler _taskScheduler;//Initialize in constructor
         private IHintParser _hintParser = new HintParser();
         private ICompatibilityAdaptor _adapter;//Initialize in constructor
@@ -48,9 +46,8 @@ namespace HintServiceMeow.Core.Utilities
         private CoroutineHandle _coroutine;//Initialize in constructor(MultiThreadTool)
 
         private Task _currentParserTask;
-        private readonly object _currentParserTaskLock = new object();
+        private readonly object _currentParserTaskLock = new();
 
-        #region Constructor and Destructors
         private PlayerDisplay(ReferenceHub referenceHub)
         {
             this.ConnectionToClient = referenceHub.netIdentity.connectionToClient;
@@ -63,16 +60,16 @@ namespace HintServiceMeow.Core.Utilities
             });
 
             this._adapter = new CompatibilityAdaptor(this);
-            MultithreadTool.EnqueueAction(() => this._coroutine = Timing.RunCoroutine(CoroutineMethod()));
+            MainThreadDispatcher.Dispatch(() => this._coroutine = Timing.RunCoroutine(CoroutineMethod()));
         }
 
         internal static void Destruct(ReferenceHub referenceHub)
         {
             lock (_playerDisplayListLock)
             {
-                var pd = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
+                PlayerDisplay pd = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
 
-                if(pd is null)
+                if (pd is null)
                     return;
 
                 Timing.KillCoroutines(pd._coroutine);
@@ -88,10 +85,6 @@ namespace HintServiceMeow.Core.Utilities
             }
         }
 
-        #endregion
-
-        #region Properties
-
         public ConcurrentBag<IDisplayOutput> DisplayOutputs => _displayOutputs;
 
         public IHintParser HintParser
@@ -106,9 +99,6 @@ namespace HintServiceMeow.Core.Utilities
             set => _adapter = value ?? throw new ArgumentNullException(nameof(value));
         }
 
-        #endregion
-
-        #region Coroutine Methods
         private IEnumerator<float> CoroutineMethod()
         {
             while (true)
@@ -132,15 +122,13 @@ namespace HintServiceMeow.Core.Utilities
                 }
             }
         }
-        #endregion
 
-        #region Update Management
         private void OnHintUpdate(AbstractHint hint)
         {
             if (hint.SyncSpeed == HintSyncSpeed.UnSync)
                 return;
 
-            var maxWaitingTime = hint.SyncSpeed switch
+            float maxWaitingTime = hint.SyncSpeed switch
             {
                 HintSyncSpeed.Fastest => 0,
                 HintSyncSpeed.Fast => 0.1f,
@@ -159,7 +147,7 @@ namespace HintServiceMeow.Core.Utilities
             {
                 if (_currentParserTask is not null)
                     return;
-            }  
+            }
 
             if (maxWaitingTime <= 0)
             {
@@ -167,15 +155,15 @@ namespace HintServiceMeow.Core.Utilities
                 return;
             }
 
-            var predictingHints = _hints.AllGroups.SelectMany(x => x);
+            IEnumerable<AbstractHint> predictingHints = _hints.AllGroups.SelectMany(x => x);
 
-            if(updatingHint != null)
+            if (updatingHint != null)
             {
                 predictingHints = predictingHints.Where(h => h.SyncSpeed >= updatingHint.SyncSpeed && h != updatingHint);
             }
 
-            var maxWaitingTimeSpan = TimeSpan.FromSeconds(maxWaitingTime);
-            var now = DateTime.Now;
+            TimeSpan maxWaitingTimeSpan = TimeSpan.FromSeconds(maxWaitingTime);
+            DateTime now = DateTime.Now;
 
             DateTime predictedUpdatingTime = predictingHints
                 .Select(h => h.UpdateAnalyser.EstimateNextUpdate())
@@ -183,9 +171,9 @@ namespace HintServiceMeow.Core.Utilities
                 .DefaultIfEmpty(now)
                 .Max();
 
-            var delay = (float)(predictedUpdatingTime - now).TotalSeconds;
+            float delay = (float)(predictedUpdatingTime - now).TotalSeconds;
 
-            if(delay <= 0)
+            if (delay <= 0)
                 _taskScheduler.StartAction();
             else
                 _taskScheduler.StartAction(delay, TaskScheduler.DelayType.KeepFastest);
@@ -198,9 +186,7 @@ namespace HintServiceMeow.Core.Utilities
         {
             ScheduleUpdate(useFastUpdate ? 0f : 0.3f);
         }
-        #endregion
 
-        #region Update Methods
         private void StartParserTask()
         {
             lock (_currentParserTaskLock)
@@ -215,20 +201,21 @@ namespace HintServiceMeow.Core.Utilities
                         {
                             return _hintParser.ParseToMessage(_hints);
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             LogTool.Error(ex);
                             return string.Empty;
                         }
                     })
-                    .ContinueWith((parserTask) => {
-                        MultithreadTool.EnqueueAction(() =>
+                    .ContinueWith(parserTask =>
+                    {
+                        MainThreadDispatcher.Dispatch(() =>
                         {
                             try
                             {
                                 SendHint(parserTask.Result);
                             }
-                            catch(Exception ex)
+                            catch (Exception ex)
                             {
                                 LogTool.Error(ex);
                             }
@@ -238,7 +225,6 @@ namespace HintServiceMeow.Core.Utilities
 
                                 lock (_currentParserTaskLock)
                                 {
-                                    _currentParserTask.Dispose();
                                     _currentParserTask = null;
                                 }
                             }
@@ -249,21 +235,19 @@ namespace HintServiceMeow.Core.Utilities
 
         private void SendHint(string text)
         {
-            foreach(var output in _displayOutputs.ToArray())
+            foreach (IDisplayOutput output in _displayOutputs.ToArray())
             {
                 try
                 {
                     output.ShowHint(new DisplayOutputArg(this, text));
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     LogTool.Error(ex);
                 }
             }
         }
-        #endregion
 
-        #region Player Display Management Methods
         /// <summary>
         /// Get the PlayerDisplay instance of the player. If the instance have not been created yet, then it will create one.
         /// Not Thread Safe
@@ -275,12 +259,12 @@ namespace HintServiceMeow.Core.Utilities
 
             lock (_playerDisplayListLock)
             {
-                var existing = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
+                PlayerDisplay existing = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
 
-                if(existing is not null)
+                if (existing is not null)
                     return existing;
 
-                var newPlayerDisplay = new PlayerDisplay(referenceHub);
+                PlayerDisplay newPlayerDisplay = new PlayerDisplay(referenceHub);
                 PlayerDisplayList.Add(newPlayerDisplay);
                 return newPlayerDisplay;
             }
@@ -305,16 +289,12 @@ namespace HintServiceMeow.Core.Utilities
         /// </summary>
         public static PlayerDisplay Get(Exiled.API.Features.Player player)
         {
-            if(player is null)
+            if (player is null)
                 throw new ArgumentNullException(nameof(player));
 
             return Get(player.ReferenceHub);
         }
 #endif
-
-        #endregion
-
-        #region Hint Management Methods
 
         public void AddHint(AbstractHint hint)
         {
@@ -398,7 +378,7 @@ namespace HintServiceMeow.Core.Utilities
 
         internal void InternalAddHint(string name, IEnumerable<AbstractHint> hints, bool update = true)
         {
-            foreach (var hint in hints)
+            foreach (AbstractHint hint in hints)
             {
                 hint.HintUpdated += OnHintUpdate;
                 UpdateAvailable += hint.TryUpdateHint;
@@ -423,7 +403,7 @@ namespace HintServiceMeow.Core.Utilities
 
         internal void InternalRemoveHint(string name, IEnumerable<AbstractHint> hints, bool update = true)
         {
-            foreach (var hint in hints)
+            foreach (AbstractHint hint in hints)
             {
                 hint.HintUpdated -= OnHintUpdate;
                 UpdateAvailable -= hint.TryUpdateHint;
@@ -437,15 +417,15 @@ namespace HintServiceMeow.Core.Utilities
 
         internal void InternalRemoveHint(string name, Guid id, bool update = true)
         {
-            var hint = _hints.GetHints(name).FirstOrDefault(x => x.Id.Equals(id));
+            AbstractHint hint = _hints.GetHints(name).FirstOrDefault(x => x.Id.Equals(id));
 
             if (hint == null)
                 return;
 
             hint.HintUpdated -= OnHintUpdate;
-             UpdateAvailable -= hint.TryUpdateHint;
+            UpdateAvailable -= hint.TryUpdateHint;
 
-            _hints.RemoveHint(name, x => x.Id.Equals(id));
+            _hints.RemoveHint(name, x => x.Guid.Equals(id));
 
             if (update)
                 ScheduleUpdate();
@@ -453,7 +433,7 @@ namespace HintServiceMeow.Core.Utilities
 
         internal void InternalRemoveHint(string name, string id, bool update = true)
         {
-            var hint = _hints.GetHints(name).FirstOrDefault(x => x.Id.Equals(id));
+            AbstractHint hint = _hints.GetHints(name).FirstOrDefault(x => x.Id.Equals(id));
 
             if (hint == null)
                 return;
@@ -469,7 +449,7 @@ namespace HintServiceMeow.Core.Utilities
 
         internal void InternalClearHint(string name, bool update = true)
         {
-            foreach(var hint in _hints.GetHints(name).ToList())
+            foreach (AbstractHint hint in _hints.GetHints(name).ToList())
             {
                 hint.HintUpdated -= OnHintUpdate;
                 UpdateAvailable -= hint.TryUpdateHint;
@@ -480,7 +460,6 @@ namespace HintServiceMeow.Core.Utilities
             if (update)
                 ScheduleUpdate();
         }
-        #endregion
 
         internal void ShowCompatibilityHint(string assemblyName, string content, float duration) => this._adapter.ShowHint(new Models.Arguments.CompatibilityAdaptorArg(assemblyName, content, duration));
 

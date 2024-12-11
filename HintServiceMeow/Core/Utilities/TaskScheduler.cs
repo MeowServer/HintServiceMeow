@@ -1,12 +1,10 @@
-﻿using System;
+﻿using HintServiceMeow.Core.Utilities.Tools;
+using MEC;
+using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Diagnostics;
 using System.Reflection;
-
-using MEC;
-
-using HintServiceMeow.Core.Utilities.Tools;
+using System.Threading;
 
 namespace HintServiceMeow.Core.Utilities
 {
@@ -29,14 +27,14 @@ namespace HintServiceMeow.Core.Utilities
             this.Interval = interval;
             this._action = action ?? throw new ArgumentNullException(nameof(action));
 
-            if(interval > TimeSpan.Zero)
+            if (interval > TimeSpan.Zero)
             {
                 //Force change the elapsed time of the stopwatch
                 //This is evil......
                 _actionTimeLock.EnterWriteLock();
                 try
                 {
-                    FieldInfo _timerElapsedField = typeof(Stopwatch).GetField("elapsed", BindingFlags.IgnoreCase|BindingFlags.Instance|BindingFlags.NonPublic);
+                    FieldInfo _timerElapsedField = typeof(Stopwatch).GetField("elapsed", BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.NonPublic);
                     _timerElapsedField.SetValue(IntervalStopwatch, interval.Ticks);
                 }
                 finally
@@ -45,7 +43,7 @@ namespace HintServiceMeow.Core.Utilities
                 }
             }
 
-            MultithreadTool.EnqueueAction(() => Timing.RunCoroutine(TaskCoroutineMethod()));
+            MainThreadDispatcher.Dispatch(() => Timing.RunCoroutine(TaskCoroutineMethod()));
         }
 
         public void StartAction()

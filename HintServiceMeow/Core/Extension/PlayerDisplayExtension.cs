@@ -14,10 +14,10 @@ namespace HintServiceMeow.Core.Extension
         /// </summary>
         public static void RemoveAfter(this PlayerDisplay playerDisplay, AbstractHint hint, float delay)
         {
-            if (!RemoveTime.TryGetValue(playerDisplay, out var hintDict))
+            if (!RemoveTime.TryGetValue(playerDisplay, out Dictionary<AbstractHint, TaskScheduler> hintDict))
                 RemoveTime.Add(playerDisplay, hintDict = new Dictionary<AbstractHint, TaskScheduler>());
 
-            if (!hintDict.TryGetValue(hint, out var scheduler))
+            if (!hintDict.TryGetValue(hint, out TaskScheduler scheduler))
                 hintDict.Add(hint, scheduler = new TaskScheduler(TimeSpan.Zero, () => playerDisplay.RemoveHint(hint)));
 
             scheduler.StartAction(delay, TaskScheduler.DelayType.Override);

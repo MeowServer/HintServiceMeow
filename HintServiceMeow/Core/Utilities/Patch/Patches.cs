@@ -1,9 +1,9 @@
-﻿using System;
-using System.Reflection;
-using Hints;
+﻿using Hints;
 using HintServiceMeow.Core.Extension;
 using HintServiceMeow.Core.Utilities.Tools;
 using PluginAPI.Core;
+using System;
+using System.Reflection;
 
 namespace HintServiceMeow.Core.Utilities.Patch
 {
@@ -16,15 +16,15 @@ namespace HintServiceMeow.Core.Utilities.Patch
                 if (!PluginConfig.Instance.UseHintCompatibilityAdapter)
                     return false;
 
-                if (hint is TextHint textHint && ReferenceHub.TryGetHubNetID(__instance.connectionToClient.identity.netId, out var referenceHub))
+                if (hint is TextHint textHint && ReferenceHub.TryGetHubNetID(__instance.connectionToClient.identity.netId, out ReferenceHub referenceHub))
                 {
-                    var assemblyName = Assembly.GetCallingAssembly().FullName;
-                    var content = textHint.Text;
-                    var duration = textHint.DurationScalar;
+                    string assemblyName = Assembly.GetCallingAssembly().FullName;
+                    string content = textHint.Text;
+                    float duration = textHint.DurationScalar;
                     PlayerDisplay.Get(referenceHub).ShowCompatibilityHint(assemblyName, content, duration);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 LogTool.Error(ex);
             }
@@ -38,8 +38,8 @@ namespace HintServiceMeow.Core.Utilities.Patch
             {
                 if (!PluginConfig.Instance.UseHintCompatibilityAdapter)
                     return false;
-            
-                var assemblyName = Assembly.GetCallingAssembly().FullName;
+
+                string assemblyName = Assembly.GetCallingAssembly().FullName;
                 __instance.GetPlayerDisplay().ShowCompatibilityHint(assemblyName, text, duration);
             }
             catch (Exception ex)
@@ -57,7 +57,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
                 if (!PluginConfig.Instance.UseHintCompatibilityAdapter)
                     return false;
 
-                var assemblyName = Assembly.GetCallingAssembly().FullName;
+                string assemblyName = Assembly.GetCallingAssembly().FullName;
                 __instance.GetPlayerDisplay().ShowCompatibilityHint(assemblyName, text, duration);
             }
             catch (Exception ex)
@@ -76,7 +76,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
                 if (!PluginConfig.Instance.UseHintCompatibilityAdapter)
                     return false;
 
-                var assemblyName = Assembly.GetCallingAssembly().FullName;
+                string assemblyName = Assembly.GetCallingAssembly().FullName;
                 __instance.GetPlayerDisplay().ShowCompatibilityHint(assemblyName, message, duration);
             }
             catch (Exception ex)
@@ -96,8 +96,8 @@ namespace HintServiceMeow.Core.Utilities.Patch
 
                 if (!hint.Show)
                     return false;
-                
-                var assemblyName = Assembly.GetCallingAssembly().FullName;
+
+                string assemblyName = Assembly.GetCallingAssembly().FullName;
                 __instance.GetPlayerDisplay().ShowCompatibilityHint(assemblyName, hint.Content, hint.Duration);
             }
             catch (Exception ex)

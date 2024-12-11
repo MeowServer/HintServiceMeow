@@ -32,7 +32,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
                     Dictionary<int, float> dictionary = new DeserializerBuilder().Build().Deserialize<Dictionary<int, float>>(reader);
 
-                    foreach (var kvp in dictionary)
+                    foreach (KeyValuePair<int, float> kvp in dictionary)
                     {
                         ChWidth.TryAdd((char)kvp.Key, kvp.Value);
                     }
@@ -54,7 +54,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
             if ((style & TextStyle.Bold) == TextStyle.Bold)
                 ratio *= 1.15f;
 
-            if (!ChWidth.TryGetValue(c, out var width))
+            if (!ChWidth.TryGetValue(c, out float width))
                 width = DefaultFontWidth;
 
             return width * ratio;

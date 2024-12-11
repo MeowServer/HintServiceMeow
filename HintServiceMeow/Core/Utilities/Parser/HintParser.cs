@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-
-using HintServiceMeow.Core.Enum;
+﻿using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Interface;
 using HintServiceMeow.Core.Models;
 using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities.Pools;
 using HintServiceMeow.Core.Utilities.Tools;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace HintServiceMeow.Core.Utilities.Parser
 {
@@ -32,11 +31,12 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 .Select(ParseToArea)
                 .ToList();
 
-            foreach (var group in collection.AllGroups)
+            foreach (List<AbstractHint> group in collection.AllGroups)
             {
                 //Filter invisible hints
-                IEnumerable<AbstractHint> visibleGroup = group
-                    .Where(x => x is not null && !x.Hide && !string.IsNullOrEmpty(x.Content.GetText()));
+                List<AbstractHint> visibleGroup = group
+                    .Where(x => x is not null && !x.Hide && !string.IsNullOrEmpty(x.Content.GetText()))
+                    .ToList();
 
                 //Group by type
                 List<Hint> orderedHints = visibleGroup.OfType<Hint>().ToList();
@@ -44,7 +44,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
                 //Convert Dynamic Hint
                 dynamicHints.Sort((a, b) => b.Priority - a.Priority);
-                foreach (var dynamicHint in dynamicHints)
+                foreach (DynamicHint dynamicHint in dynamicHints)
                 {
                     Hint handledDH = ParseToHint(dynamicHint, dynamicHintColliders);
 
@@ -68,7 +68,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
             {
                 foreach (Hint hint in hintList)
                 {
-                    if (messageBuilder.Length > 65400)
+                    if (messageBuilder.Length > 65000)
                         break; //Prevent network message from overflow
 
                     string text = ParseToRichText(hint);
@@ -76,19 +76,22 @@ namespace HintServiceMeow.Core.Utilities.Parser
                         messageBuilder.Append(text); //ToRichText already added \n at the end
                 }
 
+                if (messageBuilder.Length > 65000)
+                    break; //Prevent network message from overflow
+
                 if (!hintList.IsEmpty())
                     messageBuilder.AppendLine("</align></size></b></i>"); //Make sure one group will not affect another group
             }
-            
+
             messageBuilder.AppendLine("<line-height=0><voffset=-9999>P</voffset>");//Place Holder
 
             return StringBuilderPool.ToStringReturn(messageBuilder);
         }
 
-        private Hint ParseToHint(DynamicHint dynamicHint, IEnumerable<TextArea> colliders)
+        private Hint ParseToHint(DynamicHint dynamicHint, IList<TextArea> colliders)
         {
-            var dhWidth = CoordinateTools.GetTextWidth(dynamicHint);
-            var dhHeight = CoordinateTools.GetTextHeight(dynamicHint);
+            float dhWidth = CoordinateTools.GetTextWidth(dynamicHint);
+            float dhHeight = CoordinateTools.GetTextHeight(dynamicHint);
 
             TextArea DynamicHintToArea(ValueTuple<float, float> tuple)
             {
@@ -102,7 +105,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
             }
 
             //Check target position before checking the cache
-            var targetArea = DynamicHintToArea(ValueTuple.Create(dynamicHint.TargetX, dynamicHint.TargetY));
+            TextArea targetArea = DynamicHintToArea(ValueTuple.Create(dynamicHint.TargetX, dynamicHint.TargetY));
             if (!colliders.Any(targetArea.HasIntersection))
             {
                 //Clear previous cached position since the target position is usable again
@@ -111,9 +114,9 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 return new Hint(dynamicHint, dynamicHint.TargetX, dynamicHint.TargetY);
             }
 
-            if (_dynamicHintPositionCache.TryGetValue(dynamicHint.Guid, out var cachedPosition))
+            if (_dynamicHintPositionCache.TryGetValue(dynamicHint.Guid, out ValueTuple<float, float> cachedPosition))
             {
-                var dhArea = DynamicHintToArea(cachedPosition);
+                TextArea dhArea = DynamicHintToArea(cachedPosition);
                 if (!colliders.Any(dhArea.HasIntersection))
                 {
                     return new Hint(dynamicHint, cachedPosition.Item1, cachedPosition.Item2);
@@ -121,12 +124,12 @@ namespace HintServiceMeow.Core.Utilities.Parser
             }
 
             //If there's no cached position or cached position is not usable, then find new position
-            var queue = new Queue<ValueTuple<float, float>>();
-            var visited = new HashSet<ValueTuple<float, float>>();
+            Queue<ValueTuple<float, float>> queue = new Queue<ValueTuple<float, float>>();
+            HashSet<ValueTuple<float, float>> visited = new HashSet<ValueTuple<float, float>>();
 
             queue.Enqueue(ValueTuple.Create(dynamicHint.TargetX, dynamicHint.TargetY));
 
-            while (queue.TryDequeue(out var tuple))
+            while (queue.TryDequeue(out ValueTuple<float, float> tuple))
             {
                 //The tuple represent bottom center coordinate, Item 1: x, Item 2: y
                 if (visited.Contains(tuple))
@@ -134,7 +137,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
                 visited.Add(tuple);
 
-                var dhArea = DynamicHintToArea(tuple);
+                TextArea dhArea = DynamicHintToArea(tuple);
                 if (!colliders.Any(dhArea.HasIntersection))
                 {
                     _dynamicHintPositionCache[dynamicHint.Guid] = tuple;
@@ -163,8 +166,8 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
         private TextArea ParseToArea(Hint hint)
         {
-            var xCoordinate = CoordinateTools.GetXCoordinateWithAlignment(hint);
-            var yCoordinate = CoordinateTools.GetYCoordinate(hint, HintVerticalAlign.Bottom);
+            float xCoordinate = CoordinateTools.GetXCoordinateWithAlignment(hint);
+            float yCoordinate = CoordinateTools.GetYCoordinate(hint, HintVerticalAlign.Bottom);
 
             return new TextArea
             {
@@ -186,7 +189,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 );
 
             //Parse into line infos
-            var lineList = RichTextParserPool.ParseText(text, hint.FontSize);
+            IReadOnlyList<LineInfo> lineList = RichTextParserPool.ParseText(text, hint.FontSize);
 
             if (lineList is null || lineList.IsEmpty())
                 return null;
@@ -204,7 +207,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
             richTextBuilder.AppendFormat("<size={0}>", hint.FontSize);
             if (hint.Alignment != HintAlignment.Center) richTextBuilder.AppendFormat("<align={0}>", hint.Alignment);
 
-            foreach (var line in lineList)
+            foreach (LineInfo line in lineList)
             {
                 vOffset -= line.Height + hint.LineHeight; //Move y coordinate to the bottom of the line
 
@@ -219,7 +222,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 richTextBuilder.AppendLine(); //Break line
             }
 
-            //End default size/alignment
+            //End default alignment/size
             if (hint.Alignment != HintAlignment.Center) richTextBuilder.Append("</align>");
             richTextBuilder.Append("</size>");
 

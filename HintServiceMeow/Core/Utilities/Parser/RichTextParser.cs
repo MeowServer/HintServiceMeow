@@ -1,23 +1,22 @@
-﻿using System;
+﻿using HintServiceMeow.Core.Enum;
+using HintServiceMeow.Core.Utilities.Tools;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Exiled.API.Features;
-using HintServiceMeow.Core.Enum;
-using HintServiceMeow.Core.Utilities.Tools;
 
 namespace HintServiceMeow.Core.Utilities.Parser
 {
-    internal static class Regexs
+    internal static class RegexPatterns
     {
-        public static readonly string SizeTagRegex = @"<size=(\d+)(px|%)?>";
-        public static readonly string LineHeightTagRegex = @"<line-height=([\d\.]+)(px|%|em)?>";
-        public static readonly string PosTagRegex = @"<pos=([+-]?\d+(px)?)>";
-        public static readonly string VOffsetTagRegex = @"<voffset=([+-]?\d+(px)?)>";
-        public static readonly string AlignTagRegex = @"<align=(left|center|right)>|</align>";
+        public static readonly string SizeTagRegexPattern = @"<size=(\d+)(px|%)?>";
+        public static readonly string LineHeightTagRegexPattern = @"<line-height=([\d\.]+)(px|%|em)?>";
+        public static readonly string PosTagRegexPattern = @"<pos=([+-]?\d+(px)?)>";
+        public static readonly string VOffsetTagRegexPattern = @"<voffset=([+-]?\d+(px)?)>";
+        public static readonly string AlignTagRegexPattern = @"<align=(left|center|right)>|</align>";
     }
 
     internal static class Tags
@@ -40,7 +39,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
         public static bool IsEndTag(string tag)
         {
-            if(string.IsNullOrEmpty(tag.Trim()))
+            if (string.IsNullOrEmpty(tag.Trim()))
                 return false;
 
             tag = tag.ToLower();
@@ -117,18 +116,21 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
         public IReadOnlyList<LineInfo> ParseText(string text, int size = 20, HintAlignment alignment = HintAlignment.Center)
         {
-            if(text is null)
+            if (text is null)
                 return new List<LineInfo>();
 
-            var cacheKey = ValueTuple.Create(text, size, alignment);
+            ValueTuple<string, int, HintAlignment> cacheKey = ValueTuple.Create(text, size, alignment);
 
             //Check cache
-            if (Cache.TryGetValue(cacheKey, out var cachedResult))
+            if (Cache.TryGetValue(cacheKey, out IReadOnlyList<LineInfo> cachedResult))
             {
                 return new List<LineInfo>(cachedResult);
             }
 
-            text.Replace("<br>", "\n");
+            //Replace linebreak
+            text = text
+                .Replace("<br>", "\n")
+                .Replace("\\n", "\n");
 
             List<LineInfo> lines = new List<LineInfo>();
             List<CharacterInfo> currentChInfos = new List<CharacterInfo>();
@@ -144,10 +146,10 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 _caseStyleStack.Add(CaseStyle.Smallcaps);
 
                 int lastIndex = 0;
-                
+
                 while (_index < text.Length)
                 {
-                    if(lastIndex <= _index)
+                    if (lastIndex <= _index)
                     {
                         _currentRawLineText.Append(text.Substring(lastIndex, _index - lastIndex + 1));
                         lastIndex = _index + 1;
@@ -159,7 +161,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                         continue;
                     }
 
-                    float currentWidth = currentChInfos.IsEmpty() ? 0 : currentChInfos.Sum(x => x.Width);
+                    float currentWidth = !currentChInfos.Any() ? 0 : currentChInfos.Sum(x => x.Width);
                     float overflowValue = _currentLineAlignment switch
                     {
                         HintAlignment.Center => currentWidth / 2 + _pos,
@@ -171,7 +173,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                     //Try change line
                     if (text[_index] == '\n' || overflowValue > 1200)
                     {
-                        if(text[_index] == '\n')
+                        if (text[_index] == '\n')
                             currentChInfos.Add(GetChInfo('\n'));//Add \n if the line break at \n
 
                         //Create new line info
@@ -198,29 +200,29 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
                 if (lastIndex <= _index)
                 {
-                    var cutLength = text.Length - lastIndex;
-                    if(cutLength > 0)
+                    int cutLength = text.Length - lastIndex;
+                    if (cutLength > 0)
                         _currentRawLineText.Append(text.Substring(lastIndex, cutLength));
                 }
 
-                if(!currentChInfos.IsEmpty())
+                if (currentChInfos.Count != 0)
                     lines.Add(GetLineInfo(currentChInfos, _currentLineAlignment));
 
                 currentChInfos.Clear();
             }
 
             Cache[cacheKey] = new List<LineInfo>(lines).AsReadOnly();
-            Task.Run(() =>Task.Delay(10000).ContinueWith(_ => Cache.TryRemove(cacheKey, out var _)));//Remove cache after 10 seconds
+            Task.Run(() => Task.Delay(10000).ContinueWith(_ => Cache.TryRemove(cacheKey, out IReadOnlyList<LineInfo> _)));//Remove cache after 10 seconds
 
             return new List<LineInfo>(lines).AsReadOnly();
         }
 
         private LineInfo GetLineInfo(List<CharacterInfo> chs, HintAlignment align)
         {
-            var rawText = _currentRawLineText.ToString();
+            string rawText = _currentRawLineText.ToString();
             _currentRawLineText.Clear();
 
-            var line = new LineInfo(
+            LineInfo line = new LineInfo(
                 chs,
                 align,
                 _lineHeight,
@@ -238,7 +240,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
             float currentFontSize = _fontSizeStack.Count > 0 ? (int)_fontSizeStack.Peek() : DefaultFontSize;
 
             //Case style
-            switch(_caseStyleStack.LastOrDefault())
+            switch (_caseStyleStack.LastOrDefault())
             {
                 case CaseStyle.Lowercase:
                     ch = char.ToLower(ch);
@@ -269,20 +271,20 @@ namespace HintServiceMeow.Core.Utilities.Parser
             float chHeight = currentFontSize + _vOffset;
 
             //Get character size
-            var chWidth = FontTool.GetCharWidth(ch, currentFontSize, _style);
+            float chWidth = FontTool.GetCharWidth(ch, currentFontSize, _style);
 
             //Script style
             if (_scriptStyles.Contains(ScriptStyle.Superscript))
             {
                 chWidth *= (float)Math.Pow(0.5, _scriptStyles.Count(x => x == ScriptStyle.Superscript));
             }
-            
+
             if (_scriptStyles.Contains(ScriptStyle.Subscript))
             {
                 chWidth *= (float)Math.Pow(0.5, _scriptStyles.Count(x => x == ScriptStyle.Subscript));
             }
 
-            var chInfo = new CharacterInfo(
+            CharacterInfo chInfo = new CharacterInfo(
                 ch,
                 currentFontSize,
                 chWidth,
@@ -326,20 +328,20 @@ namespace HintServiceMeow.Core.Utilities.Parser
             //Try cut tag
             if (text[_index] == '<')
             {
-                var tagEndIndex = text.IndexOf('>', _index);
+                int tagEndIndex = text.IndexOf('>', _index);
 
                 if (tagEndIndex != -1)
                 {
                     tag = text.Substring(_index, tagEndIndex - _index + 1);
                     isTag = Tags.IsTag(tag);
 
-                    if(isTag)
+                    if (isTag)
                         _index = tagEndIndex + 1;//Move cursor to the end of the tag
                 }
             }
 
             //Try handle tag
-            if(tag != string.Empty && isTag)
+            if (tag != string.Empty && isTag)
                 TryHandleTag(tag);
 
             //Return whether the text is the start of the tag
@@ -379,7 +381,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                         return true;
                     case "</lowercase>":
                         index = _caseStyleStack.LastIndexOf(CaseStyle.Lowercase);
-                        if(index != -1)
+                        if (index != -1)
                             _caseStyleStack.RemoveAt(index);
                         return true;
                     case "</uppercase>":
@@ -413,14 +415,14 @@ namespace HintServiceMeow.Core.Utilities.Parser
             }
 
             //Handle start tag
-            if (tag.StartsWith("<size") && TryParserSize(tag, out var size))
+            if (tag.StartsWith("<size") && TryParseSize(tag, out float size))
             {
                 _fontSizeStack.Push(size);
 
                 return true;
             }
 
-            if (tag.StartsWith("<line-height") && TryParserLineHeight(tag, out var lineHeight))
+            if (tag.StartsWith("<line-height") && TryParseLineHeight(tag, out float lineHeight))
             {
                 _hasLineHeight = true;
                 _lineHeight = lineHeight;
@@ -428,21 +430,21 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 return true;
             }
 
-            if (tag.StartsWith("<pos") && TryParsePos(tag, out var pos))
+            if (tag.StartsWith("<pos") && TryParsePos(tag, out float pos))
             {
                 this._pos = pos;
 
                 return true;
             }
 
-            if (tag.StartsWith("<voffset") && TryParseVOffset(tag, out var vOffset))
+            if (tag.StartsWith("<voffset") && TryParseVOffset(tag, out float vOffset))
             {
                 this._vOffset = vOffset;
 
                 return true;
             }
 
-            if (tag.StartsWith("<align") && TryParseAlign(tag, out var align))
+            if (tag.StartsWith("<align") && TryParseAlign(tag, out HintAlignment align))
             {
                 _hintAlignmentStack.Push(align);
                 _currentLineAlignment = align;
@@ -509,14 +511,14 @@ namespace HintServiceMeow.Core.Utilities.Parser
             return false;
         }
 
-        private bool TryParserLineHeight(string tag, out float lineHeight)
+        private bool TryParseLineHeight(string tag, out float lineHeight)
         {
-            var lineHeightMatch = Regex.Match(tag, Regexs.LineHeightTagRegex, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            Match lineHeightMatch = Regex.Match(tag, RegexPatterns.LineHeightTagRegexPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             if (lineHeightMatch.Success)
             {
-                var value = float.Parse(lineHeightMatch.Groups[1].Value);
-                var unit = lineHeightMatch.Groups[2].Value;
+                float value = float.Parse(lineHeightMatch.Groups[1].Value);
+                string unit = lineHeightMatch.Groups[2].Value;
 
                 switch (unit.ToLower())
                 {
@@ -541,14 +543,14 @@ namespace HintServiceMeow.Core.Utilities.Parser
             return false;
         }
 
-        private bool TryParserSize(string tag, out float size)
+        private bool TryParseSize(string tag, out float size)
         {
-            var sizeMatch = Regex.Match(tag, Regexs.SizeTagRegex, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            Match sizeMatch = Regex.Match(tag, RegexPatterns.SizeTagRegexPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             if (sizeMatch.Success)
             {
-                var value = int.Parse(sizeMatch.Groups[1].Value);
-                var unit = sizeMatch.Groups[2].Value;
+                int value = int.Parse(sizeMatch.Groups[1].Value);
+                string unit = sizeMatch.Groups[2].Value;
 
                 switch (unit.ToLower())
                 {
@@ -572,12 +574,12 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
         private bool TryParsePos(string tag, out float pos)
         {
-            var posMatch = Regex.Match(tag, Regexs.PosTagRegex, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            Match posMatch = Regex.Match(tag, RegexPatterns.PosTagRegexPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             if (posMatch.Success)
             {
-                var value = int.Parse(posMatch.Groups[1].Value);
-                var unit = posMatch.Groups[2].Value;
+                int value = int.Parse(posMatch.Groups[1].Value);
+                string unit = posMatch.Groups[2].Value;
 
                 switch (unit.ToLower())
                 {
@@ -595,12 +597,12 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
         private bool TryParseVOffset(string tag, out float vOffset)
         {
-            var vOffsetMatch = Regex.Match(tag, Regexs.VOffsetTagRegex, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            Match vOffsetMatch = Regex.Match(tag, RegexPatterns.VOffsetTagRegexPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             if (vOffsetMatch.Success)
             {
-                var value = int.Parse(vOffsetMatch.Groups[1].Value);
-                var unit = vOffsetMatch.Groups[2].Value;
+                int value = int.Parse(vOffsetMatch.Groups[1].Value);
+                string unit = vOffsetMatch.Groups[2].Value;
 
                 switch (unit.ToLower())
                 {
@@ -618,7 +620,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
         private bool TryParseAlign(string tag, out HintAlignment align)
         {
-            var match = Regex.Match(tag, Regexs.AlignTagRegex, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            Match match = Regex.Match(tag, RegexPatterns.AlignTagRegexPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             if (match.Success && System.Enum.TryParse(match.Groups[1].Value, true, out HintAlignment alignment))
             {
@@ -632,22 +634,13 @@ namespace HintServiceMeow.Core.Utilities.Parser
         }
     }
 
-    internal record CharacterInfo
+    internal record CharacterInfo(char Character, float FontSize, float Width, float Height, float VOffset)
     {
-        public char Character { get; }
-        public float FontSize { get; }
-        public float Width { get; }
-        public float Height { get; }
-        public float VOffset { get; }
-
-        public CharacterInfo(char character, float fontSize, float width, float height, float vOffset)
-        {
-            Character = character;
-            FontSize = fontSize;
-            Width = width;
-            Height = height;
-            VOffset = vOffset;
-        }
+        public char Character { get; } = Character;
+        public float FontSize { get; } = FontSize;
+        public float Width { get; } = Width;
+        public float Height { get; } = Height;
+        public float VOffset { get; } = VOffset;
     }
 
     internal record LineInfo
@@ -663,10 +656,11 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
         public string RawText { get; }
 
-        public float Width {
+        public float Width
+        {
             get
             {
-                if (Characters is null || Characters.IsEmpty())
+                if (Characters is null || !Characters.Any())
                     return 0;
 
                 return Characters.Sum(c => c.Width);
@@ -676,7 +670,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
         {
             get
             {
-                if (Characters is null || Characters.IsEmpty())
+                if (Characters is null || !Characters.Any())
                     return 0;
 
                 if (HasLineHeight)

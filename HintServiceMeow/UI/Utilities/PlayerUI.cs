@@ -1,6 +1,6 @@
-﻿using System.Linq;
+﻿using HintServiceMeow.Core.Utilities;
 using System.Collections.Generic;
-using HintServiceMeow.Core.Utilities;
+using System.Linq;
 
 namespace HintServiceMeow.UI.Utilities
 {
@@ -33,17 +33,13 @@ namespace HintServiceMeow.UI.Utilities
             PlayerUIList.Add(this);
         }
 
-        internal static PlayerUI TryCreate(ReferenceHub referenceHub)
-        {
-            var ui = PlayerUIList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
-
-            return ui ?? new PlayerUI(referenceHub);
-        }
-
         internal static void Destruct(ReferenceHub referenceHub)
         {
             //Get player UI
-            var ui = Get(referenceHub);
+            PlayerUI ui = PlayerUIList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
+
+            if (ui == null)
+                return;
 
             //Destruct Components
             ui.CommonHint.Destruct();
@@ -55,7 +51,7 @@ namespace HintServiceMeow.UI.Utilities
         internal static void ClearInstance()
         {
             //Destruct Components
-            foreach (var ui in PlayerUIList)
+            foreach (PlayerUI ui in PlayerUIList)
             {
                 ui.CommonHint.Destruct();
             }
@@ -68,7 +64,7 @@ namespace HintServiceMeow.UI.Utilities
 
         public static PlayerUI Get(ReferenceHub referenceHub)
         {
-            var ui = PlayerUIList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
+            PlayerUI ui = PlayerUIList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
 
             return ui ?? new PlayerUI(referenceHub);
         }

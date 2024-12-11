@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-
-using MEC;
-
-using HintServiceMeow.Core.Models.Hints;
+﻿using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities;
-
-using PluginAPI.Core;
+using MEC;
+using System;
+using System.Collections.Generic;
 
 namespace HintServiceMeow.UI.Utilities
 {
@@ -105,7 +101,7 @@ namespace HintServiceMeow.UI.Utilities
         #region Common Item Hints Methods
         public void ShowItemHint(string itemName) => ShowItemHint(itemName, Config.ShortItemHintDisplayTime);
 
-        public void ShowItemHint(string itemName, float time) => ShowItemHint(itemName, new string[]{},time);
+        public void ShowItemHint(string itemName, float time) => ShowItemHint(itemName, new string[] { }, time);
 
         public void ShowItemHint(string itemName, string description) => ShowItemHint(itemName, new string[] { description }, Config.ItemHintDisplayTime);
 
@@ -134,7 +130,7 @@ namespace HintServiceMeow.UI.Utilities
         # region Common Map Hints Methods
         public void ShowMapHint(string roomName) => ShowMapHint(roomName, Config.ShortMapHintDisplayTime);
 
-        public void ShowMapHint(string roomName, float time) => ShowMapHint(roomName, new string[]{}, time);
+        public void ShowMapHint(string roomName, float time) => ShowMapHint(roomName, new string[] { }, time);
 
         public void ShowMapHint(string roomName, string description) => ShowMapHint(roomName, new string[1] { description }, Config.ItemHintDisplayTime);
 
@@ -165,13 +161,13 @@ namespace HintServiceMeow.UI.Utilities
         # region Common Role Hints Methods
         public void ShowRoleHint(string roleName) => ShowRoleHint(roleName, Config.ShortRoleHintDisplayTime);
 
-        public void ShowRoleHint(string roleName, float time) => ShowRoleHint(roleName, new string[]{}, time);
+        public void ShowRoleHint(string roleName, float time) => ShowRoleHint(roleName, new string[] { }, time);
 
         public void ShowRoleHint(string roleName, string description) => ShowRoleHint(roleName, new string[] { description }, Config.ItemHintDisplayTime);
 
         public void ShowRoleHint(string roleName, string description, float time) => ShowRoleHint(roleName, new string[] { description }, time);
 
-        public void ShowRoleHint(string roleName, string[] description)=> ShowRoleHint(roleName, description, Config.RoleHintDisplayTime);
+        public void ShowRoleHint(string roleName, string[] description) => ShowRoleHint(roleName, description, Config.RoleHintDisplayTime);
 
         public void ShowRoleHint(string roleName, string[] description, float time)
         {
@@ -182,9 +178,9 @@ namespace HintServiceMeow.UI.Utilities
             _roleHints[0].Text = roleName;
             _roleHints[0].Hide = false;
 
-            for(int i = 1; i < _roleHints.Count; i++)
+            for (int i = 1; i < _roleHints.Count; i++)
             {
-                if(!description.TryGet(i - 1, out string element)) 
+                if (!description.TryGet(i - 1, out string element))
                     break;
 
                 _roleHints[i].Text = element;
@@ -202,9 +198,9 @@ namespace HintServiceMeow.UI.Utilities
 
         public void ShowOtherHint(string[] messages, float time)
         {
-            foreach(var message in messages)
+            foreach (string message in messages)
             {
-                var dynamicHint = new DynamicHint
+                DynamicHint dynamicHint = new DynamicHint
                 {
                     Text = message,
                     TopBoundary = 400,

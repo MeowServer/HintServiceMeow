@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading;
-using HintServiceMeow.Core.Enum;
+﻿using HintServiceMeow.Core.Enum;
 
 namespace HintServiceMeow.Core.Models.Hints
 {

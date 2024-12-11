@@ -1,9 +1,8 @@
-﻿using System;
+﻿using HintServiceMeow.Core.Models.Hints;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using HintServiceMeow.Core.Models.Hints;
 
 namespace HintServiceMeow.Core.Models
 {
@@ -30,24 +29,24 @@ namespace HintServiceMeow.Core.Models
 
         internal void RemoveHint(string assemblyName, AbstractHint hint)
         {
-            if (!_hintGroups.TryGetValue(assemblyName, out var hintDict))
+            if (!_hintGroups.TryGetValue(assemblyName, out ConcurrentDictionary<AbstractHint, byte> hintDict))
                 return;
 
-            hintDict.TryRemove(hint ?? throw new ArgumentNullException("hint"), out _);
+            hintDict.TryRemove(hint ?? throw new ArgumentNullException(nameof(hint)), out _);
         }
 
         internal void RemoveHint(string assemblyName, Func<AbstractHint, bool> predicate)
         {
-            if (!_hintGroups.TryGetValue(assemblyName, out var hintDict))
+            if (!_hintGroups.TryGetValue(assemblyName, out ConcurrentDictionary<AbstractHint, byte> hintDict))
                 return;
 
-            foreach(var hint in hintDict.Keys.Where(predicate).ToList())
+            foreach (AbstractHint hint in hintDict.Keys.Where(predicate).ToList())
                 hintDict.TryRemove(hint, out _);
         }
 
         internal void ClearHints(string assemblyName)
         {
-            if (!_hintGroups.TryGetValue(assemblyName, out var hintDict))
+            if (!_hintGroups.TryGetValue(assemblyName, out ConcurrentDictionary<AbstractHint, byte> hintDict))
                 return;
 
             hintDict.Clear();

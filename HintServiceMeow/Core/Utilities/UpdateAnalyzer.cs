@@ -1,11 +1,9 @@
-﻿using System;
+﻿using HintServiceMeow.Core.Interface;
+using HintServiceMeow.Core.Utilities.Tools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using HintServiceMeow.Core.Interface;
-using HintServiceMeow.Core.Utilities.Tools;
-using PluginAPI.Core;
 
 namespace HintServiceMeow.Core.Utilities
 {
@@ -27,7 +25,7 @@ namespace HintServiceMeow.Core.Utilities
 
             try
             {
-                var now = DateTime.Now;
+                DateTime now = DateTime.Now;
 
                 //Check if the Interval is too short
                 if (!_updateTimestamps.IsEmpty() && now - _updateTimestamps.Last() < _leastInterval)
@@ -74,7 +72,7 @@ namespace HintServiceMeow.Core.Utilities
 
                 double nextOffset = slope * timeOffsets.Count + intercept;
 
-                MultithreadTool.EnqueueAction(() => _cachedTime = DateTime.MaxValue);
+                MainThreadDispatcher.Dispatch(() => _cachedTime = DateTime.MaxValue);
                 _cachedTime = new DateTime((long)(baseTicks + nextOffset));
                 return _cachedTime;
             }

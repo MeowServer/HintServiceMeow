@@ -3,6 +3,12 @@ using System.ComponentModel;
 
 namespace HintServiceMeow
 {
+#if EXILED
+    internal class ExiledPluginConfig : PluginConfig, Exiled.API.Interfaces.IConfig
+    {
+    }
+#endif
+
     internal class PluginConfig
     {
         public static PluginConfig Instance => Plugin.Config;
