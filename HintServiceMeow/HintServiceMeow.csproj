@@ -160,9 +160,7 @@
     <None Include="packages.config" />
     <EmbeddedResource Include="TextWidth" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="UI\Models\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Content Include="UpdateLog.txt" />
   </ItemGroup>

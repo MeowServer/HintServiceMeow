@@ -161,7 +161,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                         continue;
                     }
 
-                    float currentWidth = currentChInfos.Count() == 0 ? 0 : currentChInfos.Sum(x => x.Width);
+                    float currentWidth = !currentChInfos.Any() ? 0 : currentChInfos.Sum(x => x.Width);
                     float overflowValue = _currentLineAlignment switch
                     {
                         HintAlignment.Center => currentWidth / 2 + _pos,

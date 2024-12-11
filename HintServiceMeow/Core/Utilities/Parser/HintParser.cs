@@ -34,8 +34,9 @@ namespace HintServiceMeow.Core.Utilities.Parser
             foreach (List<AbstractHint> group in collection.AllGroups)
             {
                 //Filter invisible hints
-                IEnumerable<AbstractHint> visibleGroup = group
-                    .Where(x => x is not null && !x.Hide && !string.IsNullOrEmpty(x.Content.GetText()));
+                List<AbstractHint> visibleGroup = group
+                    .Where(x => x is not null && !x.Hide && !string.IsNullOrEmpty(x.Content.GetText()))
+                    .ToList();
 
                 //Group by type
                 List<Hint> orderedHints = visibleGroup.OfType<Hint>().ToList();
@@ -67,13 +68,16 @@ namespace HintServiceMeow.Core.Utilities.Parser
             {
                 foreach (Hint hint in hintList)
                 {
-                    if (messageBuilder.Length > 65400)
+                    if (messageBuilder.Length > 65000)
                         break; //Prevent network message from overflow
 
                     string text = ParseToRichText(hint);
                     if (!string.IsNullOrEmpty(text))
                         messageBuilder.Append(text); //ToRichText already added \n at the end
                 }
+
+                if (messageBuilder.Length > 65000)
+                    break; //Prevent network message from overflow
 
                 if (!hintList.IsEmpty())
                     messageBuilder.AppendLine("</align></size></b></i>"); //Make sure one group will not affect another group
@@ -218,7 +222,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 richTextBuilder.AppendLine(); //Break line
             }
 
-            //End default size/alignment
+            //End default alignment/size
             if (hint.Alignment != HintAlignment.Center) richTextBuilder.Append("</align>");
             richTextBuilder.Append("</size>");
 

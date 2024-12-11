@@ -22,8 +22,10 @@ namespace HintServiceMeow.Core.Utilities
     {
         private static readonly ConcurrentDictionary<string, IReadOnlyList<Hint>> HintCache = new ConcurrentDictionary<string, IReadOnlyList<Hint>>();
 
-        private readonly ConcurrentDictionary<string, CoroutineHandle> _removeDelayedActions = new ConcurrentDictionary<string, CoroutineHandle>();
+        private readonly ConcurrentDictionary<string, DateTime> _removeTime = new ConcurrentDictionary<string, DateTime>();
         private readonly HashSet<string> _suppressedAssemblies = new HashSet<string>();
+
+        private readonly TimeSpan _suppressionDuration = TimeSpan.FromSeconds(0.45f);
 
         private readonly PlayerDisplay _playerDisplay;
 
@@ -47,29 +49,33 @@ namespace HintServiceMeow.Core.Utilities
 
             //Rate limitation
             _suppressedAssemblies.Add(assemblyName);
-            Timing.CallDelayed(0.45f, () => _suppressedAssemblies.Remove(assemblyName));
+            Timing.CallDelayed((float)_suppressionDuration.TotalSeconds, () => _suppressedAssemblies.Remove(assemblyName));
 
             string internalAssemblyName = "CompatibilityAdaptor-" + assemblyName;
 
-            //Stop previous remove action
-            if (_removeDelayedActions.TryGetValue(internalAssemblyName, out CoroutineHandle removeTime) && removeTime.IsRunning)
-                Timing.KillCoroutines(removeTime);
-
-            if (duration <= 0)
+            //For negative duration, clear hint
+            if (duration <= 0f)
             {
                 _playerDisplay.InternalClearHint(internalAssemblyName);
                 return;
             }
 
-            duration = Math.Min(float.MaxValue - 1f, duration);
+            duration = Math.Min(duration, float.MaxValue - 1f);
+
+            _removeTime[internalAssemblyName] = DateTime.Now.AddSeconds(duration);
+
+            //Stop previous remove action and start the new one
+            Timing.CallDelayed(duration + 0.1f, () => //Add an extra 0.1 second to prevent blinking
+            {
+                if (_removeTime.TryGetValue(internalAssemblyName, out DateTime removeTime) && removeTime < DateTime.Now)
+                    _playerDisplay.InternalClearHint(internalAssemblyName);
+            });
 
             //Start new remove action, remove after the Duration
-            _removeDelayedActions[internalAssemblyName] = Timing.CallDelayed(duration + 0.1f, () => _playerDisplay.InternalClearHint(internalAssemblyName));
-
-            InternalShowHint(internalAssemblyName, content, DateTime.Now.AddSeconds(duration));
+            _ = InternalShowHint(internalAssemblyName, content, DateTime.Now.AddSeconds(duration));
         }
 
-        private async void InternalShowHint(string internalAssemblyName, string content, DateTime expireTime)
+        private async Task InternalShowHint(string internalAssemblyName, string content, DateTime expireTime)
         {
             try
             {
@@ -84,78 +90,78 @@ namespace HintServiceMeow.Core.Utilities
 
                 DateTime startTime = DateTime.Now;
 
-                //If not cached, then generate hint
-                List<Hint> hintList = await Task.Run(() =>
-                {
-                    try
-                    {
-                        IReadOnlyList<LineInfo> lineInfoList = RichTextParserPool.ParseText(content, 40);
-
-                        if (lineInfoList is null || lineInfoList.IsEmpty())
-                            return new List<Hint>();
-
-                        float totalHeight = lineInfoList.Sum(x => x.Height);
-                        float accumulatedHeight = 0f;
-                        List<Hint> generatedHintList = new List<Hint>();
-
-                        foreach (LineInfo lineInfo in lineInfoList)
-                        {
-                            //If not empty line, then add hint
-                            if (!string.IsNullOrEmpty(lineInfo.RawText.Trim()) && !lineInfo.Characters.IsEmpty())
-                            {
-                                generatedHintList.Add(new Hint
-                                {
-                                    Text = lineInfo.RawText,
-                                    XCoordinate = lineInfo.Pos,
-                                    YCoordinate = 700 - totalHeight / 2 + lineInfo.Height + accumulatedHeight,
-                                    YCoordinateAlign = HintVerticalAlign.Bottom,
-                                    Alignment = lineInfo.Alignment,
-                                    FontSize = (int)lineInfo.Characters.First().FontSize,
-                                });
-                            }
-
-                            accumulatedHeight += lineInfo.Height;
-                        }
-
-                        return generatedHintList;
-                    }
-                    catch (Exception e)
-                    {
-                        LogTool.Error($"Error while generating hint for {internalAssemblyName}: {e}");
-                        return new List<Hint>();
-                    }
-                });
-
-                if (hintList is null || hintList.IsEmpty())
-                    return;
+                //Parse the content to hints
+                List<Hint> hintList = await Task.Run(() => this.ParseRichTextToHints(content, internalAssemblyName));
 
                 //Cache
-                HintCache[content] = new List<Hint>(hintList).AsReadOnly();
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        await Task.Delay(15000);
-                        HintCache.TryRemove(content, out _);
-                    }
-                    catch (Exception ex)
-                    {
-                        LogTool.Error(ex);
-                    }
-                });
+                this.AddToCache(content, new List<Hint>(hintList).AsReadOnly());
 
                 //Make sure for low performance server or if the Duration is shorter than converting time.
-                if (DateTime.Now - startTime > TimeSpan.FromSeconds(0.45f) || DateTime.Now > expireTime)
+                if (DateTime.Now - startTime > _suppressionDuration || DateTime.Now > expireTime)
                     return;
 
-                //Set up hint
                 _playerDisplay.InternalClearHint(internalAssemblyName, false);
                 _playerDisplay.InternalAddHint(internalAssemblyName, hintList);
             }
             catch (Exception ex)
             {
-                LogTool.Error(ex.ToString());
+                //Make sure to clear hint if error occurs
+                _playerDisplay.InternalClearHint(internalAssemblyName);
+                LogTool.Error($"Error while generating hint for {internalAssemblyName}: {ex}");
             }
+        }
+
+        private List<Hint> ParseRichTextToHints(string content, string internalAssemblyName)
+        {
+            IReadOnlyList<LineInfo> lineInfoList = RichTextParserPool.ParseText(content, 40);
+
+            if (lineInfoList is null || lineInfoList.IsEmpty())
+                return new List<Hint>();
+
+            float totalHeight = lineInfoList.Sum(x => x.Height);
+            float accumulatedHeight = 0f;
+            List<Hint> generatedHintList = new List<Hint>();
+
+            foreach (LineInfo lineInfo in lineInfoList)
+            {
+                //If not empty line, then add hint
+                if (!string.IsNullOrEmpty(lineInfo.RawText.Trim()) && !lineInfo.Characters.IsEmpty())
+                {
+                    generatedHintList.Add(new Hint
+                    {
+                        Text = lineInfo.RawText,
+                        XCoordinate = lineInfo.Pos,
+                        YCoordinate = 700 - totalHeight / 2 + lineInfo.Height + accumulatedHeight,
+                        YCoordinateAlign = HintVerticalAlign.Bottom,
+                        Alignment = lineInfo.Alignment,
+                        FontSize = (int)lineInfo.Characters.First().FontSize,
+                    });
+                }
+
+                accumulatedHeight += lineInfo.Height;
+            }
+
+            return generatedHintList;
+        }
+
+        private void AddToCache(string content, IReadOnlyList<Hint> hintList)
+        {
+            if (!HintCache.TryAdd(content, hintList))
+                return;
+
+            //Remove after certain amount of time
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(15000);
+                    HintCache.TryRemove(content, out _);
+                }
+                catch (Exception ex)
+                {
+                    LogTool.Error(ex);
+                }
+            });
         }
     }
 }

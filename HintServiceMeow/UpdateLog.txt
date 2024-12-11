@@ -153,8 +153,10 @@
 -      Use MainThreadDispatcher to replace MultiThreadTool
 -      Fix a issue in StringBuilderPool that could cause memory leak
 -   V5.3.9
--      Fix a issue in RichTextParser that caused line break not working correclty
--      Add support for \n(text)
--	V3.3.10
+-      Fix a issue in RichTextParser that caused <br> line break tag not working correclty
+-      Add support for \n (pure text) to break the line
+-	V5.3.10
+-		Fix a bug that cause the hint to stuck on the screen
 -		Standardize the code style
 -		Re-implemented API for the plugin frameworks
+-	    Minor adjustment to improve performance
