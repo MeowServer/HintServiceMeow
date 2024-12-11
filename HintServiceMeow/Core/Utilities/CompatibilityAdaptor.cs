@@ -42,7 +42,7 @@ namespace HintServiceMeow.Core.Utilities
 
             GetCompatAssemblyName.RegisteredAssemblies.Add(assemblyName);
 
-            if (Plugin.Config.DisabledCompatAdapter.Contains(assemblyName) //Config limitation
+            if (PluginConfig.Instance.DisabledCompatAdapter.Contains(assemblyName) //Config limitation
                 || content.Length > ushort.MaxValue //Length limitation
                 || _suppressedAssemblies.Contains(assemblyName)) //Rate limitation
                 return;

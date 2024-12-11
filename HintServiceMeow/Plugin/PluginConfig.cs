@@ -11,7 +11,7 @@ namespace HintServiceMeow
 
     internal class PluginConfig
     {
-        public static PluginConfig Instance => Plugin.Config;
+        public static PluginConfig Instance => Plugin.Instance.Config;
 
         public bool IsEnabled { get; set; } = true;
         public bool Debug { get; set; } = false;
