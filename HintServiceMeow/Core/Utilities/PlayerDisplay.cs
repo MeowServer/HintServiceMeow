@@ -10,6 +10,7 @@ using Mirror;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -60,6 +61,9 @@ namespace HintServiceMeow.Core.Utilities
             });
 
             this._adapter = new CompatibilityAdaptor(this);
+
+            this._hints.CollectionChanged += (_, _) => ScheduleUpdate();
+
             MainThreadDispatcher.Dispatch(() => this._coroutine = Timing.RunCoroutine(CoroutineMethod()));
         }
 
@@ -123,8 +127,15 @@ namespace HintServiceMeow.Core.Utilities
             }
         }
 
-        private void OnHintUpdate(AbstractHint hint)
+        private void OnHintUpdate(object sender, PropertyChangedEventArgs ev)
         {
+            if (sender is not AbstractHint hint)
+                return;
+
+            //Skip if the hint's property changed when it is hided
+            if (ev.PropertyName != "Hide" && hint.Hide == true)
+                return;
+
             if (hint.SyncSpeed == HintSyncSpeed.UnSync)
                 return;
 
@@ -365,100 +376,89 @@ namespace HintServiceMeow.Core.Utilities
             return _hints.GetHints(Assembly.GetCallingAssembly().FullName, x => x.Guid == id).FirstOrDefault();
         }
 
-        internal void InternalAddHint(string name, AbstractHint hint, bool update = true)
+        public IEnumerable<AbstractHint> GetHints()
         {
-            hint.HintUpdated += OnHintUpdate;
+            return this.InternalGetHints(Assembly.GetCallingAssembly().FullName);
+        }
+
+        internal void InternalAddHint(string name, AbstractHint hint)
+        {
+            hint.PropertyChanged += OnHintUpdate;
             UpdateAvailable += hint.TryUpdateHint;
 
             _hints.AddHint(name, hint);
-
-            if (update)
-                ScheduleUpdate();
         }
 
-        internal void InternalAddHint(string name, IEnumerable<AbstractHint> hints, bool update = true)
+        internal void InternalAddHint(string name, IEnumerable<AbstractHint> hints)
         {
             foreach (AbstractHint hint in hints)
             {
-                hint.HintUpdated += OnHintUpdate;
+                hint.PropertyChanged += OnHintUpdate;
                 UpdateAvailable += hint.TryUpdateHint;
 
                 _hints.AddHint(name, hint);
             }
-
-            if (update)
-                ScheduleUpdate();
         }
 
-        internal void InternalRemoveHint(string name, AbstractHint hint, bool update = true)
+        internal void InternalRemoveHint(string name, AbstractHint hint)
         {
-            hint.HintUpdated -= OnHintUpdate;
+            hint.PropertyChanged -= OnHintUpdate;
             UpdateAvailable -= hint.TryUpdateHint;
 
             _hints.RemoveHint(name, hint);
-
-            if (update)
-                ScheduleUpdate();
         }
 
-        internal void InternalRemoveHint(string name, IEnumerable<AbstractHint> hints, bool update = true)
+        internal void InternalRemoveHint(string name, IEnumerable<AbstractHint> hints)
         {
             foreach (AbstractHint hint in hints)
             {
-                hint.HintUpdated -= OnHintUpdate;
+                hint.PropertyChanged -= OnHintUpdate;
                 UpdateAvailable -= hint.TryUpdateHint;
 
                 _hints.RemoveHint(name, hint);
             }
-
-            if (update)
-                ScheduleUpdate();
         }
 
-        internal void InternalRemoveHint(string name, Guid id, bool update = true)
+        internal void InternalRemoveHint(string name, Guid id)
         {
-            AbstractHint hint = _hints.GetHints(name).FirstOrDefault(x => x.Id.Equals(id));
+            AbstractHint hint = _hints.GetHints(name).FirstOrDefault(x => x.Guid.Equals(id));
 
             if (hint == null)
                 return;
 
-            hint.HintUpdated -= OnHintUpdate;
+            hint.PropertyChanged -= OnHintUpdate;
             UpdateAvailable -= hint.TryUpdateHint;
 
             _hints.RemoveHint(name, x => x.Guid.Equals(id));
-
-            if (update)
-                ScheduleUpdate();
         }
 
-        internal void InternalRemoveHint(string name, string id, bool update = true)
+        internal void InternalRemoveHint(string name, string id)
         {
             AbstractHint hint = _hints.GetHints(name).FirstOrDefault(x => x.Id.Equals(id));
 
             if (hint == null)
                 return;
 
-            hint.HintUpdated -= OnHintUpdate;
+            hint.PropertyChanged -= OnHintUpdate;
             UpdateAvailable -= hint.TryUpdateHint;
 
             _hints.RemoveHint(name, x => x.Id.Equals(id));
-
-            if (update)
-                ScheduleUpdate();
         }
 
-        internal void InternalClearHint(string name, bool update = true)
+        internal void InternalClearHint(string name)
         {
             foreach (AbstractHint hint in _hints.GetHints(name).ToList())
             {
-                hint.HintUpdated -= OnHintUpdate;
+                hint.PropertyChanged -= OnHintUpdate;
                 UpdateAvailable -= hint.TryUpdateHint;
             }
 
             _hints.ClearHints(name);
+        }
 
-            if (update)
-                ScheduleUpdate();
+        internal IEnumerable<AbstractHint> InternalGetHints(string name)
+        {
+            return _hints.GetHints(name);
         }
 
         internal void ShowCompatibilityHint(string assemblyName, string content, float duration) => this._adapter.ShowHint(new Models.Arguments.CompatibilityAdaptorArg(assemblyName, content, duration));

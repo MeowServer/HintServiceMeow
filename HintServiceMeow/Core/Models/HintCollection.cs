@@ -1,7 +1,8 @@
 ﻿using HintServiceMeow.Core.Models.Hints;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 
 namespace HintServiceMeow.Core.Models
@@ -10,51 +11,89 @@ namespace HintServiceMeow.Core.Models
     /// The collection of hints. This class is used to store and manage hints in PlayerDisplay.
     /// HintList are used for API and HintGroup are used for internal usage.
     /// </summary>
-    public class HintCollection
+    public class HintCollection : INotifyCollectionChanged
     {
-        private readonly ConcurrentDictionary<string, ConcurrentDictionary<AbstractHint, byte>> _hintGroups = new ConcurrentDictionary<string, ConcurrentDictionary<AbstractHint, byte>>();
+        private readonly object _lock = new object();
+        private readonly Dictionary<string, ObservableCollection<AbstractHint>> _hintGroups = new();
+
+        public event NotifyCollectionChangedEventHandler CollectionChanged;
+
+        private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs argument)
+        {
+            CollectionChanged?.Invoke(this, argument);
+        }
 
         public List<List<AbstractHint>> AllGroups
         {
             get
             {
-                return _hintGroups.Values.Select(x => x.Keys.ToList()).ToList();
+                lock (_lock)
+                {
+                    return _hintGroups.Values.Select(x => x.ToList()).ToList();
+                }
             }
         }
 
         internal void AddHint(string assemblyName, AbstractHint hint)
         {
-            _hintGroups.GetOrAdd(assemblyName, new ConcurrentDictionary<AbstractHint, byte>()).TryAdd(hint ?? throw new ArgumentNullException("hint"), 0);
+            lock (_lock)
+            {
+                if (!_hintGroups.TryGetValue(assemblyName, out ObservableCollection<AbstractHint> collection))
+                {
+                    collection = new ObservableCollection<AbstractHint>();
+                    collection.CollectionChanged += OnCollectionChanged;
+                    _hintGroups.Add(assemblyName, collection);
+                }
+
+                collection.Add(hint);
+            }
         }
 
         internal void RemoveHint(string assemblyName, AbstractHint hint)
         {
-            if (!_hintGroups.TryGetValue(assemblyName, out ConcurrentDictionary<AbstractHint, byte> hintDict))
-                return;
+            lock (_lock)
+            {
+                if (!_hintGroups.TryGetValue(assemblyName, out ObservableCollection<AbstractHint> collection))
+                    return;
 
-            hintDict.TryRemove(hint ?? throw new ArgumentNullException(nameof(hint)), out _);
+                collection.Remove(hint);
+            }
         }
 
         internal void RemoveHint(string assemblyName, Func<AbstractHint, bool> predicate)
         {
-            if (!_hintGroups.TryGetValue(assemblyName, out ConcurrentDictionary<AbstractHint, byte> hintDict))
-                return;
+            lock (_lock)
+            {
+                if (!_hintGroups.TryGetValue(assemblyName, out ObservableCollection<AbstractHint> collection))
+                    return;
 
-            foreach (AbstractHint hint in hintDict.Keys.Where(predicate).ToList())
-                hintDict.TryRemove(hint, out _);
+                foreach (AbstractHint hint in collection.Where(predicate).ToList())
+                {
+                    collection.Remove(hint);
+                }
+            }
         }
 
         internal void ClearHints(string assemblyName)
         {
-            if (!_hintGroups.TryGetValue(assemblyName, out ConcurrentDictionary<AbstractHint, byte> hintDict))
-                return;
+            lock (_lock)
+            {
+                if (!_hintGroups.TryGetValue(assemblyName, out ObservableCollection<AbstractHint> collection))
+                    return;
 
-            hintDict.Clear();
+                collection.Clear();
+            }
         }
 
         public IEnumerable<AbstractHint> GetHints(string assemblyName)
         {
-            return _hintGroups.GetOrAdd(assemblyName, new ConcurrentDictionary<AbstractHint, byte>()).Select(x => x.Key);
+            lock (_lock)
+            {
+                if (!_hintGroups.TryGetValue(assemblyName, out ObservableCollection<AbstractHint> collection))
+                    return Enumerable.Empty<AbstractHint>();
+
+                return collection.ToList();
+            }
         }
 
         public IEnumerable<AbstractHint> GetHints(string assemblyName, Func<AbstractHint, bool> predicate)

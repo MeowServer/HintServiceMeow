@@ -82,8 +82,9 @@ namespace HintServiceMeow.Core.Utilities
                 //Check if the hint is already cached
                 if (HintCache.TryGetValue(content, out IReadOnlyList<Hint> cachedHintList))
                 {
-                    _playerDisplay.InternalClearHint(internalAssemblyName, false);
+                    _playerDisplay.InternalClearHint(internalAssemblyName);
                     _playerDisplay.InternalAddHint(internalAssemblyName, cachedHintList);
+                    _playerDisplay.ForceUpdate(); //Since all the CompatibilityAdaptor hint is not synced, we need to force update
 
                     return;
                 }
@@ -100,8 +101,9 @@ namespace HintServiceMeow.Core.Utilities
                 if (DateTime.Now - startTime > _suppressionDuration || DateTime.Now > expireTime)
                     return;
 
-                _playerDisplay.InternalClearHint(internalAssemblyName, false);
+                _playerDisplay.InternalClearHint(internalAssemblyName);
                 _playerDisplay.InternalAddHint(internalAssemblyName, hintList);
+                _playerDisplay.ForceUpdate();//Since all the CompatibilityAdaptor hint is not synced, we need to force update
             }
             catch (Exception ex)
             {
@@ -135,6 +137,7 @@ namespace HintServiceMeow.Core.Utilities
                         YCoordinateAlign = HintVerticalAlign.Bottom,
                         Alignment = lineInfo.Alignment,
                         FontSize = (int)lineInfo.Characters.First().FontSize,
+                        SyncSpeed = HintSyncSpeed.UnSync //To make sure that when the compatibility adaptor is clearing the previous hint, the player display will not be updated
                     });
                 }
 
