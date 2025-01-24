@@ -360,6 +360,9 @@ namespace HintServiceMeow.Core.Utilities
             this.InternalClearHint(Assembly.GetCallingAssembly().FullName);
         }
 
+        /// <summary>
+        /// Return the first hin that match the id
+        /// </summary>
         public AbstractHint GetHint(string id)
         {
             if (id is null)
@@ -368,12 +371,23 @@ namespace HintServiceMeow.Core.Utilities
             if (id == string.Empty)
                 throw new ArgumentException("A empty string had been passed to GetHint");
 
-            return _hints.GetHints(Assembly.GetCallingAssembly().FullName, x => x.Id == id).FirstOrDefault();
+            return InternalGetHints(Assembly.GetCallingAssembly().FullName, x => x.Id == id).FirstOrDefault();
+        }
+
+        public IEnumerable<AbstractHint> GetHints(string id)
+        {
+            if (id is null)
+                throw new ArgumentNullException(nameof(id));
+
+            if (id == string.Empty)
+                throw new ArgumentException("A empty string had been passed to GetHints");
+
+            return InternalGetHints(Assembly.GetCallingAssembly().FullName, x => x.Id == id);
         }
 
         public AbstractHint GetHint(Guid id)
         {
-            return _hints.GetHints(Assembly.GetCallingAssembly().FullName, x => x.Guid == id).FirstOrDefault();
+            return InternalGetHints(Assembly.GetCallingAssembly().FullName, x => x.Guid == id).FirstOrDefault();
         }
 
         public IEnumerable<AbstractHint> GetHints()
@@ -434,13 +448,13 @@ namespace HintServiceMeow.Core.Utilities
 
         internal void InternalRemoveHint(string name, string id)
         {
-            AbstractHint hint = _hints.GetHints(name).FirstOrDefault(x => x.Id.Equals(id));
+            IEnumerable<AbstractHint> removeList = _hints.GetHints(name).Where(predicate => predicate.Id == id);
 
-            if (hint == null)
-                return;
-
-            hint.PropertyChanged -= OnHintUpdate;
-            UpdateAvailable -= hint.TryUpdateHint;
+            foreach (AbstractHint hint in removeList)
+            {
+                hint.PropertyChanged -= OnHintUpdate;
+                UpdateAvailable -= hint.TryUpdateHint;
+            }
 
             _hints.RemoveHint(name, x => x.Id.Equals(id));
         }
@@ -459,6 +473,11 @@ namespace HintServiceMeow.Core.Utilities
         internal IEnumerable<AbstractHint> InternalGetHints(string name)
         {
             return _hints.GetHints(name);
+        }
+
+        internal IEnumerable<AbstractHint> InternalGetHints(string name, Func<AbstractHint, bool> predicate)
+        {
+            return _hints.GetHints(name, predicate);
         }
 
         internal void ShowCompatibilityHint(string assemblyName, string content, float duration) => this._adapter.ShowHint(new Models.Arguments.CompatibilityAdaptorArg(assemblyName, content, duration));

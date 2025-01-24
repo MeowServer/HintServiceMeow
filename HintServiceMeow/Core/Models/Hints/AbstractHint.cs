@@ -1,6 +1,6 @@
 ﻿using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Interface;
-using HintServiceMeow.Core.Models.HintContent.HintContent;
+using HintServiceMeow.Core.Models.HintContent;
 using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.Core.Utilities.Tools;
 using System;

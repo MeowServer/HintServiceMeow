@@ -2,7 +2,7 @@
 using HintServiceMeow.Core.Utilities.Tools;
 using System;
 
-namespace HintServiceMeow.Core.Models.HintContent.HintContent
+namespace HintServiceMeow.Core.Models.HintContent
 {
     public abstract class AbstractHintContent
     {
