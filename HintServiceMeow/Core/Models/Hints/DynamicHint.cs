@@ -83,7 +83,7 @@ namespace HintServiceMeow.Core.Models.Hints
                         return;
 
                     _topBoundary = value;
-                    OnHintUpdated();
+                    OnHintUpdated("TopBoundary");
                 }
                 finally
                 {
@@ -118,7 +118,7 @@ namespace HintServiceMeow.Core.Models.Hints
                         return;
 
                     _bottomBoundary = value;
-                    OnHintUpdated();
+                    OnHintUpdated("BottomBoundary");
                 }
                 finally
                 {
@@ -153,7 +153,7 @@ namespace HintServiceMeow.Core.Models.Hints
                         return;
 
                     _leftBoundary = value;
-                    OnHintUpdated();
+                    OnHintUpdated("LeftBoundary");
                 }
                 finally
                 {
@@ -188,7 +188,7 @@ namespace HintServiceMeow.Core.Models.Hints
                         return;
 
                     _rightBoundary = value;
-                    OnHintUpdated();
+                    OnHintUpdated("RightBoundary");
                 }
                 finally
                 {
@@ -223,7 +223,7 @@ namespace HintServiceMeow.Core.Models.Hints
                         return;
 
                     _targetY = value;
-                    OnHintUpdated();
+                    OnHintUpdated("TargetY");
                 }
                 finally
                 {
@@ -258,7 +258,7 @@ namespace HintServiceMeow.Core.Models.Hints
                         return;
 
                     _targetX = value;
-                    OnHintUpdated();
+                    OnHintUpdated("TargetX");
                 }
                 finally
                 {
@@ -290,7 +290,7 @@ namespace HintServiceMeow.Core.Models.Hints
                         return;
 
                     _topMargin = value;
-                    OnHintUpdated();
+                    OnHintUpdated("TopMargin");
                 }
                 finally
                 {
@@ -322,7 +322,7 @@ namespace HintServiceMeow.Core.Models.Hints
                         return;
 
                     _bottomMargin = value;
-                    OnHintUpdated();
+                    OnHintUpdated("BottomMargin");
                 }
                 finally
                 {
@@ -354,7 +354,7 @@ namespace HintServiceMeow.Core.Models.Hints
                         return;
 
                     _leftMargin = value;
-                    OnHintUpdated();
+                    OnHintUpdated("LeftMargin");
                 }
                 finally
                 {
@@ -386,7 +386,7 @@ namespace HintServiceMeow.Core.Models.Hints
                         return;
 
                     _rightMargin = value;
-                    OnHintUpdated();
+                    OnHintUpdated("RightMargin");
                 }
                 finally
                 {
@@ -421,7 +421,7 @@ namespace HintServiceMeow.Core.Models.Hints
                         return;
 
                     _priority = value;
-                    OnHintUpdated();
+                    OnHintUpdated("Priority");
                 }
                 finally
                 {
@@ -453,7 +453,7 @@ namespace HintServiceMeow.Core.Models.Hints
                         return;
 
                     _strategy = value;
-                    OnHintUpdated();
+                    OnHintUpdated("Strategy");
                 }
                 finally
                 {

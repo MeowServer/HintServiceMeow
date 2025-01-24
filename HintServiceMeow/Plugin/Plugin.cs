@@ -6,87 +6,64 @@ using System;
 
 namespace HintServiceMeow
 {
+
 #if EXILED
-    internal class ExiledPlugin : Exiled.API.Features.Plugin<ExiledPluginConfig>
+    internal class Plugin : Exiled.API.Features.Plugin<ExiledPluginConfig>
+#else
+    internal class Plugin
+#endif
     {
+        public static Plugin Instance;
+
+#if EXILED
         public override string Name => "HintServiceMeow";
         public override string Author => "MeowServer";
-        public override Version Version => new Version(5, 3, 10);
-
-        public override Exiled.API.Enums.PluginPriority Priority => Exiled.API.Enums.PluginPriority.First;
-
-        public override void OnEnabled()
-        {
-            Plugin.OnEnabled(new NWAPIPlugin(), this.Config);
-
-            base.OnEnabled();
-        }
-
-        public override void OnDisabled()
-        {
-            Plugin.OnDisabled(new NWAPIPlugin());
-
-            base.OnDisabled();
-        }
-    }
-#endif
-
-    internal class NWAPIPlugin
-    {
+        public override Version Version => new Version(5, 3, 11);
+#else
         [PluginAPI.Core.Attributes.PluginConfig]
         public PluginConfig Config;
+#endif
 
-        [PluginAPI.Core.Attributes.PluginEntryPoint("HintServiceMeow", "5.3.10", "A hint framework", "MeowServer")]
-        public void LoadPlugin()
+#if EXILED
+        public override void OnEnabled()
+#else
+        [PluginAPI.Core.Attributes.PluginEntryPoint("HintServiceMeow", "5.3.11", "A hint framework", "MeowServer")]
+        public void OnEnabled()
+#endif
         {
-            Plugin.OnEnabled(this, Config);
+            Instance = this;
+
+#if EXILED
+            Exiled.Events.Handlers.Player.Left += OnLeft;
+            Exiled.Events.Handlers.Server.WaitingForPlayers += OnWaitingForPlayers;
+#else
+            PluginAPI.Events.EventManager.RegisterEvents<Plugin>(this);
+#endif
+
+            //Initialize Font Tool
+            _ = FontTool.GetCharWidth('a', 40, Core.Enum.TextStyle.Normal);
         }
 
+#if EXILED
+        private void OnLeft(Exiled.Events.EventArgs.Player.LeftEventArgs ev)
+#else
         [PluginAPI.Core.Attributes.PluginEvent(PluginAPI.Enums.ServerEventType.PlayerLeft)]
-        internal void OnLeft(PluginAPI.Events.PlayerLeftEvent ev)
+        private void OnLeft(PluginAPI.Events.PlayerLeftEvent ev)
+#endif
         {
             PlayerUI.Destruct(ev.Player.ReferenceHub);
             PlayerDisplay.Destruct(ev.Player.ReferenceHub);
         }
 
+#if EXILED
+        private void OnWaitingForPlayers()
+#else
         [PluginAPI.Core.Attributes.PluginEvent(PluginAPI.Enums.ServerEventType.WaitingForPlayers)]
-        internal void OnWaitingForPlayers(PluginAPI.Events.WaitingForPlayersEvent ev)
+        private void OnWaitingForPlayers(PluginAPI.Events.WaitingForPlayersEvent ev)
+#endif
+
         {
             Patcher.Patch();
-        }
-    }
-
-    internal static class Plugin
-    {
-        public static bool HasInitiated = false;
-
-        public static PluginConfig Config;//Default if there's no config
-        public static NWAPIPlugin PluginInstance;
-
-        public static void OnEnabled(NWAPIPlugin plugin, PluginConfig config)
-        {
-            if (HasInitiated)
-                return;
-
-            HasInitiated = true;
-            PluginInstance = plugin;
-            Config = config;
-
-            PluginAPI.Events.EventManager.RegisterEvents<NWAPIPlugin>(plugin);
-
-            //Initialize Font Tool
-            FontTool.GetCharWidth('a', 40, Core.Enum.TextStyle.Normal);
-        }
-
-        public static void OnDisabled(NWAPIPlugin plugin)
-        {
-            HasInitiated = false;
-            PluginInstance = null;
-            Config = null;
-
-            PluginAPI.Events.EventManager.UnregisterEvents(plugin);
-
-            Patcher.Unpatch();
         }
     }
 }

@@ -2,11 +2,11 @@
 using HintServiceMeow.Core.Utilities.Tools;
 using System;
 
-namespace HintServiceMeow.Core.Models.HintContent.HintContent
+namespace HintServiceMeow.Core.Models.HintContent
 {
     public class AutoContent : AbstractHintContent
     {
-        private DateTime NextUpdateTime;
+        private DateTime _nextUpdateTime;
 
         private string _text;
 
@@ -28,7 +28,7 @@ namespace HintServiceMeow.Core.Models.HintContent.HintContent
 
         public override void TryUpdate(AbstractHint.TextUpdateArg ev)
         {
-            if (NextUpdateTime > DateTime.Now)
+            if (_nextUpdateTime > DateTime.Now)
                 return;
 
             try
@@ -41,7 +41,7 @@ namespace HintServiceMeow.Core.Models.HintContent.HintContent
                     OnUpdated();
                 }
 
-                NextUpdateTime = DateTime.Now.AddSeconds(ev.NextUpdateDelay);
+                _nextUpdateTime = DateTime.Now.AddSeconds(ev.NextUpdateDelay);
             }
             catch (Exception ex)
             {

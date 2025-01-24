@@ -1,14 +1,15 @@
 ﻿using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Interface;
-using HintServiceMeow.Core.Models.HintContent.HintContent;
+using HintServiceMeow.Core.Models.HintContent;
 using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.Core.Utilities.Tools;
 using System;
+using System.ComponentModel;
 using System.Threading;
 
 namespace HintServiceMeow.Core.Models.Hints
 {
-    public abstract class AbstractHint
+    public abstract class AbstractHint : INotifyPropertyChanged
     {
         protected ReaderWriterLockSlim Lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
 
@@ -27,15 +28,9 @@ namespace HintServiceMeow.Core.Models.Hints
 
         private bool _hide = false;
 
-        #region Delegates
-
-        internal delegate void UpdateHandler(AbstractHint ev);
-
-        #endregion
-
         #region Events
 
-        internal event UpdateHandler HintUpdated;
+        public event PropertyChangedEventHandler PropertyChanged;
 
         #endregion
 
@@ -162,7 +157,7 @@ namespace HintServiceMeow.Core.Models.Hints
                         return;
 
                     _syncSpeed = value;
-                    OnHintUpdated();
+                    OnHintUpdated("SyncSpeed");
                 }
                 finally
                 {
@@ -194,7 +189,7 @@ namespace HintServiceMeow.Core.Models.Hints
                         return;
 
                     _fontSize = value;
-                    OnHintUpdated();
+                    OnHintUpdated("FontSize");
                 }
                 finally
                 {
@@ -226,7 +221,7 @@ namespace HintServiceMeow.Core.Models.Hints
                         return;
 
                     _lineHeight = value;
-                    OnHintUpdated();
+                    OnHintUpdated("LineHeight");
                 }
                 finally
                 {
@@ -258,8 +253,8 @@ namespace HintServiceMeow.Core.Models.Hints
                         return;
 
                     _content = value;
-                    _content.ContentUpdated += OnHintUpdated;
-                    OnHintUpdated();
+                    _content.ContentUpdated += () => OnHintUpdated("Content");
+                    OnHintUpdated("Content");
                 }
                 finally
                 {
@@ -301,7 +296,7 @@ namespace HintServiceMeow.Core.Models.Hints
                         Content = new StringContent(value);
                     }
 
-                    OnHintUpdated();
+                    OnHintUpdated("Text");
                 }
                 catch (Exception ex)
                 {
@@ -339,7 +334,7 @@ namespace HintServiceMeow.Core.Models.Hints
                 try
                 {
                     Content = new AutoContent(value);
-                    OnHintUpdated();
+                    OnHintUpdated("AutoText");
                 }
                 finally
                 {
@@ -371,12 +366,7 @@ namespace HintServiceMeow.Core.Models.Hints
                         return;
 
                     _hide = value;
-                    OnHintUpdated();
-
-                    if (_hide)
-                    {
-                        HintUpdated?.Invoke(this);
-                    }
+                    OnHintUpdated("Hide");
                 }
                 finally
                 {
@@ -394,14 +384,11 @@ namespace HintServiceMeow.Core.Models.Hints
             Content.TryUpdate(new TextUpdateArg(this, ev.PlayerDisplay));
         }
 
-        protected virtual void OnHintUpdated()
+        protected virtual void OnHintUpdated(string argumentName)
         {
             _analyser.OnUpdate();
 
-            if (!_hide)
-            {
-                HintUpdated?.Invoke(this);
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(argumentName));
         }
 
         #endregion

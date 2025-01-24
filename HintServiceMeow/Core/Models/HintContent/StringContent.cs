@@ -1,6 +1,6 @@
 ﻿using HintServiceMeow.Core.Models.Hints;
 
-namespace HintServiceMeow.Core.Models.HintContent.HintContent
+namespace HintServiceMeow.Core.Models.HintContent
 {
     public class StringContent : AbstractHintContent
     {

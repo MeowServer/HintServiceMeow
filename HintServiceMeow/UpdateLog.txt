@@ -160,3 +160,6 @@
 -		Standardize the code style
 -		Re-implemented API for the plugin frameworks
 -	    Minor adjustment to improve performance
+-	V5.3.11
+-		Fix a bug in PlayerDisplay that cause the removal using id not working correctly
+-		Fixed a namespace error in HintContent. !!!This might break your plugin if you are using HintContents!!!

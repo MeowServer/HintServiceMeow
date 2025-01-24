@@ -75,7 +75,7 @@ namespace HintServiceMeow.Core.Models.Hints
                         return;
 
                     _yCoordinate = value;
-                    OnHintUpdated();
+                    OnHintUpdated("YCoordinate");
                 }
                 finally
                 {
@@ -111,7 +111,7 @@ namespace HintServiceMeow.Core.Models.Hints
                         return;
 
                     _xCoordinate = value;
-                    OnHintUpdated();
+                    OnHintUpdated("XCoordinate");
                 }
                 finally
                 {
@@ -146,7 +146,7 @@ namespace HintServiceMeow.Core.Models.Hints
                         return;
 
                     _alignment = value;
-                    OnHintUpdated();
+                    OnHintUpdated("Alignment");
                 }
                 finally
                 {
@@ -181,7 +181,7 @@ namespace HintServiceMeow.Core.Models.Hints
                         return;
 
                     _yCoordinateAlign = value;
-                    OnHintUpdated();
+                    OnHintUpdated("YCoordinateAlign");
                 }
                 finally
                 {
