@@ -76,7 +76,7 @@ namespace HintServiceMeow.Core.Utilities
                 if (pd is null)
                     return;
 
-                Timing.KillCoroutines(pd._coroutine);
+                MainThreadDispatcher.Dispatch(() => Timing.KillCoroutines(pd._coroutine));
                 PlayerDisplayList.Remove(pd);
             }
         }
@@ -433,9 +433,9 @@ namespace HintServiceMeow.Core.Utilities
             }
         }
 
-        internal void InternalRemoveHint(string name, Guid id)
+        internal void InternalRemoveHint(string name, Guid guid)
         {
-            AbstractHint hint = _hints.GetHints(name).FirstOrDefault(x => x.Guid.Equals(id));
+            AbstractHint hint = _hints.GetHints(name).FirstOrDefault(x => x.Guid.Equals(guid));
 
             if (hint == null)
                 return;
@@ -443,7 +443,7 @@ namespace HintServiceMeow.Core.Utilities
             hint.PropertyChanged -= OnHintUpdate;
             UpdateAvailable -= hint.TryUpdateHint;
 
-            _hints.RemoveHint(name, x => x.Guid.Equals(id));
+            _hints.RemoveHint(name, x => x.Guid.Equals(guid));
         }
 
         internal void InternalRemoveHint(string name, string id)

@@ -163,3 +163,7 @@
 -	V5.3.11
 -		Fix a bug in PlayerDisplay that cause the removal using id not working correctly
 -		Fixed a namespace error in HintContent. !!!This might break your plugin if you are using HintContents!!!
+-	V5.3.12
+-		Fix a bug that cause the RemoveAfter in PlayerDisplay not working correctly.
+- 		Remove overflow detection since it is not working correctly. Please break the line manually if you need to.
+-		Minor adjustments to prevent bugs.

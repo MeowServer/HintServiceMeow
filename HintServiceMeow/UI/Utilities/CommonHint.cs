@@ -208,10 +208,10 @@ namespace HintServiceMeow.UI.Utilities
                     TargetY = 700,
                 };
 
-                PlayerDisplay.AddHint(dynamicHint);
+                PlayerDisplay.InternalAddHint("Other Hint", dynamicHint);
                 Timing.CallDelayed(time, () =>
                 {
-                    PlayerDisplay?.RemoveHint(dynamicHint);
+                    PlayerDisplay?.InternalRemoveHint("Other Hint", dynamicHint);
                 });
             }
         }

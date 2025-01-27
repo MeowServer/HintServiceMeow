@@ -399,6 +399,9 @@ namespace HintServiceMeow.Core.Models.Hints
             public AbstractHint Hint { get; }
             public PlayerDisplay PlayerDisplay { get; }
 
+            /// <summary>
+            /// The delay before the next update. Count in seconds.
+            /// </summary>
             public float NextUpdateDelay { get; set; } = 0.1f;
 
             internal TextUpdateArg(AbstractHint hint, PlayerDisplay playerDisplay)

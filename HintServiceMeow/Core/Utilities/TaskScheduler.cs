@@ -34,8 +34,8 @@ namespace HintServiceMeow.Core.Utilities
                 _actionTimeLock.EnterWriteLock();
                 try
                 {
-                    FieldInfo _timerElapsedField = typeof(Stopwatch).GetField("elapsed", BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.NonPublic);
-                    _timerElapsedField.SetValue(IntervalStopwatch, interval.Ticks);
+                    FieldInfo timerElapsedField = typeof(Stopwatch).GetField("elapsed", BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.NonPublic);
+                    timerElapsedField.SetValue(IntervalStopwatch, interval.Ticks);
                 }
                 finally
                 {

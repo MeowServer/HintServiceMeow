@@ -53,10 +53,21 @@ namespace HintServiceMeow.Core.Models
         {
             lock (_lock)
             {
-                if (!_hintGroups.TryGetValue(assemblyName, out ObservableCollection<AbstractHint> collection))
+                //If assemblyName is null, remove the hint from all groups.
+                if (assemblyName is null)
+                {
+                    foreach (var collection in _hintGroups.Values)
+                    {
+                        collection.Remove(hint);
+                    }
+                    return;
+                }
+
+                //If assemblyName is not null, remove the hint from the specified group.
+                if (!_hintGroups.TryGetValue(assemblyName, out ObservableCollection<AbstractHint> assemblyCollection))
                     return;
 
-                collection.Remove(hint);
+                assemblyCollection.Remove(hint);
             }
         }
 
@@ -64,12 +75,27 @@ namespace HintServiceMeow.Core.Models
         {
             lock (_lock)
             {
-                if (!_hintGroups.TryGetValue(assemblyName, out ObservableCollection<AbstractHint> collection))
+                //If assemblyName is null, remove all hints that satisfy the predicate from all groups.
+                if (assemblyName is null)
+                {
+                    foreach (var collection in _hintGroups.Values)
+                    {
+                        foreach (AbstractHint hint in collection.Where(predicate).ToList())
+                        {
+                            collection.Remove(hint);
+                        }
+                    }
+
+                    return;
+                }
+
+                //If assemblyName is not null, remove all hints that satisfy the predicate from the specified group.
+                if (!_hintGroups.TryGetValue(assemblyName, out ObservableCollection<AbstractHint> assemblyCollection))
                     return;
 
-                foreach (AbstractHint hint in collection.Where(predicate).ToList())
+                foreach (AbstractHint hint in assemblyCollection.Where(predicate).ToList())
                 {
-                    collection.Remove(hint);
+                    assemblyCollection.Remove(hint);
                 }
             }
         }
@@ -78,10 +104,22 @@ namespace HintServiceMeow.Core.Models
         {
             lock (_lock)
             {
-                if (!_hintGroups.TryGetValue(assemblyName, out ObservableCollection<AbstractHint> collection))
+                //If assemblyName is null, clear all groups.
+                if (assemblyName is null)
+                {
+                    foreach (var collection in _hintGroups.Values)
+                    {
+                        collection.Clear();
+                    }
+
+                    return;
+                }
+
+                //If assemblyName is not null, clear the specified group.
+                if (!_hintGroups.TryGetValue(assemblyName, out ObservableCollection<AbstractHint> assemblyCollection))
                     return;
 
-                collection.Clear();
+                assemblyCollection.Clear();
             }
         }
 
@@ -89,6 +127,9 @@ namespace HintServiceMeow.Core.Models
         {
             lock (_lock)
             {
+                if (assemblyName is null)
+                    return _hintGroups.Values.SelectMany(x => x).ToList();
+
                 if (!_hintGroups.TryGetValue(assemblyName, out ObservableCollection<AbstractHint> collection))
                     return Enumerable.Empty<AbstractHint>();
 
@@ -98,6 +139,9 @@ namespace HintServiceMeow.Core.Models
 
         public IEnumerable<AbstractHint> GetHints(string assemblyName, Func<AbstractHint, bool> predicate)
         {
+            if (assemblyName is null)
+                return GetHints(null).Where(predicate);
+
             return GetHints(assemblyName).Where(predicate);
         }
     }
