@@ -31,13 +31,16 @@ namespace HintServiceMeow.Core.Utilities
 
         internal CompatibilityAdaptor(PlayerDisplay playerDisplay)
         {
-            this._playerDisplay = playerDisplay;
+            this._playerDisplay = playerDisplay ?? throw new ArgumentNullException(nameof(playerDisplay));
         }
 
         public void ShowHint(CompatibilityAdaptorArg ev)
         {
+            if (ev is null)
+                throw new ArgumentNullException(nameof(ev));
+
             string assemblyName = ev.AssemblyName;
-            string content = ev.Content;
+            string content = ev.Content ?? string.Empty;
             float duration = ev.Duration;
 
             GetCompatAssemblyName.RegisteredAssemblies.Add(assemblyName);
@@ -54,7 +57,7 @@ namespace HintServiceMeow.Core.Utilities
             string internalAssemblyName = "CompatibilityAdaptor-" + assemblyName;
 
             //For negative duration, clear hint
-            if (duration <= 0f)
+            if (duration <= 0f || string.IsNullOrEmpty(content))
             {
                 _playerDisplay.InternalClearHint(internalAssemblyName);
                 return;

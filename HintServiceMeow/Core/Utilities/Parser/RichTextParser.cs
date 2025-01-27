@@ -161,14 +161,15 @@ namespace HintServiceMeow.Core.Utilities.Parser
                         continue;
                     }
 
-                    float currentWidth = !currentChInfos.Any() ? 0 : currentChInfos.Sum(x => x.Width);
-                    float overflowValue = _currentLineAlignment switch
-                    {
-                        HintAlignment.Center => currentWidth / 2 + _pos,
-                        HintAlignment.Left => -1200 + currentWidth + _pos,
-                        HintAlignment.Right => 1200 + _pos,
-                        _ => 0,
-                    };
+                    float overflowValue = 0; //Temporarily remove overflow detection since it is not working properly
+                    //float currentWidth = !currentChInfos.Any() ? 0 : currentChInfos.Sum(x => x.Width);
+                    //float overflowValue = _currentLineAlignment switch
+                    //{
+                    //    HintAlignment.Center => currentWidth / 2 + _pos,
+                    //    HintAlignment.Left => -1200 + currentWidth + _pos,
+                    //    HintAlignment.Right => 1200 + _pos,
+                    //    _ => 0,
+                    //};
 
                     //Try change line
                     if (text[_index] == '\n' || overflowValue > 1200)
