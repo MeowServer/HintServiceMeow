@@ -2,6 +2,10 @@
 using HintServiceMeow.Core.Utilities.Patch;
 using HintServiceMeow.Core.Utilities.Tools;
 using HintServiceMeow.UI.Utilities;
+using LabApi.Events.Arguments.PlayerEvents;
+using LabApi.Events.Handlers;
+using LabApi.Features;
+using LabApi.Loader;
 using System;
 
 namespace HintServiceMeow
@@ -10,7 +14,7 @@ namespace HintServiceMeow
 #if EXILED
     internal class Plugin : Exiled.API.Features.Plugin<ExiledPluginConfig>
 #else
-    internal class Plugin
+    internal class Plugin : LabApi.Loader.Features.Plugins.Plugin
 #endif
     {
         public static Plugin Instance;
@@ -18,17 +22,27 @@ namespace HintServiceMeow
 #if EXILED
         public override string Name => "HintServiceMeow";
         public override string Author => "MeowServer";
-        public override Version Version => new Version(5, 3, 12);
+        public override Version Version => new Version(5, 4, 0);
 #else
-        [PluginAPI.Core.Attributes.PluginConfig]
+        public override string Name => "HintServiceMeow";
+        public override string Author => "MeowServer";
+        public override Version Version => new(5, 4, 0);
+        public override Version RequiredApiVersion => new(LabApiProperties.CompiledVersion);
+        public override string Description => "A hint framework";
+
         public PluginConfig Config;
+        public override void LoadConfigs()
+        {
+            base.LoadConfigs();
+
+            Config = this.LoadConfig<PluginConfig>("config.yml");
+        }
 #endif
 
 #if EXILED
         public override void OnEnabled()
 #else
-        [PluginAPI.Core.Attributes.PluginEntryPoint("HintServiceMeow", "5.3.12", "A hint framework", "MeowServer")]
-        public void OnEnabled()
+        public override void Enable()
 #endif
         {
             Instance = this;
@@ -37,7 +51,8 @@ namespace HintServiceMeow
             Exiled.Events.Handlers.Player.Left += OnLeft;
             Exiled.Events.Handlers.Server.WaitingForPlayers += OnWaitingForPlayers;
 #else
-            PluginAPI.Events.EventManager.RegisterEvents<Plugin>(this);
+            ServerEvents.WaitingForPlayers += OnWaitingForPlayers;
+            PlayerEvents.Left += OnLeft;
 #endif
 
             //Initialize Font Tool
@@ -47,23 +62,26 @@ namespace HintServiceMeow
 #if EXILED
         private void OnLeft(Exiled.Events.EventArgs.Player.LeftEventArgs ev)
 #else
-        [PluginAPI.Core.Attributes.PluginEvent(PluginAPI.Enums.ServerEventType.PlayerLeft)]
-        private void OnLeft(PluginAPI.Events.PlayerLeftEvent ev)
+        private void OnLeft(PlayerLeftEventArgs ev)
 #endif
         {
             PlayerUI.Destruct(ev.Player.ReferenceHub);
             PlayerDisplay.Destruct(ev.Player.ReferenceHub);
         }
 
-#if EXILED
         private void OnWaitingForPlayers()
-#else
-        [PluginAPI.Core.Attributes.PluginEvent(PluginAPI.Enums.ServerEventType.WaitingForPlayers)]
-        private void OnWaitingForPlayers(PluginAPI.Events.WaitingForPlayersEvent ev)
-#endif
 
         {
             Patcher.Patch();
         }
+#if EXILED
+        
+#else
+        public override void Disable()
+        {
+            ServerEvents.WaitingForPlayers -= OnWaitingForPlayers;
+            PlayerEvents.Left -= OnLeft;
+        }
     }
+#endif
 }

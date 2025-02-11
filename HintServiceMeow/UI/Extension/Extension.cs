@@ -14,7 +14,7 @@ namespace HintServiceMeow.UI.Extension
 
     public static class NWPlayerExtension
     {
-        public static PlayerUI GetPlayerUi(this PluginAPI.Core.Player player)
+        public static PlayerUI GetPlayerUi(this LabApi.Features.Wrappers.Player player)
         {
             return PlayerUI.Get(player.ReferenceHub);
         }
