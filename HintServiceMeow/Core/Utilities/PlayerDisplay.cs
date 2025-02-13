@@ -154,12 +154,6 @@ namespace HintServiceMeow.Core.Utilities
 
         private void ScheduleUpdate(float maxWaitingTime = float.MinValue, AbstractHint updatingHint = null)
         {
-            lock (_currentParserTaskLock)
-            {
-                if (_currentParserTask is not null)
-                    return;
-            }
-
             if (maxWaitingTime <= 0)
             {
                 _taskScheduler.StartAction();

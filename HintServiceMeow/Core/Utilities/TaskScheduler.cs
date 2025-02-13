@@ -29,7 +29,7 @@ namespace HintServiceMeow.Core.Utilities
 
             if (interval > TimeSpan.Zero)
             {
-                //Force change the elapsed time of the stopwatch
+                //Force to change the elapsed time of the stopwatch
                 //This is evil......
                 _actionTimeLock.EnterWriteLock();
                 try
