@@ -34,10 +34,10 @@ namespace HintServiceMeow.Core.Utilities
         public event UpdateAvailableEventHandler UpdateAvailable;
         public delegate void UpdateAvailableEventHandler(UpdateAvailableEventArg ev);
 
-        private static readonly HashSet<PlayerDisplay> PlayerDisplayList = new HashSet<PlayerDisplay>();
-        private static readonly object _playerDisplayListLock = new();
+        private static readonly HashSet<PlayerDisplay> PlayerDisplayList = new();
+        private static readonly object PlayerDisplayListLock = new();
 
-        private readonly ConcurrentBag<IDisplayOutput> _displayOutputs = new ConcurrentBag<IDisplayOutput> { new DefaultDisplayOutput() };
+        private readonly ConcurrentBag<IDisplayOutput> _displayOutputs = new() { new DefaultDisplayOutput() };
 
         private readonly HintCollection _hints = new();
         private readonly TaskScheduler _taskScheduler;//Initialize in constructor
@@ -54,10 +54,10 @@ namespace HintServiceMeow.Core.Utilities
             this.ConnectionToClient = referenceHub.netIdentity.connectionToClient;
             this.ReferenceHub = referenceHub;
 
-            this._taskScheduler = new TaskScheduler(TimeSpan.FromSeconds(0.5f), () =>
+            this._taskScheduler = new TaskScheduler(TimeSpan.Zero, () =>
             {
+                _taskScheduler.Paused = true;//Pause action until the parser task is finishing
                 StartParserTask();
-                _taskScheduler?.PauseIntervalStopwatch();//Pause action until the parser task is finishing
             });
 
             this._adapter = new CompatibilityAdaptor(this);
@@ -69,7 +69,7 @@ namespace HintServiceMeow.Core.Utilities
 
         internal static void Destruct(ReferenceHub referenceHub)
         {
-            lock (_playerDisplayListLock)
+            lock (PlayerDisplayListLock)
             {
                 PlayerDisplay pd = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
 
@@ -83,7 +83,7 @@ namespace HintServiceMeow.Core.Utilities
 
         internal static void ClearInstance()
         {
-            lock (_playerDisplayListLock)
+            lock (PlayerDisplayListLock)
             {
                 PlayerDisplayList.Clear();
             }
@@ -130,10 +130,12 @@ namespace HintServiceMeow.Core.Utilities
         private void OnHintUpdate(object sender, PropertyChangedEventArgs ev)
         {
             if (sender is not AbstractHint hint)
-                return;
+            {
+                throw new ArgumentException("The sender is not an AbstractHint");
+            }
 
             //Skip if the hint's property changed when it is hided
-            if (ev.PropertyName != "Hide" && hint.Hide == true)
+            if (ev.PropertyName != "Hide" && hint.Hide)
                 return;
 
             if (hint.SyncSpeed == HintSyncSpeed.UnSync)
@@ -154,12 +156,6 @@ namespace HintServiceMeow.Core.Utilities
 
         private void ScheduleUpdate(float maxWaitingTime = float.MinValue, AbstractHint updatingHint = null)
         {
-            lock (_currentParserTaskLock)
-            {
-                if (_currentParserTask is not null)
-                    return;
-            }
-
             if (maxWaitingTime <= 0)
             {
                 _taskScheduler.StartAction();
@@ -176,13 +172,14 @@ namespace HintServiceMeow.Core.Utilities
             TimeSpan maxWaitingTimeSpan = TimeSpan.FromSeconds(maxWaitingTime);
             DateTime now = DateTime.Now;
 
-            DateTime predictedUpdatingTime = predictingHints
+            DateTime delayedUpdateTime = predictingHints
                 .Select(h => h.UpdateAnalyser.EstimateNextUpdate())
                 .Where(x => x - now >= TimeSpan.Zero && x - now <= maxWaitingTimeSpan)
                 .DefaultIfEmpty(now)
                 .Max();
 
-            float delay = (float)(predictedUpdatingTime - now).TotalSeconds;
+            float delay = (float)(delayedUpdateTime - now).TotalSeconds;
+            delay = Math.Max(maxWaitingTime, delay * 1.1f); //Increase by 10% to make increase hit rate of prediction
 
             if (delay <= 0)
                 _taskScheduler.StartAction();
@@ -191,7 +188,7 @@ namespace HintServiceMeow.Core.Utilities
         }
 
         /// <summary>
-        /// Force an update when the update is available. You do not have to use this method unless you are using UnSync hints
+        /// Force an update when the update is available. You do not have to use this method unless you are using HintSyncSpeed.UnSync
         /// </summary>
         public void ForceUpdate(bool useFastUpdate = false)
         {
@@ -232,7 +229,7 @@ namespace HintServiceMeow.Core.Utilities
                             }
                             finally
                             {
-                                _taskScheduler.ResumeIntervalStopwatch();
+                                _taskScheduler.Paused = false; //Resume action after the parser task is finishing
 
                                 lock (_currentParserTaskLock)
                                 {
@@ -268,14 +265,14 @@ namespace HintServiceMeow.Core.Utilities
             if (referenceHub is null)
                 throw new ArgumentNullException(nameof(referenceHub));
 
-            lock (_playerDisplayListLock)
+            lock (PlayerDisplayListLock)
             {
                 PlayerDisplay existing = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
 
                 if (existing is not null)
                     return existing;
 
-                PlayerDisplay newPlayerDisplay = new PlayerDisplay(referenceHub);
+                PlayerDisplay newPlayerDisplay = new(referenceHub);
                 PlayerDisplayList.Add(newPlayerDisplay);
                 return newPlayerDisplay;
             }

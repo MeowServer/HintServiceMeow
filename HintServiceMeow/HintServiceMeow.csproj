@@ -46,7 +46,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>bin\x64\Release\</OutputPath>
-    <DefineConstants>TRACE;EXILED;DEBUG</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;EXILED</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
@@ -55,83 +55,53 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="0Harmony">
-      <HintPath>..\..\..\必要依赖\0Harmony.dll</HintPath>
-    </Reference>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\..\必要依赖\Assembly-CSharp.dll</HintPath>
+    <Reference Include="0Harmony, Version=2.3.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Lib.Harmony.2.3.5\lib\net48\0Harmony.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>..\..\..\必要依赖\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp-Publicized">
-      <HintPath>..\..\..\必要依赖\Assembly-CSharp-Publicized.dll</HintPath>
+    <Reference Include="Assembly-CSharp-Publicized, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\x64\Release\Assembly-CSharp-Publicized.dll</HintPath>
     </Reference>
-    <Reference Include="Caress">
-      <HintPath>..\..\..\必要依赖\Caress.dll</HintPath>
+    <Reference Include="CommandSystem.Core, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ExMod.Exiled.9.5.0\lib\net48\CommandSystem.Core.dll</HintPath>
     </Reference>
-    <Reference Include="CommandSystem.Core">
-      <HintPath>..\..\..\必要依赖 -LabAPI\CommandSystem.Core.dll</HintPath>
+    <Reference Include="Exiled.API, Version=9.5.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\ExMod.Exiled.9.5.0\lib\net48\Exiled.API.dll</HintPath>
     </Reference>
-    <Reference Include="Exiled.API">
-      <HintPath>..\..\..\Exiled\Exiled.API.dll</HintPath>
+    <Reference Include="Exiled.CreditTags, Version=9.5.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\ExMod.Exiled.9.5.0\lib\net48\Exiled.CreditTags.dll</HintPath>
     </Reference>
-    <Reference Include="Exiled.CreditTags">
-      <HintPath>..\..\..\Exiled\Exiled.CreditTags.dll</HintPath>
+    <Reference Include="Exiled.CustomItems, Version=9.5.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\ExMod.Exiled.9.5.0\lib\net48\Exiled.CustomItems.dll</HintPath>
     </Reference>
-    <Reference Include="Exiled.CustomItems">
-      <HintPath>..\..\..\Exiled\Exiled.CustomItems.dll</HintPath>
+    <Reference Include="Exiled.CustomRoles, Version=9.5.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\ExMod.Exiled.9.5.0\lib\net48\Exiled.CustomRoles.dll</HintPath>
     </Reference>
-    <Reference Include="Exiled.CustomRoles">
-      <HintPath>..\..\..\Exiled\Exiled.CustomRoles.dll</HintPath>
+    <Reference Include="Exiled.Events, Version=9.5.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\ExMod.Exiled.9.5.0\lib\net48\Exiled.Events.dll</HintPath>
     </Reference>
-    <Reference Include="Exiled.Events">
-      <HintPath>..\..\..\Exiled\Exiled.Events.dll</HintPath>
+    <Reference Include="Exiled.Loader, Version=9.5.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\ExMod.Exiled.9.5.0\lib\net48\Exiled.Loader.dll</HintPath>
     </Reference>
-    <Reference Include="Exiled.Permissions">
-      <HintPath>..\..\..\Exiled\Exiled.Permissions.dll</HintPath>
+    <Reference Include="Exiled.Permissions, Version=9.5.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\ExMod.Exiled.9.5.0\lib\net48\Exiled.Permissions.dll</HintPath>
     </Reference>
-    <Reference Include="LabApi">
-      <HintPath>..\..\..\LabAPI\LabApi.dll</HintPath>
-    </Reference>
-    <Reference Include="LiteDB">
-      <HintPath>..\..\..\必要依赖\LiteDB.dll</HintPath>
+    <Reference Include="LabApi, Version=0.4.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\x64\Release\LabApi.dll</HintPath>
     </Reference>
     <Reference Include="Mirror">
       <HintPath>..\..\..\必要依赖\Mirror.dll</HintPath>
     </Reference>
-    <Reference Include="Mirror-Publicized">
-      <HintPath>..\..\..\必要依赖\Mirror-Publicized.dll</HintPath>
+    <Reference Include="NorthwoodLib, Version=1.3.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ExMod.Exiled.9.5.0\lib\net48\NorthwoodLib.dll</HintPath>
     </Reference>
-    <Reference Include="Mirror.Components">
-      <HintPath>..\..\..\必要依赖\Mirror.Components.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Posix">
-      <HintPath>..\..\..\Exiled\Mono.Posix.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Security">
-      <HintPath>..\..\..\必要依赖\Mono.Security.dll</HintPath>
-    </Reference>
-    <Reference Include="MySql.Data">
-      <HintPath>..\..\..\必要依赖\MySql.Data.dll</HintPath>
-    </Reference>
-    <Reference Include="netstandard">
-      <HintPath>..\..\..\必要依赖\netstandard.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\..\必要依赖\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="NWAPIPermissionSystem">
-      <HintPath>..\..\..\必要依赖\NWAPIPermissionSystem.dll</HintPath>
-    </Reference>
-    <Reference Include="Pooling">
-      <HintPath>..\..\..\必要依赖\Pooling.dll</HintPath>
-    </Reference>
-    <Reference Include="SCPSLAudioApi">
-      <HintPath>..\..\..\必要依赖\SCPSLAudioApi.dll</HintPath>
-    </Reference>
-    <Reference Include="SemanticVersioning">
-      <HintPath>..\..\..\Exiled\SemanticVersioning.dll</HintPath>
+    <Reference Include="PluginAPI, Version=13.1.5.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\ExMod.Exiled.9.5.0\lib\net48\PluginAPI.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -140,29 +110,11 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
-    <Reference Include="Unity.TextMeshPro">
-      <HintPath>..\..\..\必要依赖\Unity.TextMeshPro.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Timeline">
-      <HintPath>..\..\..\必要依赖\Unity.Timeline.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine">
-      <HintPath>..\..\..\必要依赖\UnityEngine.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.AudioModule">
-      <HintPath>..\..\..\必要依赖\UnityEngine.AudioModule.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\..\..\必要依赖\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.PhysicsModule">
-      <HintPath>..\..\..\必要依赖\UnityEngine.PhysicsModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.TextRenderingModule">
-      <HintPath>..\..\..\必要依赖\UnityEngine.TextRenderingModule.dll</HintPath>
-    </Reference>
-    <Reference Include="YamlDotNet">
-      <HintPath>..\..\..\必要依赖\YamlDotNet.dll</HintPath>
+    <Reference Include="YamlDotNet, Version=11.0.0.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e, processorArchitecture=MSIL">
+      <HintPath>..\packages\ExMod.Exiled.9.5.0\lib\net48\YamlDotNet.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -212,7 +164,11 @@
     <None Include="packages.config" />
     <EmbeddedResource Include="TextWidth" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Analyzer Include="bin\x64\Release\Assembly-CSharp-firstpass.dll" />
+    <Analyzer Include="bin\x64\Release\Assembly-CSharp-Publicized.dll" />
+    <Analyzer Include="bin\x64\Release\Assembly-CSharp.dll" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="UpdateLog.txt" />
   </ItemGroup>

@@ -12,10 +12,10 @@ namespace HintServiceMeow.Core.Utilities
     /// </summary>
     internal class UpdateAnalyzer : IUpdateAnalyser
     {
-        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
+        private readonly ReaderWriterLockSlim _lock = new();
 
         private readonly TimeSpan _leastInterval = TimeSpan.FromMilliseconds(50f);
-        private readonly List<DateTime> _updateTimestamps = new List<DateTime>();
+        private readonly List<DateTime> _updateTimestamps = new();
 
         private DateTime _cachedTime = DateTime.MaxValue;
 

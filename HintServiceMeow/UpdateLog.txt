@@ -167,3 +167,7 @@
 -		Fix a bug that cause the RemoveAfter in PlayerDisplay not working correctly.
 - 		Remove overflow detection since it is not working correctly. Please break the line manually if you need to.
 -		Minor adjustments to prevent bugs.
+-	V5.4.0
+-		Support for LabAPI
+-		Remove support for NWAPI
+-		Remove hint update frequency limitation

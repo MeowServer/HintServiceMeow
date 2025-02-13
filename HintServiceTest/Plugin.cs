@@ -1,51 +1,39 @@
-﻿using Exiled.API.Features;
-using Exiled.Events.EventArgs.Player;
-using HintServiceMeow.Core.Extension;
-using HintServiceMeow.Core.Utilities;
-using Hint = HintServiceMeow.Core.Models.Hints.Hint;
+﻿using System;
+using LabApi.Events.Arguments.PlayerEvents;
+using LabApi.Features;
 
 namespace HintServiceTest
 {
     /// <summary>
     /// This is the plugin I made to test the HintServiceMeow.
     /// </summary>
-    public class Plugin : Plugin<Config>
+    public class Plugin : LabApi.Loader.Features.Plugins.Plugin
     {
-        public override string Name => "HintServiceTest";
+        public override string Name => "HintServiceMeow";
+        public override string Author => "MeowServer";
+        public override Version Version => new Version(5, 4, 0);
+        public override Version RequiredApiVersion => new Version(LabApiProperties.CompiledVersion);
+        public override string Description => "A hint framework";
 
-        public override void OnEnabled()
+        public override void Enable()
         {
-            Exiled.Events.Handlers.Player.Verified += EventHandler.OnVerified;
-
-            base.OnEnabled();
+            // Add code to handle when the plugin is enabled
+            LabApi.Events.Handlers.PlayerEvents.Joined += EventHandler.OnJoined;
         }
 
-        public override void OnDisabled()
+        public override void Disable()
         {
-            Exiled.Events.Handlers.Player.Verified -= EventHandler.OnVerified;
+            // Add code to handle when the plugin is disabled
+            LabApi.Events.Handlers.PlayerEvents.Joined -= EventHandler.OnJoined;
 
-            base.OnDisabled();
         }
     }
 
     public static class EventHandler
     {
-        public static void OnVerified(VerifiedEventArgs ev)
+        public static void OnJoined(PlayerJoinedEventArgs ev)
         {
-            //PluginAPI.Core.Player.Get(ev.Player.ReferenceHub).ReceiveHint("Hello Meow~", 10f);
-
-            //Hint hint = new Hint
-            //{
-            //    AutoText = updateArg =>
-            //    {
-            //        Log.Info("AutoText Called");
-            //        updateArg.NextUpdateDelay = 1f;
-            //        return "Hello World";
-            //    }
-            //};
-
-            //PlayerDisplay playerDisplay = PlayerDisplay.Get(ev.Player);
-            //playerDisplay.AddHint(hint);
+            ev.Player.SendHint("Hello world", 10f);
         }
     }
 }

@@ -20,10 +20,9 @@ namespace HintServiceMeow.Core.Utilities
     /// </summary>
     internal class CompatibilityAdaptor : ICompatibilityAdaptor
     {
-        private static readonly ConcurrentDictionary<string, IReadOnlyList<Hint>> HintCache = new ConcurrentDictionary<string, IReadOnlyList<Hint>>();
+        private static readonly ConcurrentDictionary<string, IReadOnlyList<Hint>> HintCache = new();
 
-        private readonly ConcurrentDictionary<string, DateTime> _removeTime = new ConcurrentDictionary<string, DateTime>();
-        private readonly HashSet<string> _suppressedAssemblies = new HashSet<string>();
+        private readonly ConcurrentDictionary<string, int> _removeTickets = new();
 
         private readonly TimeSpan _suppressionDuration = TimeSpan.FromSeconds(0.45f);
 
@@ -46,13 +45,8 @@ namespace HintServiceMeow.Core.Utilities
             GetCompatAssemblyName.RegisteredAssemblies.Add(assemblyName);
 
             if (PluginConfig.Instance.DisabledCompatAdapter.Contains(assemblyName) //Config limitation
-                || content.Length > ushort.MaxValue //Length limitation
-                || _suppressedAssemblies.Contains(assemblyName)) //Rate limitation
+                || content.Length > ushort.MaxValue) //Length limitation
                 return;
-
-            //Rate limitation
-            _suppressedAssemblies.Add(assemblyName);
-            Timing.CallDelayed((float)_suppressionDuration.TotalSeconds, () => _suppressedAssemblies.Remove(assemblyName));
 
             string internalAssemblyName = "CompatibilityAdaptor-" + assemblyName;
 
@@ -65,12 +59,19 @@ namespace HintServiceMeow.Core.Utilities
 
             duration = Math.Min(duration, float.MaxValue - 1f);
 
-            _removeTime[internalAssemblyName] = DateTime.Now.AddSeconds(duration);
+            //Create new remove ticket to stop last remove action
+            int removeTicket = 0;
+            _removeTickets.AddOrUpdate(internalAssemblyName, 0, (_, oldValue) =>
+            {
+                removeTicket = oldValue + 1;
+                return removeTicket;
+            });
 
             //Stop previous remove action and start the new one
             Timing.CallDelayed(duration + 0.1f, () => //Add an extra 0.1 second to prevent blinking
             {
-                if (_removeTime.TryGetValue(internalAssemblyName, out DateTime removeTime) && removeTime < DateTime.Now)
+                //Check if the current remove ticket is same as the one passed in
+                if (_removeTickets.TryGetValue(internalAssemblyName, out int currentRemoveTicket) && currentRemoveTicket == removeTicket)
                     _playerDisplay.InternalClearHint(internalAssemblyName);
             });
 
@@ -95,7 +96,7 @@ namespace HintServiceMeow.Core.Utilities
                 DateTime startTime = DateTime.Now;
 
                 //Parse the content to hints
-                List<Hint> hintList = await Task.Run(() => this.ParseRichTextToHints(content, internalAssemblyName));
+                List<Hint> hintList = await Task.Run(() => this.ParseRichTextToHints(content));
 
                 //Cache
                 this.AddToCache(content, new List<Hint>(hintList).AsReadOnly());
@@ -116,7 +117,7 @@ namespace HintServiceMeow.Core.Utilities
             }
         }
 
-        private List<Hint> ParseRichTextToHints(string content, string internalAssemblyName)
+        private List<Hint> ParseRichTextToHints(string content)
         {
             IReadOnlyList<LineInfo> lineInfoList = RichTextParserPool.ParseText(content, 40);
 
@@ -125,7 +126,7 @@ namespace HintServiceMeow.Core.Utilities
 
             float totalHeight = lineInfoList.Sum(x => x.Height);
             float accumulatedHeight = 0f;
-            List<Hint> generatedHintList = new List<Hint>();
+            List<Hint> generatedHintList = new();
 
             foreach (LineInfo lineInfo in lineInfoList)
             {

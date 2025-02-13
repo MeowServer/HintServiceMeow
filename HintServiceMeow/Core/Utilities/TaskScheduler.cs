@@ -12,19 +12,19 @@ namespace HintServiceMeow.Core.Utilities
     {
         private readonly Action _action;
 
-        private readonly TimeSpan Interval;
+        private readonly TimeSpan _interval;
 
-        public Stopwatch IntervalStopwatch { get; private set; } = Stopwatch.StartNew();
+        public bool Paused { get; set; }
 
-        public DateTime ScheduledActionTime { get; private set; } = new DateTime();
+        public Stopwatch IntervalStopwatch { get; } = Stopwatch.StartNew();
 
-        private readonly ReaderWriterLockSlim _actionTimeLock = new ReaderWriterLockSlim();
+        public DateTime ScheduledActionTime { get; private set; }
 
-        private bool Paused { get; set; } = false;
+        private readonly ReaderWriterLockSlim _actionTimeLock = new();
 
         public TaskScheduler(TimeSpan interval, Action action)
         {
-            this.Interval = interval;
+            this._interval = interval;
             this._action = action ?? throw new ArgumentNullException(nameof(action));
 
             if (interval > TimeSpan.Zero)
@@ -35,6 +35,7 @@ namespace HintServiceMeow.Core.Utilities
                 try
                 {
                     FieldInfo timerElapsedField = typeof(Stopwatch).GetField("elapsed", BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.NonPublic);
+
                     timerElapsedField.SetValue(IntervalStopwatch, interval.Ticks);
                 }
                 finally
@@ -99,24 +100,12 @@ namespace HintServiceMeow.Core.Utilities
 
             try
             {
-                return Interval < IntervalStopwatch.Elapsed;
+                return _interval < IntervalStopwatch.Elapsed;
             }
             finally
             {
                 _actionTimeLock.ExitReadLock();
             }
-        }
-
-        public void PauseIntervalStopwatch()
-        {
-            IntervalStopwatch.Stop();
-            Paused = true;
-        }
-
-        public void ResumeIntervalStopwatch()
-        {
-            IntervalStopwatch.Start();
-            Paused = false;
         }
 
         private IEnumerator<float> TaskCoroutineMethod()
@@ -129,7 +118,7 @@ namespace HintServiceMeow.Core.Utilities
 
                     try
                     {
-                        if (Interval > IntervalStopwatch.Elapsed)
+                        if (_interval > IntervalStopwatch.Elapsed)
                             return false;
 
                         if (DateTime.Now < ScheduledActionTime)
@@ -148,21 +137,12 @@ namespace HintServiceMeow.Core.Utilities
                     }
                 });
 
-                try
-                {
-                    _action.Invoke();
-                }
-                catch (Exception ex)
-                {
-                    LogTool.Error(ex);
-                }
-
+                //Reset timer
                 _actionTimeLock.EnterWriteLock();
-
                 try
                 {
-                    IntervalStopwatch.Restart();
-                    ScheduledActionTime = DateTime.MaxValue;
+                    IntervalStopwatch.Restart();//Reset timer
+                    ScheduledActionTime = DateTime.MaxValue; //Reset scheduled action time
                 }
                 catch (Exception ex)
                 {
@@ -172,17 +152,27 @@ namespace HintServiceMeow.Core.Utilities
                 {
                     _actionTimeLock.ExitWriteLock();
                 }
+
+                //start action
+                try
+                {
+                    _action.Invoke();
+                }
+                catch (Exception ex)
+                {
+                    LogTool.Error(ex);
+                }
             }
         }
 
         public enum DelayType
         {
             /// <summary>
-            /// Only save the fastest action time
+            /// Only keep the fastest action time
             /// </summary>
             KeepFastest,
             /// <summary>
-            /// Only save the latest action time
+            /// Only keep the latest action time
             /// </summary>
             KeepLatest,
             /// <summary>

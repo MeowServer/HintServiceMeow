@@ -8,7 +8,7 @@ namespace HintServiceMeow.Core.Utilities.Pools
 {
     internal class RichTextParserPool
     {
-        private static readonly ConcurrentQueue<RichTextParser> RichTextParserQueue = new ConcurrentQueue<RichTextParser>();
+        private static readonly ConcurrentQueue<RichTextParser> RichTextParserQueue = new();
 
         public static RichTextParser Rent()
         {

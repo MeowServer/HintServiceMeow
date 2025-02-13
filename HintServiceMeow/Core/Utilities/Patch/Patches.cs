@@ -50,6 +50,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
             return false;
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         public static bool ReceiveHintPatch2(ref string text, ref HintEffect[] effects, ref float duration, ref Player __instance)
         {
             try
@@ -67,6 +68,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
 
             return false;
         }
+#pragma warning restore IDE0060 // Remove unused parameter
 
 #if EXILED
         public static bool ExiledHintPatch1(ref string message, ref float duration, ref Exiled.API.Features.Player __instance)

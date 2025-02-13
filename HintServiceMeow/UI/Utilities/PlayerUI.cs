@@ -6,16 +6,12 @@ namespace HintServiceMeow.UI.Utilities
 {
     public class PlayerUI
     {
-        private static readonly HashSet<PlayerUI> PlayerUIList = new HashSet<PlayerUI>();
-
-        private object _lock = new object();
+        private static readonly HashSet<PlayerUI> PlayerUIList = new();
 
         public ReferenceHub ReferenceHub { get; }
         public PlayerDisplay PlayerDisplay { get; }
 
         public CommonHint CommonHint { get; }
-
-        //public Style Style { get; }
 
         #region Constructor and Destructors Methods
 
@@ -64,14 +60,28 @@ namespace HintServiceMeow.UI.Utilities
 
         public static PlayerUI Get(ReferenceHub referenceHub)
         {
+            if (referenceHub is null)
+                throw new System.ArgumentNullException(nameof(referenceHub));
+
             PlayerUI ui = PlayerUIList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
 
             return ui ?? new PlayerUI(referenceHub);
         }
 
+        public static PlayerUI Get(LabApi.Features.Wrappers.Player player)
+        {
+            if (player is null)
+                throw new System.ArgumentNullException(nameof(player));
+
+            return Get(player.ReferenceHub);
+        }
+
 #if EXILED
         public static PlayerUI Get(Exiled.API.Features.Player player)
         {
+            if(player is null)
+                throw new System.ArgumentNullException(nameof(player));
+
             return Get(player.ReferenceHub);
         }
 #endif

@@ -11,7 +11,7 @@ namespace HintServiceMeow.Core.Models.Hints
 {
     public abstract class AbstractHint : INotifyPropertyChanged
     {
-        protected ReaderWriterLockSlim Lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
+        protected ReaderWriterLockSlim Lock = new(LockRecursionPolicy.SupportsRecursion);
 
         private IUpdateAnalyser _analyser = new UpdateAnalyzer();
 

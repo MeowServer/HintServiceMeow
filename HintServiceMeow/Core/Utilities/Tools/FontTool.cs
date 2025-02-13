@@ -19,7 +19,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
         private const float BaseFontSize = 34.7f;
         private const float DefaultFontWidth = 67.81861f;
 
-        private static readonly ConcurrentDictionary<char, float> ChWidth = new ConcurrentDictionary<char, float>();
+        private static readonly ConcurrentDictionary<char, float> ChWidth = new();
 
         static FontTool()
         {
@@ -28,7 +28,14 @@ namespace HintServiceMeow.Core.Utilities.Tools
                 try
                 {
                     using Stream infoStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("HintServiceMeow.TextWidth");
-                    using StreamReader reader = new StreamReader(infoStream);
+
+                    if (infoStream is null)
+                    {
+                        LogTool.Error("TextWidth file not found.");
+                        return;
+                    }
+
+                    using StreamReader reader = new(infoStream);
 
                     Dictionary<int, float> dictionary = new DeserializerBuilder().Build().Deserialize<Dictionary<int, float>>(reader);
 

@@ -18,16 +18,16 @@ namespace HintServiceMeow.Core.Utilities.Parser
     /// </summary>
     internal class HintParser : IHintParser
     {
-        private readonly ConcurrentDictionary<Guid, ValueTuple<float, float>> _dynamicHintPositionCache = new ConcurrentDictionary<Guid, ValueTuple<float, float>>();
+        private readonly ConcurrentDictionary<Guid, ValueTuple<float, float>> _dynamicHintPositionCache = new();
 
         public string ParseToMessage(HintCollection collection)
         {
-            List<List<Hint>> orderedHintGroups = new List<List<Hint>>();
+            List<List<Hint>> orderedHintGroups = new();
 
             List<TextArea> dynamicHintColliders = collection.AllGroups
                 .SelectMany(x => x)
                 .OfType<Hint>()
-                .Where(x => x is not null && !x.Hide && !string.IsNullOrEmpty(x.Content.GetText()))
+                .Where(x => !x.Hide && !string.IsNullOrEmpty(x.Content.GetText()))
                 .Select(ParseToArea)
                 .ToList();
 
@@ -124,8 +124,8 @@ namespace HintServiceMeow.Core.Utilities.Parser
             }
 
             //If there's no cached position or cached position is not usable, then find new position
-            Queue<ValueTuple<float, float>> queue = new Queue<ValueTuple<float, float>>();
-            HashSet<ValueTuple<float, float>> visited = new HashSet<ValueTuple<float, float>>();
+            Queue<ValueTuple<float, float>> queue = new();
+            HashSet<ValueTuple<float, float>> visited = new();
 
             queue.Enqueue(ValueTuple.Create(dynamicHint.TargetX, dynamicHint.TargetY));
 

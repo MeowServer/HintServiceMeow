@@ -1,6 +1,6 @@
-﻿using HintServiceMeow.Core.Models.Hints;
+﻿using HintServiceMeow.Core.Extension;
+using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities;
-using MEC;
 using System;
 using System.Collections.Generic;
 
@@ -8,7 +8,7 @@ namespace HintServiceMeow.UI.Utilities
 {
     public class CommonHint
     {
-        private static readonly string HintGroupID = "HSM_CommonHint";
+        private static readonly string HintGroupId = "HSM_CommonHint";
 
         private static PluginConfig Config => PluginConfig.Instance;
 
@@ -17,13 +17,13 @@ namespace HintServiceMeow.UI.Utilities
 
         #region Common Hints
         private readonly TaskScheduler _itemHintsHideScheduler;
-        private readonly List<Hint> _itemHints = new List<Hint>
+        private readonly List<Hint> _itemHints = new()
         {
-            new Hint()
+            new()
             {
                 FontSize = 25
             },
-            new Hint()
+            new()
             {
                 YCoordinate = 725,
                 FontSize = 25
@@ -31,7 +31,8 @@ namespace HintServiceMeow.UI.Utilities
         };
 
         private readonly TaskScheduler _mapHintsHideScheduler;
-        private readonly List<Hint> _mapHints = new List<Hint>{
+        private readonly List<Hint> _mapHints = new()
+        {
             new Hint()
             {
                 YCoordinate = 200,
@@ -45,26 +46,27 @@ namespace HintServiceMeow.UI.Utilities
         };
 
         private readonly TaskScheduler _roleHintsHideScheduler;
-        private readonly List<Hint> _roleHints = new List<Hint>{
-            new Hint()
+        private readonly List<Hint> _roleHints = new()
+        {
+            new()
             {
                 YCoordinate = 100,
                 FontSize = 30,
                 Alignment = Core.Enum.HintAlignment.Left
             },
-            new Hint()
+            new()
             {
                 YCoordinate = 130,
                 FontSize = 25,
                 Alignment = Core.Enum.HintAlignment.Left
             },
-            new Hint()
+            new()
             {
                 YCoordinate = 155,
                 FontSize = 25,
                 Alignment = Core.Enum.HintAlignment.Left
             },
-            new Hint()
+            new()
             {
                 YCoordinate = 180,
                 FontSize = 25,
@@ -84,14 +86,14 @@ namespace HintServiceMeow.UI.Utilities
             _roleHintsHideScheduler = new TaskScheduler(TimeSpan.Zero, () => _roleHints.ForEach(x => x.Hide = true));
 
             //Add hint
-            PlayerDisplay.InternalAddHint(HintGroupID, _itemHints);
-            PlayerDisplay.InternalAddHint(HintGroupID, _mapHints);
-            PlayerDisplay.InternalAddHint(HintGroupID, _roleHints);
+            PlayerDisplay.InternalAddHint(HintGroupId, _itemHints);
+            PlayerDisplay.InternalAddHint(HintGroupId, _mapHints);
+            PlayerDisplay.InternalAddHint(HintGroupId, _roleHints);
         }
 
         internal void Destruct()
         {
-            PlayerDisplay.InternalClearHint(HintGroupID);
+            PlayerDisplay.InternalClearHint(HintGroupId);
         }
 
         #endregion
@@ -103,9 +105,9 @@ namespace HintServiceMeow.UI.Utilities
 
         public void ShowItemHint(string itemName, float time) => ShowItemHint(itemName, new string[] { }, time);
 
-        public void ShowItemHint(string itemName, string description) => ShowItemHint(itemName, new string[] { description }, Config.ItemHintDisplayTime);
+        public void ShowItemHint(string itemName, string description) => ShowItemHint(itemName, new[] { description }, Config.ItemHintDisplayTime);
 
-        public void ShowItemHint(string itemName, string description, float time) => ShowItemHint(itemName, new string[] { description }, time);
+        public void ShowItemHint(string itemName, string description, float time) => ShowItemHint(itemName, new[] { description }, time);
 
         public void ShowItemHint(string itemName, string[] description) => ShowItemHint(itemName, description, Config.ItemHintDisplayTime);
 
@@ -132,9 +134,9 @@ namespace HintServiceMeow.UI.Utilities
 
         public void ShowMapHint(string roomName, float time) => ShowMapHint(roomName, new string[] { }, time);
 
-        public void ShowMapHint(string roomName, string description) => ShowMapHint(roomName, new string[1] { description }, Config.ItemHintDisplayTime);
+        public void ShowMapHint(string roomName, string description) => ShowMapHint(roomName, new[] { description }, Config.ItemHintDisplayTime);
 
-        public void ShowMapHint(string roomName, string description, float time) => ShowMapHint(roomName, new string[1] { description }, time);
+        public void ShowMapHint(string roomName, string description, float time) => ShowMapHint(roomName, new[] { description }, time);
 
         public void ShowMapHint(string roomName, string[] description) => ShowMapHint(roomName, description, Config.MapHintDisplayTime);
 
@@ -163,9 +165,9 @@ namespace HintServiceMeow.UI.Utilities
 
         public void ShowRoleHint(string roleName, float time) => ShowRoleHint(roleName, new string[] { }, time);
 
-        public void ShowRoleHint(string roleName, string description) => ShowRoleHint(roleName, new string[] { description }, Config.ItemHintDisplayTime);
+        public void ShowRoleHint(string roleName, string description) => ShowRoleHint(roleName, new[] { description }, Config.ItemHintDisplayTime);
 
-        public void ShowRoleHint(string roleName, string description, float time) => ShowRoleHint(roleName, new string[] { description }, time);
+        public void ShowRoleHint(string roleName, string description, float time) => ShowRoleHint(roleName, new[] { description }, time);
 
         public void ShowRoleHint(string roleName, string[] description) => ShowRoleHint(roleName, description, Config.RoleHintDisplayTime);
 
@@ -192,7 +194,7 @@ namespace HintServiceMeow.UI.Utilities
         # region Common Other Hints Methods
         public void ShowOtherHint(string messages) => ShowOtherHint(messages, Config.OtherHintDisplayTime);
 
-        public void ShowOtherHint(string messages, float time) => ShowOtherHint(new string[] { messages }, time);
+        public void ShowOtherHint(string messages, float time) => ShowOtherHint(new[] { messages }, time);
 
         public void ShowOtherHint(string[] messages) => ShowOtherHint(messages, Config.OtherHintDisplayTime * messages.Length);
 
@@ -200,7 +202,7 @@ namespace HintServiceMeow.UI.Utilities
         {
             foreach (string message in messages)
             {
-                DynamicHint dynamicHint = new DynamicHint
+                DynamicHint dynamicHint = new()
                 {
                     Text = message,
                     TopBoundary = 400,
@@ -209,10 +211,7 @@ namespace HintServiceMeow.UI.Utilities
                 };
 
                 PlayerDisplay.InternalAddHint("Other Hint", dynamicHint);
-                Timing.CallDelayed(time, () =>
-                {
-                    PlayerDisplay?.InternalRemoveHint("Other Hint", dynamicHint);
-                });
+                PlayerDisplay.RemoveAfter(dynamicHint, time);
             }
         }
         #endregion Common Other Hints Methods

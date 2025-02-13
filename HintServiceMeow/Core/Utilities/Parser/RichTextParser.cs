@@ -21,9 +21,9 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
     internal static class Tags
     {
-        private static readonly object Lock = new object();
+        private static readonly object Lock = new();
 
-        private static readonly HashSet<string> AllTags = new HashSet<string>
+        private static readonly HashSet<string> AllTags = new()
         {
             "align", "allcaps", "alpha", "b", "color", "cspace", "font", "font-weight",
             "gradient", "i", "indent", "line-height", "line-indent", "link", "lowercase",
@@ -89,14 +89,14 @@ namespace HintServiceMeow.Core.Utilities.Parser
     {
         private const float DefaultFontSize = 40f;
 
-        private static readonly ConcurrentDictionary<ValueTuple<string, float, HintAlignment>, IReadOnlyList<LineInfo>> Cache = new ConcurrentDictionary<ValueTuple<string, float, HintAlignment>, IReadOnlyList<LineInfo>>();
+        private static readonly ConcurrentDictionary<ValueTuple<string, float, HintAlignment>, IReadOnlyList<LineInfo>> Cache = new();
 
         //Lock
-        private readonly object _lock = new object();
+        private readonly object _lock = new();
 
         //Handling
         private int _index = 0;
-        private readonly StringBuilder _currentRawLineText = new StringBuilder(100);
+        private readonly StringBuilder _currentRawLineText = new(100);
 
         //Current line status. Only apply to a single line
         private float _pos = 0;
@@ -105,14 +105,14 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
         //Line status
         private HintAlignment _currentLineAlignment = HintAlignment.Center; //Used since line alignment apply to entire line but can affect multiple line
-        private readonly Stack<HintAlignment> _hintAlignmentStack = new Stack<HintAlignment>();
+        private readonly Stack<HintAlignment> _hintAlignmentStack = new();
 
         //Character status
         private float _vOffset = 0;
         private TextStyle _style = TextStyle.Normal;
-        private readonly Stack<float> _fontSizeStack = new Stack<float>();
-        private readonly List<CaseStyle> _caseStyleStack = new List<CaseStyle>();
-        private readonly List<ScriptStyle> _scriptStyles = new List<ScriptStyle>();
+        private readonly Stack<float> _fontSizeStack = new();
+        private readonly List<CaseStyle> _caseStyleStack = new();
+        private readonly List<ScriptStyle> _scriptStyles = new();
 
         public IReadOnlyList<LineInfo> ParseText(string text, int size = 20, HintAlignment alignment = HintAlignment.Center)
         {
@@ -132,8 +132,8 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 .Replace("<br>", "\n")
                 .Replace("\\n", "\n");
 
-            List<LineInfo> lines = new List<LineInfo>();
-            List<CharacterInfo> currentChInfos = new List<CharacterInfo>();
+            List<LineInfo> lines = new();
+            List<CharacterInfo> currentChInfos = new();
 
             lock (_lock)
             {
@@ -223,7 +223,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
             string rawText = _currentRawLineText.ToString();
             _currentRawLineText.Clear();
 
-            LineInfo line = new LineInfo(
+            LineInfo line = new(
                 chs,
                 align,
                 _lineHeight,
@@ -285,7 +285,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 chWidth *= (float)Math.Pow(0.5, _scriptStyles.Count(x => x == ScriptStyle.Subscript));
             }
 
-            CharacterInfo chInfo = new CharacterInfo(
+            CharacterInfo chInfo = new(
                 ch,
                 currentFontSize,
                 chWidth,
@@ -521,21 +521,13 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 float value = float.Parse(lineHeightMatch.Groups[1].Value);
                 string unit = lineHeightMatch.Groups[2].Value;
 
-                switch (unit.ToLower())
+                lineHeight = unit.ToLower() switch
                 {
-                    case "px":
-                        lineHeight = value;
-                        break;
-                    case "%":
-                        lineHeight = DefaultFontSize * value / 100f;
-                        break;
-                    case "em":
-                        lineHeight = DefaultFontSize * value;
-                        break;
-                    default:
-                        lineHeight = value;
-                        break;
-                }
+                    "px" => value,
+                    "%" => DefaultFontSize * value / 100f,
+                    "em" => DefaultFontSize * value,
+                    _ => value
+                };
 
                 return true;
             }
@@ -553,18 +545,12 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 int value = int.Parse(sizeMatch.Groups[1].Value);
                 string unit = sizeMatch.Groups[2].Value;
 
-                switch (unit.ToLower())
+                size = unit.ToLower() switch
                 {
-                    case "px":
-                        size = value;
-                        break;
-                    case "%":
-                        size = DefaultFontSize * value / 100f;
-                        break;
-                    default:
-                        size = value;
-                        break;
-                }
+                    "px" => value,
+                    "%" => DefaultFontSize * value / 100f,
+                    _ => value
+                };
 
                 return true;
             }
@@ -580,14 +566,10 @@ namespace HintServiceMeow.Core.Utilities.Parser
             if (posMatch.Success)
             {
                 int value = int.Parse(posMatch.Groups[1].Value);
-                string unit = posMatch.Groups[2].Value;
+                //string unit = posMatch.Groups[2].Value;
 
-                switch (unit.ToLower())
-                {
-                    default:
-                        pos = value;
-                        break;
-                }
+                //TODO: add unit support
+                pos = value;
 
                 return true;
             }
@@ -603,14 +585,10 @@ namespace HintServiceMeow.Core.Utilities.Parser
             if (vOffsetMatch.Success)
             {
                 int value = int.Parse(vOffsetMatch.Groups[1].Value);
-                string unit = vOffsetMatch.Groups[2].Value;
+                //string unit = vOffsetMatch.Groups[2].Value;
 
-                switch (unit.ToLower())
-                {
-                    default:
-                        vOffset = value;
-                        break;
-                }
+                //TODO: add unit support
+                vOffset = value;
 
                 return true;
             }
