@@ -285,7 +285,7 @@ namespace HintServiceMeow.Core.Utilities
         /// Get the PlayerDisplay instance of the player. If the instance have not been created yet, then it will create one.
         /// Not Thread Safe
         /// </summary>
-        public static PlayerDisplay Get(PluginAPI.Core.Player player)
+        public static PlayerDisplay Get(LabApi.Features.Wrappers.Player player)
         {
             if (player is null)
                 throw new ArgumentNullException(nameof(player));

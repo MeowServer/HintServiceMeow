@@ -14,8 +14,8 @@ namespace HintServiceMeow.Core.Utilities.Patch
 
             //Unpatch all other patches
             MethodInfo hintDisplayMethod = typeof(Hints.HintDisplay).GetMethod(nameof(Hints.HintDisplay.Show));
-            MethodInfo receiveHintMethod1 = typeof(PluginAPI.Core.Player).GetMethod(nameof(PluginAPI.Core.Player.ReceiveHint), new[] { typeof(string), typeof(float) });
-            MethodInfo receiveHintMethod2 = typeof(PluginAPI.Core.Player).GetMethod(nameof(PluginAPI.Core.Player.ReceiveHint), new[] { typeof(string), typeof(Hints.HintEffect[]), typeof(float) });
+            MethodInfo receiveHintMethod1 = typeof(LabApi.Features.Wrappers.Player).GetMethod(nameof(LabApi.Features.Wrappers.Player.SendHint), [typeof(string), typeof(float)]);
+            MethodInfo receiveHintMethod2 = typeof(LabApi.Features.Wrappers.Player).GetMethod(nameof(LabApi.Features.Wrappers.Player.SendHint), [typeof(string), typeof(Hints.HintEffect[]), typeof(float)]);
             Harmony.Unpatch(hintDisplayMethod, HarmonyPatchType.All);
             Harmony.Unpatch(receiveHintMethod1, HarmonyPatchType.All);
             Harmony.Unpatch(receiveHintMethod2, HarmonyPatchType.All);

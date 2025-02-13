@@ -5,20 +5,20 @@
 ### 显示第一个Hint
 以下代码在玩家的屏幕的左下角显示了"Hello World"
 ```CSharp
-//Bind this to player verified(player joined) event
+//将此方法和玩家加入服务器事件绑定
 public static void OnVerified(VerifiedEventArgs ev)
 {
-    //Create a hint instance
+    //创建一个Hint类的实例
     Hint hint = new Hint
     {
         Text = "Hello World"
     };
 
-    //Set hint's properties(optional)
+    //设置Hint的属性
     hint.YCoordinate = 700;
     hint.Alignment = HintAlignment.Left;
 
-    //Get player display, and add hint into player display
+    //通过PlayerDisplay.Get()获取PlayerDisplay，然后将Hint添加到PlayerDisplay中
     PlayerDisplay playerDisplay = PlayerDisplay.Get(ev.Player);
     playerDisplay.AddHint(hint);
 }

@@ -1,7 +1,7 @@
 ﻿using Hints;
 using HintServiceMeow.Core.Extension;
 using HintServiceMeow.Core.Utilities.Tools;
-using PluginAPI.Core;
+using LabApi.Features.Wrappers;
 using System;
 using System.Reflection;
 
