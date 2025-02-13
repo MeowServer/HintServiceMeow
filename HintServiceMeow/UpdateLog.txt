@@ -171,3 +171,4 @@
 -		Support for LabAPI
 -		Remove support for NWAPI
 -		Remove hint update frequency limitation
+-		Bug Fixing
