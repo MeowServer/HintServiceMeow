@@ -22,7 +22,7 @@ namespace HintServiceMeow.Core.Utilities
     {
         private static readonly ConcurrentDictionary<string, IReadOnlyList<Hint>> HintCache = new ConcurrentDictionary<string, IReadOnlyList<Hint>>();
 
-        private readonly ConcurrentDictionary<string, DateTime> _removeTime = new ConcurrentDictionary<string, DateTime>();
+        private readonly ConcurrentDictionary<string, int> _removeTickets = new();
         private readonly HashSet<string> _suppressedAssemblies = new HashSet<string>();
 
         private readonly TimeSpan _suppressionDuration = TimeSpan.FromSeconds(0.45f);
@@ -65,12 +65,19 @@ namespace HintServiceMeow.Core.Utilities
 
             duration = Math.Min(duration, float.MaxValue - 1f);
 
-            _removeTime[internalAssemblyName] = DateTime.Now.AddSeconds(duration);
+            //Create new remove ticket to stop last remove action
+            int removeTicket = 0;
+            _removeTickets.AddOrUpdate(internalAssemblyName, 0, (_, oldValue) =>
+            {
+                removeTicket = oldValue + 1;
+                return removeTicket;
+            });
 
             //Stop previous remove action and start the new one
             Timing.CallDelayed(duration + 0.1f, () => //Add an extra 0.1 second to prevent blinking
             {
-                if (_removeTime.TryGetValue(internalAssemblyName, out DateTime removeTime) && removeTime < DateTime.Now)
+                //Check if the current remove ticket is same as the one passed in
+                if (_removeTickets.TryGetValue(internalAssemblyName, out int currentRemoveTicket) && currentRemoveTicket == removeTicket)
                     _playerDisplay.InternalClearHint(internalAssemblyName);
             });
 
