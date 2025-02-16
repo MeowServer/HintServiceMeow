@@ -172,3 +172,5 @@
 -		Remove support for NWAPI
 -		Remove hint update frequency limitation
 -		Bug Fixing
+-	V5.4.1
+-		Fix a part of code that mistakenly used PluginAPI instead of LabAPI

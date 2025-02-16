@@ -27,12 +27,12 @@ namespace HintServiceMeow
 #if EXILED
         public override string Name => "HintServiceMeow";
         public override string Author => "MeowServer";
-        public override Version Version => new(5, 4, 0);
+        public override Version Version => new(5, 4, 1);
         public override Exiled.API.Enums.PluginPriority Priority => Exiled.API.Enums.PluginPriority.Highest;
 #else
         public override string Name => "HintServiceMeow";
         public override string Author => "MeowServer";
-        public override Version Version => new(5, 4, 0);
+        public override Version Version => new(5, 4, 1);
         public override Version RequiredApiVersion => new(LabApiProperties.CompiledVersion);
         public override string Description => "A hint framework";
         public override LoadPriority Priority => LoadPriority.Highest;

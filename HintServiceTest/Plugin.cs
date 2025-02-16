@@ -1,4 +1,5 @@
 ﻿using System;
+using HintServiceMeow.Core.Models.Hints;
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Features;
 
@@ -33,7 +34,7 @@ namespace HintServiceTest
     {
         public static void OnJoined(PlayerJoinedEventArgs ev)
         {
-            ev.Player.SendHint("Hello world", 10f);
+            HintServiceMeow.Core.Utilities.PlayerDisplay.Get(ev.Player.ReferenceHub).AddHint(new Hint() { Text = "Hello World"});
         }
     }
 }
