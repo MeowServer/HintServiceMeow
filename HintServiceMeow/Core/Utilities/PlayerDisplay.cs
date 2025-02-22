@@ -109,6 +109,9 @@ namespace HintServiceMeow.Core.Utilities
             {
                 yield return Timing.WaitForOneFrame;
 
+                //Reset the success flag
+                bool isSuccessful = true;
+
                 try
                 {
                     //Periodic update
@@ -123,6 +126,13 @@ namespace HintServiceMeow.Core.Utilities
                 catch (Exception ex)
                 {
                     LogTool.Error(ex);
+                    isSuccessful = false; //If error occurred, set the success flag to false
+                }
+
+                //If the update is not successful, wait for a while before trying again so that it will not stuck the log.
+                if (!isSuccessful)
+                {
+                    yield return Timing.WaitForSeconds(1f);
                 }
             }
         }

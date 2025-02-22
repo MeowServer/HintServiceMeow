@@ -123,30 +123,43 @@ namespace HintServiceMeow.Core.Utilities
         {
             while (true)
             {
-                yield return Timing.WaitUntilTrue(() =>
+                while (true)
                 {
+                    yield return Timing.WaitForOneFrame;
+
                     _actionTimeLock.EnterReadLock();
+
+                    //Reset error flag
+                    bool isSuccessful = true;
 
                     try
                     {
+                        //Check if the action should be executed, if not, continue, else, break the loop
                         if (Interval > IntervalStopwatch.Elapsed)
-                            return false;
+                            continue;
 
                         if (DateTime.Now < ScheduledActionTime)
-                            return false;
+                            continue;
 
-                        return !Paused;
+                        if (!Paused)
+                            break;
                     }
                     catch (Exception ex)
                     {
                         LogTool.Error(ex);
-                        return false;
+                        isSuccessful = false; //If an error occurs, set error flag to false
                     }
                     finally
                     {
                         _actionTimeLock.ExitReadLock();
                     }
-                });
+
+                    //If an error occurs, wait for a while so it will not stuck the log.
+                    if (!isSuccessful)
+                    {
+                        yield return Timing.WaitForSeconds(0.5f);
+                    }
+                }
 
                 try
                 {
