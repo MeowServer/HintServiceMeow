@@ -13,8 +13,8 @@ namespace HintServiceMeow.Core.Models
     /// </summary>
     public class HintCollection : INotifyCollectionChanged
     {
-        private readonly object _lock = new();
-        private readonly Dictionary<string, ObservableCollection<AbstractHint>> _hintGroups = new();
+        private readonly object _lock = new object();
+        private readonly Dictionary<string, ObservableCollection<AbstractHint>> _hintGroups = new Dictionary<string, ObservableCollection<AbstractHint>>();
 
         public event NotifyCollectionChangedEventHandler CollectionChanged;
 

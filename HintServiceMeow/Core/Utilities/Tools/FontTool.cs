@@ -27,21 +27,15 @@ namespace HintServiceMeow.Core.Utilities.Tools
             {
                 try
                 {
-                    using Stream infoStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("HintServiceMeow.TextWidth");
-
-                    if (infoStream is null)
+                    using(Stream infoStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("HintServiceMeow.TextWidth"))
+                    using (StreamReader reader = new StreamReader(infoStream))
                     {
-                        LogTool.Error("TextWidth file not found.");
-                        return;
-                    }
+                        Dictionary<int, float> dictionary = new DeserializerBuilder().Build().Deserialize<Dictionary<int, float>>(reader);
 
-                    using StreamReader reader = new(infoStream);
-
-                    Dictionary<int, float> dictionary = new DeserializerBuilder().Build().Deserialize<Dictionary<int, float>>(reader);
-
-                    foreach (KeyValuePair<int, float> kvp in dictionary)
-                    {
-                        ChWidth.TryAdd((char)kvp.Key, kvp.Value);
+                        foreach (KeyValuePair<int, float> kvp in dictionary)
+                        {
+                            ChWidth.TryAdd((char)kvp.Key, kvp.Value);
+                        }
                     }
                 }
                 catch (Exception ex)

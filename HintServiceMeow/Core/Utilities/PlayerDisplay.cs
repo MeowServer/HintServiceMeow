@@ -34,12 +34,12 @@ namespace HintServiceMeow.Core.Utilities
         public event UpdateAvailableEventHandler UpdateAvailable;
         public delegate void UpdateAvailableEventHandler(UpdateAvailableEventArg ev);
 
-        private static readonly HashSet<PlayerDisplay> PlayerDisplayList = new();
-        private static readonly object PlayerDisplayListLock = new();
+        private static readonly HashSet<PlayerDisplay> PlayerDisplayList = new HashSet<PlayerDisplay>();
+        private static readonly object _playerDisplayListLock = new object();
 
         private readonly ConcurrentBag<IDisplayOutput> _displayOutputs = new() { new DefaultDisplayOutput() };
 
-        private readonly HintCollection _hints = new();
+        private readonly HintCollection _hints = new HintCollection();
         private readonly TaskScheduler _taskScheduler;//Initialize in constructor
         private IHintParser _hintParser = new HintParser();
         private ICompatibilityAdaptor _adapter;//Initialize in constructor
@@ -47,7 +47,7 @@ namespace HintServiceMeow.Core.Utilities
         private CoroutineHandle _coroutine;//Initialize in constructor(MultiThreadTool)
 
         private Task _currentParserTask;
-        private readonly object _currentParserTaskLock = new();
+        private readonly object _currentParserTaskLock = new object();
 
         private PlayerDisplay(ReferenceHub referenceHub)
         {
@@ -62,7 +62,7 @@ namespace HintServiceMeow.Core.Utilities
 
             this._adapter = new CompatibilityAdaptor(this);
 
-            this._hints.CollectionChanged += (_, _) => ScheduleUpdate();
+            this._hints.CollectionChanged += (_, __) => ScheduleUpdate();
 
             MainThreadDispatcher.Dispatch(() => this._coroutine = Timing.RunCoroutine(CoroutineMethod()));
         }
@@ -109,6 +109,13 @@ namespace HintServiceMeow.Core.Utilities
             {
                 yield return Timing.WaitForOneFrame;
 
+                //If player has quit, then stop the coroutine
+                if (this.ReferenceHub == null)
+                    break;
+
+                //Reset the success flag
+                bool isSuccessful = true;
+
                 try
                 {
                     //Periodic update
@@ -123,16 +130,21 @@ namespace HintServiceMeow.Core.Utilities
                 catch (Exception ex)
                 {
                     LogTool.Error(ex);
+                    isSuccessful = false; //If error occurred, set the success flag to false
+                }
+
+                //If the update is not successful, wait for a while before trying again so that it will not stuck the log.
+                if (!isSuccessful)
+                {
+                    yield return Timing.WaitForSeconds(1f);
                 }
             }
         }
 
         private void OnHintUpdate(object sender, PropertyChangedEventArgs ev)
         {
-            if (sender is not AbstractHint hint)
-            {
-                throw new ArgumentException("The sender is not an AbstractHint");
-            }
+            if (!(sender is AbstractHint hint))
+                return;
 
             //Skip if the hint's property changed when it is hided
             if (ev.PropertyName != "Hide" && hint.Hide)
@@ -141,15 +153,27 @@ namespace HintServiceMeow.Core.Utilities
             if (hint.SyncSpeed == HintSyncSpeed.UnSync)
                 return;
 
-            float maxWaitingTime = hint.SyncSpeed switch
+            float maxWaitingTime;
+            switch (hint.SyncSpeed)
             {
-                HintSyncSpeed.Fastest => 0,
-                HintSyncSpeed.Fast => 0.1f,
-                HintSyncSpeed.Normal => 0.3f,
-                HintSyncSpeed.Slow => 1f,
-                HintSyncSpeed.Slowest => 3f,
-                _ => throw new ArgumentOutOfRangeException()
-            };
+                case HintSyncSpeed.Fastest:
+                    maxWaitingTime = 0;
+                    break;
+                case HintSyncSpeed.Fast:
+                    maxWaitingTime = 0.1f;
+                    break;
+                case HintSyncSpeed.Normal:
+                    maxWaitingTime = 0.3f;
+                    break;
+                case HintSyncSpeed.Slow:
+                    maxWaitingTime = 1f;
+                    break;
+                case HintSyncSpeed.Slowest:
+                    maxWaitingTime = 3f;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
 
             ScheduleUpdate(maxWaitingTime, hint);
         }
@@ -199,11 +223,11 @@ namespace HintServiceMeow.Core.Utilities
         {
             lock (_currentParserTaskLock)
             {
-                if (_currentParserTask is not null)
+                if (!(_currentParserTask is null))
                     return;
 
                 _currentParserTask =
-                    Task.Run<string>(() =>
+                    Task.Run(() =>
                     {
                         try
                         {
@@ -269,7 +293,7 @@ namespace HintServiceMeow.Core.Utilities
             {
                 PlayerDisplay existing = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
 
-                if (existing is not null)
+                if (!(existing is null))
                     return existing;
 
                 PlayerDisplay newPlayerDisplay = new(referenceHub);
@@ -477,7 +501,7 @@ namespace HintServiceMeow.Core.Utilities
             return _hints.GetHints(name, predicate);
         }
 
-        internal void ShowCompatibilityHint(string assemblyName, string content, float duration) => this._adapter.ShowHint(new Models.Arguments.CompatibilityAdaptorArg(assemblyName, content, duration));
+        internal void ShowCompatibilityHint(string assemblyName, string content, float duration) => this._adapter.ShowHint(new CompatibilityAdaptorArg(assemblyName, content, duration));
 
         /// <summary>
         /// Argument for UpdateAvailable Event

@@ -21,9 +21,8 @@ namespace HintServiceMeow.Core.Utilities
     internal class CompatibilityAdaptor : ICompatibilityAdaptor
     {
         private static readonly ConcurrentDictionary<string, IReadOnlyList<Hint>> HintCache = new();
-
+        
         private readonly ConcurrentDictionary<string, int> _removeTickets = new();
-
         private readonly TimeSpan _suppressionDuration = TimeSpan.FromSeconds(0.45f);
 
         private readonly PlayerDisplay _playerDisplay;
