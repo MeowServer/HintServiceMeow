@@ -12,11 +12,11 @@ namespace HintServiceMeow.Core.Utilities
     {
         private readonly Action _action;
 
-        private readonly TimeSpan Interval;
+        private readonly TimeSpan _interval;
 
         public Stopwatch IntervalStopwatch { get; private set; } = Stopwatch.StartNew();
 
-        public DateTime ScheduledActionTime { get; private set; } = new DateTime();
+        public DateTime ScheduledActionTime { get; private set; }
 
         private readonly ReaderWriterLockSlim _actionTimeLock = new ReaderWriterLockSlim();
 
@@ -24,7 +24,7 @@ namespace HintServiceMeow.Core.Utilities
 
         public TaskScheduler(TimeSpan interval, Action action)
         {
-            this.Interval = interval;
+            this._interval = interval;
             this._action = action ?? throw new ArgumentNullException(nameof(action));
 
             if (interval > TimeSpan.Zero)
@@ -35,7 +35,7 @@ namespace HintServiceMeow.Core.Utilities
                 try
                 {
                     FieldInfo timerElapsedField = typeof(Stopwatch).GetField("elapsed", BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.NonPublic);
-                    timerElapsedField.SetValue(IntervalStopwatch, interval.Ticks);
+                    timerElapsedField?.SetValue(IntervalStopwatch, interval.Ticks);
                 }
                 finally
                 {
@@ -99,7 +99,7 @@ namespace HintServiceMeow.Core.Utilities
 
             try
             {
-                return Interval < IntervalStopwatch.Elapsed;
+                return _interval < IntervalStopwatch.Elapsed;
             }
             finally
             {
@@ -135,7 +135,7 @@ namespace HintServiceMeow.Core.Utilities
                     try
                     {
                         //Check if the action should be executed, if not, continue, else, break the loop
-                        if (Interval > IntervalStopwatch.Elapsed)
+                        if (_interval > IntervalStopwatch.Elapsed)
                             continue;
 
                         if (DateTime.Now < ScheduledActionTime)

@@ -635,16 +635,25 @@ namespace HintServiceMeow.Core.Utilities.Parser
         }
     }
 
-    internal record CharacterInfo(char Character, float FontSize, float Width, float Height, float VOffset)
+internal readonly struct CharacterInfo
     {
-        public char Character { get; } = Character;
-        public float FontSize { get; } = FontSize;
-        public float Width { get; } = Width;
-        public float Height { get; } = Height;
-        public float VOffset { get; } = VOffset;
+        public char Character { get; }
+        public float FontSize { get; }
+        public float Width { get; }
+        public float Height { get; }
+        public float VOffset { get; }
+        
+        public CharacterInfo(char character, float fontSize, float width, float height, float vOffset)
+        {
+            Character = character;
+            FontSize = fontSize;
+            Width = width;
+            Height = height;
+            VOffset = vOffset;
+        }
     }
 
-    internal record LineInfo
+internal readonly struct LineInfo
     {
         /// <summary>
         /// A list of character info that include all the characters after parsed. Include the line break at the end(if exist).
