@@ -10,6 +10,7 @@ using Mirror;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
@@ -62,11 +63,14 @@ namespace HintServiceMeow.Core.Utilities
 
             this._adapter = new CompatibilityAdaptor(this);
 
-            this._hints.CollectionChanged += (_, __) => ScheduleUpdate();
+            this._hints.CollectionChanged += OnCollectionChanged;
 
             MainThreadDispatcher.Dispatch(() => this._coroutine = Timing.RunCoroutine(CoroutineMethod()));
         }
-
+        
+        /// <summary>
+        /// Not thread safe
+        /// </summary>
         internal static void Destruct(ReferenceHub referenceHub)
         {
             lock (PlayerDisplayListLock)
@@ -76,8 +80,23 @@ namespace HintServiceMeow.Core.Utilities
                 if (pd is null)
                     return;
 
-                MainThreadDispatcher.Dispatch(() => Timing.KillCoroutines(pd._coroutine));
-                PlayerDisplayList.Remove(pd);
+                Timing.KillCoroutines(pd._coroutine); // Stop coroutine
+                pd.UpdateAvailable = null; // Clear event
+                
+                // Clear collection's reference to this pd
+                pd._hints.CollectionChanged -= pd.OnCollectionChanged;
+                
+                // Clear hint's reference to this pd
+                foreach (var hint in pd._hints.GetHints(null))
+                {
+                    hint.PropertyChanged -= pd.OnHintUpdate;
+                    pd.UpdateAvailable -= hint.TryUpdateHint;
+                }
+                // Clear pd's reference to hints
+                pd._hints.ClearHints(null);
+                
+                pd._taskScheduler.Destruct(); // Stop task scheduler's coroutine
+                PlayerDisplayList.Remove(pd); // Remove from the reference list
             }
         }
 
@@ -139,6 +158,11 @@ namespace HintServiceMeow.Core.Utilities
                     yield return Timing.WaitForSeconds(1f);
                 }
             }
+        }
+
+        private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            ScheduleUpdate();
         }
 
         private void OnHintUpdate(object sender, PropertyChangedEventArgs ev)
