@@ -17,6 +17,8 @@ namespace HintServiceMeow.Core.Utilities
         public Stopwatch IntervalStopwatch { get; private set; } = Stopwatch.StartNew();
 
         public DateTime ScheduledActionTime { get; private set; }
+        
+        public CoroutineHandle Coroutine { get; set; }
 
         private readonly ReaderWriterLockSlim _actionTimeLock = new ReaderWriterLockSlim();
 
@@ -43,7 +45,7 @@ namespace HintServiceMeow.Core.Utilities
                 }
             }
 
-            MainThreadDispatcher.Dispatch(() => Timing.RunCoroutine(TaskCoroutineMethod()));
+            MainThreadDispatcher.Dispatch(() => Coroutine = Timing.RunCoroutine(TaskCoroutineMethod()));
         }
 
         public void StartAction()
@@ -117,6 +119,14 @@ namespace HintServiceMeow.Core.Utilities
         {
             IntervalStopwatch.Start();
             Paused = false;
+        }
+
+        /// <summary>
+        /// Not thread safe
+        /// </summary>
+        public void Destruct()
+        {
+            Timing.KillCoroutines(this.Coroutine);
         }
 
         private IEnumerator<float> TaskCoroutineMethod()

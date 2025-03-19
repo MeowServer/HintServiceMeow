@@ -169,3 +169,5 @@
 -		Minor adjustments to prevent bugs.
 -	V5.3.13
 -		Bug Fixing
+-   V5.3.14
+-       Fix the bug that the AutoText will continue to call after PlayerDisplay is being destructed
