@@ -27,7 +27,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
             List<TextArea> dynamicHintColliders = collection.AllGroups
                 .SelectMany(x => x)
                 .OfType<Hint>()
-                .Where(x => x is not null && !x.Hide && !string.IsNullOrEmpty(x.Content.GetText()))
+                .Where(x => !x.Hide && !string.IsNullOrEmpty(x.Content.GetText()))
                 .Select(ParseToArea)
                 .ToList();
 
@@ -35,7 +35,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
             {
                 //Filter invisible hints
                 List<AbstractHint> visibleGroup = group
-                    .Where(x => x is not null && !x.Hide && !string.IsNullOrEmpty(x.Content.GetText()))
+                    .Where(x => !(x is null) && !x.Hide && !string.IsNullOrEmpty(x.Content.GetText()))
                     .ToList();
 
                 //Group by type
@@ -156,12 +156,18 @@ namespace HintServiceMeow.Core.Utilities.Parser
             }
 
             //Failed to find a position, return according to DynamicHintStrategy
-            return dynamicHint.Strategy switch
+            if (dynamicHint.Strategy == DynamicHintStrategy.StayInPosition)
             {
-                DynamicHintStrategy.StayInPosition => new Hint(dynamicHint, dynamicHint.TargetX, dynamicHint.TargetY),
-                DynamicHintStrategy.Hide => null,
-                _ => null
-            };
+                return new Hint(dynamicHint, dynamicHint.TargetX, dynamicHint.TargetY);
+            }
+            else if (dynamicHint.Strategy == DynamicHintStrategy.Hide)
+            {
+                return null;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         private TextArea ParseToArea(Hint hint)
@@ -198,7 +204,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
             float vOffset =
                 700
                 - CoordinateTools.GetYCoordinate(hint, HintVerticalAlign.Top)// Start at the top of the first line
-                + hint.LineHeight;// Add extra line height on top of the first line so that the line height will not be calculate for the first line
+                + hint.LineHeight;// Add extra line height on top of the first line so that the line height will not be calculated for the first line
 
             //Start to generate rich text
             StringBuilder richTextBuilder = StringBuilderPool.Rent(text.Length + 200);

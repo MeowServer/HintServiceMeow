@@ -18,7 +18,7 @@ namespace HintServiceMeow
 #if EXILED
         public override string Name => "HintServiceMeow";
         public override string Author => "MeowServer";
-        public override Version Version => new Version(5, 3, 13);
+        public override Version Version => new Version(5, 3, 14);
 #else
         [PluginAPI.Core.Attributes.PluginConfig]
         public PluginConfig Config;
@@ -27,7 +27,7 @@ namespace HintServiceMeow
 #if EXILED
         public override void OnEnabled()
 #else
-        [PluginAPI.Core.Attributes.PluginEntryPoint("HintServiceMeow", "5.3.13", "A hint framework", "MeowServer")]
+        [PluginAPI.Core.Attributes.PluginEntryPoint("HintServiceMeow", "5.3.14", "A hint framework", "MeowServer")]
         public void OnEnabled()
 #endif
         {

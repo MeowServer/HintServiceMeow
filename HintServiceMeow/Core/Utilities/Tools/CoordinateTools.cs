@@ -27,19 +27,25 @@ namespace HintServiceMeow.Core.Utilities.Tools
         {
             float offset = 0;
 
-            offset += from switch
+            switch (from)
             {
-                HintVerticalAlign.Top => textHeight,
-                HintVerticalAlign.Middle => textHeight / 2,
-                _ => 0
-            };
+                case HintVerticalAlign.Top:
+                    offset += textHeight;
+                    break;
+                case HintVerticalAlign.Middle:
+                    offset += textHeight / 2;
+                    break;
+            }
 
-            offset -= to switch
+            switch (to)
             {
-                HintVerticalAlign.Top => textHeight,
-                HintVerticalAlign.Middle => textHeight / 2,
-                _ => 0
-            };
+                case HintVerticalAlign.Top:
+                    offset -= textHeight;
+                    break;
+                case HintVerticalAlign.Middle:
+                    offset -= textHeight / 2;
+                    break;
+            }
 
             return rawYCoordinate + offset;
         }
@@ -51,12 +57,19 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         public static float GetXCoordinateWithAlignment(Hint hint, HintAlignment alignment)
         {
-            float alignOffset = alignment switch
+            float alignOffset;
+            switch (alignment)
             {
-                HintAlignment.Left => -1200 + GetTextWidth(hint) / 2,
-                HintAlignment.Right => 1200 - GetTextWidth(hint) / 2,
-                _ => 0
-            };
+                case HintAlignment.Left:
+                    alignOffset = -1200 + GetTextWidth(hint) / 2;
+                    break;
+                case HintAlignment.Right:
+                    alignOffset = 1200 - GetTextWidth(hint) / 2;
+                    break;
+                default:
+                    alignOffset = 0;
+                    break;
+            }
 
             return hint.XCoordinate + alignOffset;
         }

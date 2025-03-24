@@ -12,11 +12,13 @@ namespace HintServiceMeow.Core.Utilities
     {
         private readonly Action _action;
 
-        private readonly TimeSpan Interval;
+        private readonly TimeSpan _interval;
 
         public Stopwatch IntervalStopwatch { get; private set; } = Stopwatch.StartNew();
 
-        public DateTime ScheduledActionTime { get; private set; } = new DateTime();
+        public DateTime ScheduledActionTime { get; private set; }
+        
+        public CoroutineHandle Coroutine { get; set; }
 
         private readonly ReaderWriterLockSlim _actionTimeLock = new ReaderWriterLockSlim();
 
@@ -24,7 +26,7 @@ namespace HintServiceMeow.Core.Utilities
 
         public TaskScheduler(TimeSpan interval, Action action)
         {
-            this.Interval = interval;
+            this._interval = interval;
             this._action = action ?? throw new ArgumentNullException(nameof(action));
 
             if (interval > TimeSpan.Zero)
@@ -35,7 +37,7 @@ namespace HintServiceMeow.Core.Utilities
                 try
                 {
                     FieldInfo timerElapsedField = typeof(Stopwatch).GetField("elapsed", BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.NonPublic);
-                    timerElapsedField.SetValue(IntervalStopwatch, interval.Ticks);
+                    timerElapsedField?.SetValue(IntervalStopwatch, interval.Ticks);
                 }
                 finally
                 {
@@ -43,7 +45,7 @@ namespace HintServiceMeow.Core.Utilities
                 }
             }
 
-            MainThreadDispatcher.Dispatch(() => Timing.RunCoroutine(TaskCoroutineMethod()));
+            MainThreadDispatcher.Dispatch(() => Coroutine = Timing.RunCoroutine(TaskCoroutineMethod()));
         }
 
         public void StartAction()
@@ -99,7 +101,7 @@ namespace HintServiceMeow.Core.Utilities
 
             try
             {
-                return Interval < IntervalStopwatch.Elapsed;
+                return _interval < IntervalStopwatch.Elapsed;
             }
             finally
             {
@@ -119,34 +121,55 @@ namespace HintServiceMeow.Core.Utilities
             Paused = false;
         }
 
+        /// <summary>
+        /// Not thread safe
+        /// </summary>
+        public void Destruct()
+        {
+            Timing.KillCoroutines(this.Coroutine);
+        }
+
         private IEnumerator<float> TaskCoroutineMethod()
         {
             while (true)
             {
-                yield return Timing.WaitUntilTrue(() =>
+                while (true)
                 {
+                    yield return Timing.WaitForOneFrame;
+
                     _actionTimeLock.EnterReadLock();
+
+                    //Reset error flag
+                    bool isSuccessful = true;
 
                     try
                     {
-                        if (Interval > IntervalStopwatch.Elapsed)
-                            return false;
+                        //Check if the action should be executed, if not, continue, else, break the loop
+                        if (_interval > IntervalStopwatch.Elapsed)
+                            continue;
 
                         if (DateTime.Now < ScheduledActionTime)
-                            return false;
+                            continue;
 
-                        return !Paused;
+                        if (!Paused)
+                            break;
                     }
                     catch (Exception ex)
                     {
                         LogTool.Error(ex);
-                        return false;
+                        isSuccessful = false; //If an error occurs, set error flag to false
                     }
                     finally
                     {
                         _actionTimeLock.ExitReadLock();
                     }
-                });
+
+                    //If an error occurs, wait for a while so it will not stuck the log.
+                    if (!isSuccessful)
+                    {
+                        yield return Timing.WaitForSeconds(0.5f);
+                    }
+                }
 
                 try
                 {
