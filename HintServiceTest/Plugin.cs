@@ -26,7 +26,6 @@ namespace HintServiceTest
         {
             // Add code to handle when the plugin is disabled
             LabApi.Events.Handlers.PlayerEvents.Joined -= EventHandler.OnJoined;
-
         }
     }
 

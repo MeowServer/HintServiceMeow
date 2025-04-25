@@ -75,7 +75,7 @@
       <HintPath>..\HintServiceMeow\bin\x64\Debug\HintServiceMeow.dll</HintPath>
     </Reference>
     <Reference Include="LabApi">
-      <HintPath>..\HintServiceMeow\bin\x64\Release\LabApi.dll</HintPath>
+      <HintPath>..\..\Dependencies\LabAPI\LabApi.dll</HintPath>
     </Reference>
     <Reference Include="Mirror, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -94,9 +94,6 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="UnityEngine">
-      <HintPath>..\..\..\SCPSL插件依赖\Dev\UnityEngine.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\SCPSL插件依赖\Dev\UnityEngine.CoreModule.dll</HintPath>
