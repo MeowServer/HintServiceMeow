@@ -36,7 +36,7 @@ namespace HintServiceMeow.Core.Utilities
         public delegate void UpdateAvailableEventHandler(UpdateAvailableEventArg ev);
 
         private static readonly HashSet<PlayerDisplay> PlayerDisplayList = new HashSet<PlayerDisplay>();
-        private static readonly object _playerDisplayListLock = new object();
+        private static readonly object PlayerDisplayListLock = new object();
 
         private readonly ConcurrentBag<IDisplayOutput> _displayOutputs = new() { new DefaultDisplayOutput() };
 

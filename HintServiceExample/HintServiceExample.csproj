@@ -34,37 +34,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony, Version=2.3.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Lib.Harmony.2.3.3\lib\net48\0Harmony.dll</HintPath>
+      <HintPath>..\packages\Lib.Harmony.2.3.6\lib\net48\0Harmony.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ExMod.Exiled.9.5.1\lib\net48\Assembly-CSharp-Publicized.dll</HintPath>
+      <HintPath>..\packages\ExMod.Exiled.9.5.2\lib\net48\Assembly-CSharp-Publicized.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>..\..\..\SCPSL插件依赖\Master\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
-    <Reference Include="CommandSystem.Core, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ExMod.Exiled.9.5.1\lib\net48\CommandSystem.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Exiled.API, Version=9.5.1.0, Culture=neutral, processorArchitecture=Amd64">
-      <HintPath>..\packages\ExMod.Exiled.9.5.1\lib\net48\Exiled.API.dll</HintPath>
-    </Reference>
-    <Reference Include="Exiled.CreditTags, Version=9.5.1.0, Culture=neutral, processorArchitecture=Amd64">
-      <HintPath>..\packages\ExMod.Exiled.9.5.1\lib\net48\Exiled.CreditTags.dll</HintPath>
-    </Reference>
-    <Reference Include="Exiled.CustomItems, Version=9.5.1.0, Culture=neutral, processorArchitecture=Amd64">
-      <HintPath>..\packages\ExMod.Exiled.9.5.1\lib\net48\Exiled.CustomItems.dll</HintPath>
-    </Reference>
-    <Reference Include="Exiled.CustomRoles, Version=9.5.1.0, Culture=neutral, processorArchitecture=Amd64">
-      <HintPath>..\packages\ExMod.Exiled.9.5.1\lib\net48\Exiled.CustomRoles.dll</HintPath>
-    </Reference>
-    <Reference Include="Exiled.Events, Version=9.5.1.0, Culture=neutral, processorArchitecture=Amd64">
-      <HintPath>..\packages\ExMod.Exiled.9.5.1\lib\net48\Exiled.Events.dll</HintPath>
-    </Reference>
-    <Reference Include="Exiled.Loader, Version=9.5.1.0, Culture=neutral, processorArchitecture=Amd64">
-      <HintPath>..\packages\ExMod.Exiled.9.5.1\lib\net48\Exiled.Loader.dll</HintPath>
-    </Reference>
-    <Reference Include="Exiled.Permissions, Version=9.5.1.0, Culture=neutral, processorArchitecture=Amd64">
-      <HintPath>..\packages\ExMod.Exiled.9.5.1\lib\net48\Exiled.Permissions.dll</HintPath>
+    <Reference Include="Assembly-CSharp-Publicized, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ExMod.Exiled.9.5.2\lib\net48\Assembly-CSharp-Publicized.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="HintServiceMeow">
       <HintPath>..\HintServiceMeow\bin\x64\Debug\HintServiceMeow.dll</HintPath>
@@ -94,9 +76,6 @@
     </Reference>
     <Reference Include="UnityEngine.PhysicsModule">
       <HintPath>..\..\..\SCPSL插件依赖\Master\UnityEngine.PhysicsModule.dll</HintPath>
-    </Reference>
-    <Reference Include="YamlDotNet, Version=11.0.0.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e, processorArchitecture=MSIL">
-      <HintPath>..\packages\ExMod.Exiled.9.5.1\lib\net48\YamlDotNet.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
