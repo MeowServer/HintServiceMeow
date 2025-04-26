@@ -613,14 +613,14 @@ namespace HintServiceMeow.Core.Utilities.Parser
         }
     }
 
-internal readonly struct CharacterInfo
+    internal readonly struct CharacterInfo
     {
         public char Character { get; }
         public float FontSize { get; }
         public float Width { get; }
         public float Height { get; }
         public float VOffset { get; }
-        
+
         public CharacterInfo(char character, float fontSize, float width, float height, float vOffset)
         {
             Character = character;
@@ -631,7 +631,7 @@ internal readonly struct CharacterInfo
         }
     }
 
-internal readonly struct LineInfo
+    internal readonly struct LineInfo
     {
         /// <summary>
         /// A list of character info that include all the characters after parsed. Include the line break at the end(if exist).

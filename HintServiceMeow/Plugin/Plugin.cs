@@ -27,7 +27,7 @@ namespace HintServiceMeow
 #if EXILED
         public override string Name => "HintServiceMeow";
         public override string Author => "MeowServer";
-        public override Version Version => new(5, 4, 1);
+        public override Version Version => new(5, 4, 2);
         public override Version RequiredExiledVersion => new(9, 6, 0);
         public override Exiled.API.Enums.PluginPriority Priority => Exiled.API.Enums.PluginPriority.Highest;
 #else
@@ -65,7 +65,7 @@ namespace HintServiceMeow
 
             //Initialize Font Tool
             _ = FontTool.GetCharWidth('a', 40, Core.Enum.TextStyle.Normal);
-            
+
 #if EXILED
             base.OnEnabled();
 #endif
@@ -84,7 +84,7 @@ namespace HintServiceMeow
             PlayerEvents.Left -= OnLeft;
             ServerEvents.WaitingForPlayers -= OnWaitingForPlayers;
 #endif
-                
+
 #if EXILED
             base.OnDisabled();
 #endif

@@ -27,7 +27,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
             {
                 try
                 {
-                    using(Stream infoStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("HintServiceMeow.TextWidth"))
+                    using (Stream infoStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("HintServiceMeow.TextWidth"))
                     using (StreamReader reader = new StreamReader(infoStream))
                     {
                         Dictionary<int, float> dictionary = new DeserializerBuilder().Build().Deserialize<Dictionary<int, float>>(reader);

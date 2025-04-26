@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace HintServiceMeow.UI.Utilities
 {
-    public class CommonHint
+    public class CommonHint : Core.Interface.IDestructible
     {
         private static readonly string HintGroupId = "HSM_CommonHint";
 
@@ -91,7 +91,7 @@ namespace HintServiceMeow.UI.Utilities
             PlayerDisplay.InternalAddHint(HintGroupId, _roleHints);
         }
 
-        internal void Destruct()
+        void Core.Interface.IDestructible.Destruct()
         {
             PlayerDisplay.InternalClearHint(HintGroupId);
         }

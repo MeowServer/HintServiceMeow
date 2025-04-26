@@ -1,5 +1,6 @@
 ﻿using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Interface;
+using HintServiceMeow.Core.Models.Arguments;
 using HintServiceMeow.Core.Models.HintContent;
 using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.Core.Utilities.Tools;
@@ -379,9 +380,9 @@ namespace HintServiceMeow.Core.Models.Hints
 
         #region Methods
 
-        public virtual void TryUpdateHint(PlayerDisplay.UpdateAvailableEventArg ev)
+        public virtual void TryUpdateHint(UpdateAvailableEventArg ev)
         {
-            Content.TryUpdate(new TextUpdateArg(this, ev.PlayerDisplay));
+            Content.TryUpdate(new ContentUpdateArg(this, ev.PlayerDisplay));
         }
 
         protected virtual void OnHintUpdated(string argumentName)
@@ -392,23 +393,5 @@ namespace HintServiceMeow.Core.Models.Hints
         }
 
         #endregion
-
-        public class TextUpdateArg
-        {
-            public ReferenceHub Player => PlayerDisplay?.ReferenceHub;
-            public AbstractHint Hint { get; }
-            public PlayerDisplay PlayerDisplay { get; }
-
-            /// <summary>
-            /// The delay before the next update. Count in seconds.
-            /// </summary>
-            public float NextUpdateDelay { get; set; } = 0.1f;
-
-            internal TextUpdateArg(AbstractHint hint, PlayerDisplay playerDisplay)
-            {
-                this.Hint = hint;
-                this.PlayerDisplay = playerDisplay;
-            }
-        }
     }
 }

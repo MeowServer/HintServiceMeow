@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace HintServiceMeow.UI.Utilities
 {
-    public class PlayerUI
+    public class PlayerUI : Core.Interface.IDestructible
     {
         private static readonly HashSet<PlayerUI> PlayerUIList = new();
 
@@ -37,11 +37,16 @@ namespace HintServiceMeow.UI.Utilities
             if (ui == null)
                 return;
 
-            //Destruct Components
-            ui.CommonHint.Destruct();
+            ((Core.Interface.IDestructible)ui).Destruct();
 
             //Remove from list
             PlayerUIList.Remove(ui);
+        }
+
+        void Core.Interface.IDestructible.Destruct()
+        {
+            //Destruct Components
+            ((Core.Interface.IDestructible)CommonHint).Destruct();
         }
 
         internal static void ClearInstance()
@@ -49,7 +54,7 @@ namespace HintServiceMeow.UI.Utilities
             //Destruct Components
             foreach (PlayerUI ui in PlayerUIList)
             {
-                ui.CommonHint.Destruct();
+                ((Core.Interface.IDestructible)ui.CommonHint).Destruct();
             }
 
             //Clear the list
@@ -79,7 +84,7 @@ namespace HintServiceMeow.UI.Utilities
 #if EXILED
         public static PlayerUI Get(Exiled.API.Features.Player player)
         {
-            if(player is null)
+            if (player is null)
                 throw new System.ArgumentNullException(nameof(player));
 
             return Get(player.ReferenceHub);

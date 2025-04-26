@@ -178,3 +178,6 @@
 -		Bug Fixing
 -	V5.4.1
 -		Fix a part of code that mistakenly used PluginAPI instead of LabAPI
+-	V5.4.2
+-		==============Breaking Change================
+	-		AutoText parameter is updated

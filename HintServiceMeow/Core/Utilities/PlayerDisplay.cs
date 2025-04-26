@@ -21,7 +21,7 @@ namespace HintServiceMeow.Core.Utilities
     /// <summary>
     /// Represent a player's display. This class is used to manage hints and update hint to player's display
     /// </summary>
-    public class PlayerDisplay
+    public class PlayerDisplay : Interface.IDestructible
     {
         /// <summary>
         /// The player this instance bind to
@@ -67,7 +67,7 @@ namespace HintServiceMeow.Core.Utilities
 
             MainThreadDispatcher.Dispatch(() => this._coroutine = Timing.RunCoroutine(CoroutineMethod()));
         }
-        
+
         /// <summary>
         /// Not thread safe
         /// </summary>
@@ -80,24 +80,31 @@ namespace HintServiceMeow.Core.Utilities
                 if (pd is null)
                     return;
 
-                Timing.KillCoroutines(pd._coroutine); // Stop coroutine
-                pd.UpdateAvailable = null; // Clear event
-                
-                // Clear collection's reference to this pd
-                pd._hints.CollectionChanged -= pd.OnCollectionChanged;
-                
-                // Clear hint's reference to this pd
-                foreach (var hint in pd._hints.GetHints(null))
-                {
-                    hint.PropertyChanged -= pd.OnHintUpdate;
-                    pd.UpdateAvailable -= hint.TryUpdateHint;
-                }
-                // Clear pd's reference to hints
-                pd._hints.ClearHints(null);
-                
-                pd._taskScheduler.Destruct(); // Stop task scheduler's coroutine
+                ((Interface.IDestructible)pd).Destruct();
+
                 PlayerDisplayList.Remove(pd); // Remove from the reference list
             }
+        }
+
+        void Interface.IDestructible.Destruct()
+        {
+            Timing.KillCoroutines(this._coroutine); // Stop coroutine
+            this.UpdateAvailable = null; // Clear event
+
+            // Clear collection's reference to this pd
+            this._hints.CollectionChanged -= this.OnCollectionChanged;
+
+            // Clear hint's reference to this pd
+            foreach (var hint in this._hints.GetHints(null))
+            {
+                hint.PropertyChanged -= this.OnHintUpdate;
+                this.UpdateAvailable -= hint.TryUpdateHint;
+            }
+
+            // Clear pd's reference to hints
+            this._hints.ClearHints(null);
+
+            ((Interface.IDestructible)this._taskScheduler).Destruct(); // Stop task scheduler's coroutine
         }
 
         internal static void ClearInstance()
@@ -406,7 +413,7 @@ namespace HintServiceMeow.Core.Utilities
         }
 
         /// <summary>
-        /// Return the first hin that match the id
+        /// Return the first hint that match the id
         /// </summary>
         public AbstractHint GetHint(string id)
         {
@@ -430,14 +437,70 @@ namespace HintServiceMeow.Core.Utilities
             return InternalGetHints(Assembly.GetCallingAssembly().FullName, x => x.Id == id);
         }
 
-        public AbstractHint GetHint(Guid id)
+        /// <summary>
+        /// Return the first hint that match the guid
+        /// </summary>
+        public AbstractHint GetHint(Guid guid)
         {
-            return InternalGetHints(Assembly.GetCallingAssembly().FullName, x => x.Guid == id).FirstOrDefault();
+            return InternalGetHints(Assembly.GetCallingAssembly().FullName, x => x.Guid == guid).FirstOrDefault();
         }
 
         public IEnumerable<AbstractHint> GetHints()
         {
             return this.InternalGetHints(Assembly.GetCallingAssembly().FullName);
+        }
+
+        public bool HasHint(string id)
+        {
+            if (id is null)
+                throw new ArgumentNullException(nameof(id));
+
+            if (id == string.Empty)
+                throw new ArgumentException("A empty string had been passed to HasHint");
+
+            return InternalGetHints(Assembly.GetCallingAssembly().FullName, hint => hint.Id == id).Any();
+        }
+
+        public bool HasHint(Guid guid)
+        {
+            return InternalGetHints(Assembly.GetCallingAssembly().FullName, hint => hint.Guid == guid).Any();
+        }
+
+        /// <summary>
+        /// Return the first hint that match the id
+        /// </summary>
+        public bool TryGetHint(string id, out AbstractHint hint)
+        {
+            if (id is null)
+                throw new ArgumentNullException(nameof(id));
+
+            if (id == string.Empty)
+                throw new ArgumentException("A empty string had been passed to TryGetHint");
+
+            hint = InternalGetHints(Assembly.GetCallingAssembly().FullName, x => x.Id == id).FirstOrDefault();
+
+            return hint != null;
+        }
+
+        /// <summary>
+        /// Return the first hint that match the guid
+        /// </summary>
+        public bool TryGetHint(Guid guid, out AbstractHint hint)
+        {
+            hint = InternalGetHints(Assembly.GetCallingAssembly().FullName, x => x.Guid == guid).FirstOrDefault();
+            return hint != null;
+        }
+
+        public bool TryGetHints(string id, out IEnumerable<AbstractHint> hints)
+        {
+            if (id is null)
+                throw new ArgumentNullException(nameof(id));
+
+            if (id == string.Empty)
+                throw new ArgumentException("A empty string had been passed to TryGetHints");
+
+            hints = InternalGetHints(Assembly.GetCallingAssembly().FullName, x => x.Id == id);
+            return hints.Any();
         }
 
         internal void InternalAddHint(string name, AbstractHint hint)
@@ -526,18 +589,5 @@ namespace HintServiceMeow.Core.Utilities
         }
 
         internal void ShowCompatibilityHint(string assemblyName, string content, float duration) => this._adapter.ShowHint(new CompatibilityAdaptorArg(assemblyName, content, duration));
-
-        /// <summary>
-        /// Argument for UpdateAvailable Event
-        /// </summary>
-        public class UpdateAvailableEventArg
-        {
-            public PlayerDisplay PlayerDisplay { get; set; }
-
-            internal UpdateAvailableEventArg(PlayerDisplay playerDisplay)
-            {
-                this.PlayerDisplay = playerDisplay;
-            }
-        }
     }
 }
