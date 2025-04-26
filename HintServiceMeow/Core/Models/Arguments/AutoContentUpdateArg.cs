@@ -16,7 +16,7 @@ namespace HintServiceMeow.Core.Models.Arguments
 
         public TimeSpan DefaultUpdateDelay { get; set; }
 
-        public AutoContentUpdateArg(AbstractHint hint, PlayerDisplay playerDisplay, TimeSpan defaultUpdateDelay)
+        internal AutoContentUpdateArg(AbstractHint hint, PlayerDisplay playerDisplay, TimeSpan defaultUpdateDelay)
         {
             Hint = hint;
             PlayerDisplay = playerDisplay;

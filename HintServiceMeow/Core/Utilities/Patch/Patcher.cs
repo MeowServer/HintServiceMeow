@@ -4,11 +4,11 @@ using System.Reflection;
 
 namespace HintServiceMeow.Core.Utilities.Patch
 {
-    internal static class Patcher
+    public static class Patcher
     {
-        private static Harmony Harmony { get; set; }
+        public static Harmony Harmony { get; private set; }
 
-        public static void Patch()
+        internal static void Patch()
         {
             Harmony = new Harmony("HintServiceMeowHarmony" + Guid.NewGuid());
 
@@ -43,7 +43,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
 #endif
         }
 
-        public static void Unpatch()
+        internal static void Unpatch()
         {
             Harmony?.UnpatchAll();
         }

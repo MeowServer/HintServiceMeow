@@ -15,7 +15,7 @@ namespace HintServiceMeow.Core.Utilities
 
         private readonly Action _action;
         private DateTime _scheduledActionTime; // Indicate when the timer will begin trying invoking the action
-        private readonly TimeSpan _interval;
+        private readonly TimeSpan _interval; // Minimum time between two actions
         private DateTime _startTimeStamp;
         private TimeSpan _elapsed;
         private bool _paused = false;
@@ -103,21 +103,7 @@ namespace HintServiceMeow.Core.Utilities
             Timing.KillCoroutines(this._coroutine);
         }
 
-        public void ScheduleAction()
-        {
-            _actionTimeLock.EnterWriteLock();
-
-            try
-            {
-                _scheduledActionTime = DateTime.MinValue;
-            }
-            finally
-            {
-                _actionTimeLock.ExitWriteLock();
-            }
-        }
-
-        public void ScheduleAction(float delay, DelayType delayType)
+        public void ScheduleAction(float delay = -1f, DelayType delayType = DelayType.Override)
         {
             _actionTimeLock.EnterWriteLock();
 

@@ -38,7 +38,8 @@ namespace HintServiceMeow.Core.Utilities
         private static readonly HashSet<PlayerDisplay> PlayerDisplayList = new HashSet<PlayerDisplay>();
         private static readonly object PlayerDisplayListLock = new object();
 
-        private readonly ConcurrentBag<IDisplayOutput> _displayOutputs = new() { new DefaultDisplayOutput() };
+        private readonly List<IDisplayOutput> _displayOutputs = new() { new DefaultDisplayOutput() };
+        private readonly object _displayOutputsLock = new object();
 
         private readonly HintCollection _hints = new HintCollection();
         private readonly TaskScheduler _updateScheduler;//Initialize in constructor
@@ -111,11 +112,17 @@ namespace HintServiceMeow.Core.Utilities
         {
             lock (PlayerDisplayListLock)
             {
+                foreach(PlayerDisplay pd in PlayerDisplayList)
+                {
+                    if (pd is null)
+                        continue;
+
+                    ((Interface.IDestructible)pd).Destruct();
+                }
+
                 PlayerDisplayList.Clear();
             }
         }
-
-        public ConcurrentBag<IDisplayOutput> DisplayOutputs => _displayOutputs;
 
         public IHintParser HintParser
         {
@@ -358,6 +365,29 @@ namespace HintServiceMeow.Core.Utilities
             return Get(player.ReferenceHub);
         }
 #endif
+        public void AddDisplayOutput(IDisplayOutput output)
+        {
+            lock (_displayOutputsLock)
+            {
+                _displayOutputs.Add(output);
+            }
+        }
+
+        public void RemoveDisplayOutput(IDisplayOutput output)
+        {
+            lock(_displayOutputsLock)
+            {
+                _displayOutputs.Remove(output);
+            }
+        }
+
+        public void RemoveDisplayOutput<T>() where T : IDisplayOutput
+        {
+            lock (_displayOutputsLock)
+            {
+                _displayOutputs.RemoveAll(x => x is T);
+            }
+        }
 
         public void AddHint(AbstractHint hint)
         {
