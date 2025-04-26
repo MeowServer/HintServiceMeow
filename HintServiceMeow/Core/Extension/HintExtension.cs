@@ -21,7 +21,7 @@ namespace HintServiceMeow.Core.Extension
                 HideTimers.Add(hint, scheduler);
             }
 
-            scheduler.StartAction(delay, TaskScheduler.DelayType.Override);
+            scheduler.ScheduleAction(delay, TaskScheduler.DelayType.Override);
         }
     }
 }

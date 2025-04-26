@@ -84,6 +84,8 @@ namespace HintServiceMeow.Core.Utilities
             }
         }
 
+        public bool IsReadyForNextAction => Elapsed >= _interval;
+
         public TaskScheduler(TimeSpan interval, Action action)
         {
             this._interval = interval;
@@ -101,7 +103,7 @@ namespace HintServiceMeow.Core.Utilities
             Timing.KillCoroutines(this._coroutine);
         }
 
-        public void StartAction()
+        public void ScheduleAction()
         {
             _actionTimeLock.EnterWriteLock();
 
@@ -115,7 +117,7 @@ namespace HintServiceMeow.Core.Utilities
             }
         }
 
-        public void StartAction(float delay, DelayType delayType)
+        public void ScheduleAction(float delay, DelayType delayType)
         {
             _actionTimeLock.EnterWriteLock();
 
@@ -145,20 +147,6 @@ namespace HintServiceMeow.Core.Utilities
             finally
             {
                 _actionTimeLock.ExitWriteLock();
-            }
-        }
-
-        public bool IsReadyForNextAction()
-        {
-            _actionTimeLock.EnterReadLock();
-
-            try
-            {
-                return _interval < Elapsed;
-            }
-            finally
-            {
-                _actionTimeLock.ExitReadLock();
             }
         }
 

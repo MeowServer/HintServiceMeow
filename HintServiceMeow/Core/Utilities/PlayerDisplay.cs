@@ -148,7 +148,7 @@ namespace HintServiceMeow.Core.Utilities
                     if (_updateScheduler.Elapsed > TimeSpan.FromSeconds(5))
                         ScheduleUpdate();
 
-                    if (_updateScheduler.IsReadyForNextAction())
+                    if (_updateScheduler.IsReadyForNextAction)
                     {
                         UpdateAvailable?.Invoke(new UpdateAvailableEventArg(this));
                     }
@@ -213,7 +213,7 @@ namespace HintServiceMeow.Core.Utilities
         {
             if (maxWaitingTime <= 0)
             {
-                _updateScheduler.StartAction();
+                _updateScheduler.ScheduleAction();
                 return;
             }
 
@@ -237,9 +237,9 @@ namespace HintServiceMeow.Core.Utilities
             delay = Math.Max(maxWaitingTime, delay * 1.1f); //Increase by 10% to make increase hit rate of prediction
 
             if (delay <= 0)
-                _updateScheduler.StartAction();
+                _updateScheduler.ScheduleAction();
             else
-                _updateScheduler.StartAction(delay, TaskScheduler.DelayType.KeepFastest);
+                _updateScheduler.ScheduleAction(delay, TaskScheduler.DelayType.KeepFastest);
         }
 
         /// <summary>

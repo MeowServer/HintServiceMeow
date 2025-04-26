@@ -113,7 +113,7 @@ namespace HintServiceMeow.UI.Utilities
 
         public void ShowItemHint(string itemName, string[] description, float time)
         {
-            _itemHintsHideScheduler.StartAction(time, TaskScheduler.DelayType.Override);
+            _itemHintsHideScheduler.ScheduleAction(time, TaskScheduler.DelayType.Override);
 
             _itemHints[0].Text = itemName;
             _itemHints[0].Hide = false;
@@ -142,7 +142,7 @@ namespace HintServiceMeow.UI.Utilities
 
         public void ShowMapHint(string roomName, string[] description, float time)
         {
-            _mapHintsHideScheduler.StartAction(time, TaskScheduler.DelayType.Override);
+            _mapHintsHideScheduler.ScheduleAction(time, TaskScheduler.DelayType.Override);
 
             _mapHints.ForEach(x => x.Hide = true);
 
@@ -173,7 +173,7 @@ namespace HintServiceMeow.UI.Utilities
 
         public void ShowRoleHint(string roleName, string[] description, float time)
         {
-            _roleHintsHideScheduler.StartAction(time, TaskScheduler.DelayType.Override);
+            _roleHintsHideScheduler.ScheduleAction(time, TaskScheduler.DelayType.Override);
 
             _roleHints.ForEach(x => x.Hide = true);
 

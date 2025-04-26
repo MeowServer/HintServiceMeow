@@ -28,7 +28,7 @@ namespace HintServiceMeow.Core.Extension
                 hintDict.Add(hint, scheduler);
             }
 
-            scheduler.StartAction(delay, TaskScheduler.DelayType.Override);
+            scheduler.ScheduleAction(delay, TaskScheduler.DelayType.Override);
         }
     }
 }
