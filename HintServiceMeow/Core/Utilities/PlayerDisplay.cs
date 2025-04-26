@@ -41,7 +41,7 @@ namespace HintServiceMeow.Core.Utilities
         private readonly ConcurrentBag<IDisplayOutput> _displayOutputs = new() { new DefaultDisplayOutput() };
 
         private readonly HintCollection _hints = new HintCollection();
-        private readonly TaskScheduler _taskScheduler;//Initialize in constructor
+        private readonly TaskScheduler _updateScheduler;//Initialize in constructor
         private IHintParser _hintParser = new HintParser();
         private ICompatibilityAdaptor _adapter;//Initialize in constructor
 
@@ -55,9 +55,9 @@ namespace HintServiceMeow.Core.Utilities
             this.ConnectionToClient = referenceHub.netIdentity.connectionToClient;
             this.ReferenceHub = referenceHub;
 
-            this._taskScheduler = new TaskScheduler(TimeSpan.Zero, () =>
+            this._updateScheduler = new TaskScheduler(TimeSpan.Zero, () =>
             {
-                _taskScheduler.Paused = true;//Pause action until the parser task is finishing
+                _updateScheduler.Paused = true;//Pause action until the parser task is finishing
                 StartParserTask();
             });
 
@@ -104,7 +104,7 @@ namespace HintServiceMeow.Core.Utilities
             // Clear pd's reference to hints
             this._hints.ClearHints(null);
 
-            ((Interface.IDestructible)this._taskScheduler).Destruct(); // Stop task scheduler's coroutine
+            ((Interface.IDestructible)this._updateScheduler).Destruct(); // Stop task scheduler's coroutine
         }
 
         internal static void ClearInstance()
@@ -145,10 +145,10 @@ namespace HintServiceMeow.Core.Utilities
                 try
                 {
                     //Periodic update
-                    if (_taskScheduler.IntervalStopwatch.Elapsed > TimeSpan.FromSeconds(5))
+                    if (_updateScheduler.Elapsed > TimeSpan.FromSeconds(5))
                         ScheduleUpdate();
 
-                    if (_taskScheduler.IsReadyForNextAction())
+                    if (_updateScheduler.IsReadyForNextAction())
                     {
                         UpdateAvailable?.Invoke(new UpdateAvailableEventArg(this));
                     }
@@ -213,7 +213,7 @@ namespace HintServiceMeow.Core.Utilities
         {
             if (maxWaitingTime <= 0)
             {
-                _taskScheduler.StartAction();
+                _updateScheduler.StartAction();
                 return;
             }
 
@@ -237,9 +237,9 @@ namespace HintServiceMeow.Core.Utilities
             delay = Math.Max(maxWaitingTime, delay * 1.1f); //Increase by 10% to make increase hit rate of prediction
 
             if (delay <= 0)
-                _taskScheduler.StartAction();
+                _updateScheduler.StartAction();
             else
-                _taskScheduler.StartAction(delay, TaskScheduler.DelayType.KeepFastest);
+                _updateScheduler.StartAction(delay, TaskScheduler.DelayType.KeepFastest);
         }
 
         /// <summary>
@@ -284,7 +284,7 @@ namespace HintServiceMeow.Core.Utilities
                             }
                             finally
                             {
-                                _taskScheduler.Paused = false; //Resume action after the parser task is finishing
+                                _updateScheduler.Paused = false; //Resume action after the parser task is finishing
 
                                 lock (_currentParserTaskLock)
                                 {
