@@ -66,7 +66,7 @@ namespace HintServiceMeow.Core.Utilities
                 }
                 finally
                 {
-                    _actionTimeLock.EnterWriteLock();
+                    _actionTimeLock.ExitWriteLock();
                 }
             }
             private set
@@ -79,7 +79,35 @@ namespace HintServiceMeow.Core.Utilities
                 }
                 finally
                 {
-                    _actionTimeLock.EnterWriteLock();
+                    _actionTimeLock.ExitWriteLock();
+                }
+            }
+        }
+
+        private DateTime ScheduledActionTime
+        {
+            get
+            {
+                _actionTimeLock.EnterReadLock();
+                try
+                {
+                    return _scheduledActionTime;
+                }
+                finally
+                {
+                    _actionTimeLock.ExitReadLock();
+                }
+            }
+            set
+            {
+                _actionTimeLock.EnterWriteLock();
+                try
+                {
+                    _scheduledActionTime = value;
+                }
+                finally
+                {
+                    _actionTimeLock.ExitWriteLock();
                 }
             }
         }
@@ -141,25 +169,13 @@ namespace HintServiceMeow.Core.Utilities
         /// </summary>
         internal void InvokeAction()
         {
-            //Reset timer
-            _actionTimeLock.EnterWriteLock();
             try
             {
+                //Reset timer
                 Elapsed = TimeSpan.Zero; //Reset Elapsed Time
-                _scheduledActionTime = DateTime.MaxValue; //Reset scheduled action time
-            }
-            catch (Exception ex)
-            {
-                LogTool.Error(ex);
-            }
-            finally
-            {
-                _actionTimeLock.ExitWriteLock();
-            }
+                ScheduledActionTime = DateTime.MaxValue; //Reset scheduled action time
 
-            //start action
-            try
-            {
+                //start action
                 _action.Invoke();
             }
             catch (Exception ex)
@@ -176,21 +192,13 @@ namespace HintServiceMeow.Core.Utilities
                 {
                     yield return Timing.WaitForOneFrame;
 
-                    _actionTimeLock.EnterReadLock();
-
                     //Reset error flag
                     bool isSuccessful = true;
 
                     //Check if the action should be executed, if not, continue, else, break the loop
                     try
                     {
-                        if (_interval > Elapsed) // If the interval is not reached, continue
-                            continue;
-
-                        if (_scheduledActionTime == DateTime.MaxValue || DateTime.Now < _scheduledActionTime) // If the action is not scheduled or the scheduled time is not reached, continue
-                            continue;
-
-                        if (Paused) // If the action is paused, continue
+                        if (_interval > Elapsed || ScheduledActionTime == DateTime.MaxValue || DateTime.Now < ScheduledActionTime || Paused)
                             continue;
 
                         break;
@@ -199,10 +207,6 @@ namespace HintServiceMeow.Core.Utilities
                     {
                         LogTool.Error(ex);
                         isSuccessful = false; //If an error occurs, set error flag to false
-                    }
-                    finally
-                    {
-                        _actionTimeLock.ExitReadLock();
                     }
 
                     //If an error occurs, wait for a while so it will not stuck the log.

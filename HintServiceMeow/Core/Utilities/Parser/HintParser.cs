@@ -31,7 +31,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 .Select(ParseToArea)
                 .ToList();
 
-            foreach (List<AbstractHint> group in collection.AllGroups)
+            foreach (IReadOnlyList<AbstractHint> group in collection.AllGroups)
             {
                 //Filter invisible hints
                 List<AbstractHint> visibleGroup = group

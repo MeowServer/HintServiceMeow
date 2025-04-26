@@ -18,7 +18,7 @@ namespace HintServiceMeow.Core.Models
 
         public event NotifyCollectionChangedEventHandler CollectionChanged;
 
-        private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs argument)
+        private void OnCollectionChanged(NotifyCollectionChangedEventArgs argument)
         {
             CollectionChanged?.Invoke(this, argument);
         }
@@ -58,7 +58,7 @@ namespace HintServiceMeow.Core.Models
                 collection.Add(hint);
             }
 
-            OnCollectionChanged(hint, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add));
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, hint));
         }
 
         internal bool RemoveHint(string assemblyName, AbstractHint hint)
@@ -98,7 +98,7 @@ namespace HintServiceMeow.Core.Models
 
             if (success)
             {
-                OnCollectionChanged(hint, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove));
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, hint));
             }
 
             return success;
@@ -162,7 +162,7 @@ namespace HintServiceMeow.Core.Models
             {
                 foreach (AbstractHint hint in updatedHints)
                 {
-                    OnCollectionChanged(hint, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove));
+                    OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, hint));
                 }
             }
 
@@ -191,7 +191,7 @@ namespace HintServiceMeow.Core.Models
                 }
             }
 
-            OnCollectionChanged(null, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
 
         public IReadOnlyList<AbstractHint> GetHints(string assemblyName)
