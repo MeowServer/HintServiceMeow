@@ -18,7 +18,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
     /// </summary>
     internal class HintParser : IHintParser
     {
-        private readonly ConcurrentDictionary<Guid, ValueTuple<float, float>> _dynamicHintPositionCache = new();
+        private readonly Cache<Guid, ValueTuple<float, float>> _dynamicHintPositionCache = new(500);
 
         public string ParseToMessage(HintCollection collection)
         {
@@ -114,7 +114,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 return new Hint(dynamicHint, dynamicHint.TargetX, dynamicHint.TargetY);
             }
 
-            if (_dynamicHintPositionCache.TryGetValue(dynamicHint.Guid, out ValueTuple<float, float> cachedPosition))
+            if (_dynamicHintPositionCache.TryGet(dynamicHint.Guid, out ValueTuple<float, float> cachedPosition))
             {
                 TextArea dhArea = DynamicHintToArea(cachedPosition);
                 if (!colliders.Any(dhArea.HasIntersection))
@@ -140,7 +140,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 TextArea dhArea = DynamicHintToArea(tuple);
                 if (!colliders.Any(dhArea.HasIntersection))
                 {
-                    _dynamicHintPositionCache[dynamicHint.Guid] = tuple;
+                    _dynamicHintPositionCache.Add(dynamicHint.Guid, tuple);
 
                     return new Hint(dynamicHint, tuple.Item1, tuple.Item2);
                 }

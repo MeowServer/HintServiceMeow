@@ -89,7 +89,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
     {
         private const float DefaultFontSize = 40f;
 
-        private static readonly ConcurrentDictionary<ValueTuple<string, float, HintAlignment>, IReadOnlyList<LineInfo>> Cache = new();
+        private static readonly Cache<ValueTuple<string, float, HintAlignment>, IReadOnlyList<LineInfo>> Cache = new(1000);
 
         //Lock
         private readonly object _lock = new();
@@ -122,7 +122,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
             ValueTuple<string, int, HintAlignment> cacheKey = ValueTuple.Create(text, size, alignment);
 
             //Check cache
-            if (Cache.TryGetValue(cacheKey, out IReadOnlyList<LineInfo> cachedResult))
+            if (Cache.TryGet(cacheKey, out IReadOnlyList<LineInfo> cachedResult))
             {
                 return new List<LineInfo>(cachedResult);
             }
@@ -212,8 +212,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 currentChInfos.Clear();
             }
 
-            Cache[cacheKey] = new List<LineInfo>(lines).AsReadOnly();
-            Task.Run(() => Task.Delay(10000).ContinueWith(_ => Cache.TryRemove(cacheKey, out IReadOnlyList<LineInfo> _)));//Remove cache after 10 seconds
+            Cache.Add(cacheKey, new List<LineInfo>(lines).AsReadOnly());
 
             return new List<LineInfo>(lines).AsReadOnly();
         }

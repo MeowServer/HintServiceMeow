@@ -20,7 +20,7 @@ namespace HintServiceMeow.Core.Utilities
     /// </summary>
     internal class CompatibilityAdaptor : ICompatibilityAdaptor
     {
-        private static readonly ConcurrentDictionary<string, IReadOnlyList<Hint>> HintCache = new();
+        private static readonly Cache<string, IReadOnlyList<Hint>> HintCache = new(500);
 
         private readonly ConcurrentDictionary<string, int> _removeTickets = new();
         private readonly TimeSpan _suppressionDuration = TimeSpan.FromSeconds(0.45f);
@@ -83,7 +83,7 @@ namespace HintServiceMeow.Core.Utilities
             try
             {
                 //Check if the hint is already cached
-                if (HintCache.TryGetValue(content, out IReadOnlyList<Hint> cachedHintList))
+                if (HintCache.TryGet(content, out IReadOnlyList<Hint> cachedHintList))
                 {
                     _playerDisplay.InternalClearHint(internalAssemblyName);
                     _playerDisplay.InternalAddHint(internalAssemblyName, cachedHintList);
@@ -98,7 +98,7 @@ namespace HintServiceMeow.Core.Utilities
                 List<Hint> hintList = await Task.Run(() => this.ParseRichTextToHints(content));
 
                 //Cache
-                this.AddToCache(content, new List<Hint>(hintList).AsReadOnly());
+                HintCache.Add(content, new List<Hint>(hintList).AsReadOnly());
 
                 //Make sure for low performance server or if the Duration is shorter than converting time.
                 if (DateTime.Now - startTime > _suppressionDuration || DateTime.Now > expireTime)
@@ -148,26 +148,6 @@ namespace HintServiceMeow.Core.Utilities
             }
 
             return generatedHintList;
-        }
-
-        private void AddToCache(string content, IReadOnlyList<Hint> hintList)
-        {
-            if (!HintCache.TryAdd(content, hintList))
-                return;
-
-            //Remove after certain amount of time
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    await Task.Delay(15000);
-                    HintCache.TryRemove(content, out _);
-                }
-                catch (Exception ex)
-                {
-                    LogTool.Error(ex);
-                }
-            });
         }
     }
 }

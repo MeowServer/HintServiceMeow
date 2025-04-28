@@ -86,6 +86,7 @@
     <Compile Include="Core\Models\TextArea.cs" />
     <Compile Include="Core\Models\Arguments\ContentUpdateArg.cs" />
     <Compile Include="Core\Models\Arguments\UpdateAvailableEventArg.cs" />
+    <Compile Include="Core\Utilities\Cache.cs" />
     <Compile Include="Core\Utilities\DefaultDisplayOutput.cs" />
     <Compile Include="Core\Utilities\Pools\RichTextParserPool.cs" />
     <Compile Include="Core\Utilities\Tools\LogTool.cs" />
