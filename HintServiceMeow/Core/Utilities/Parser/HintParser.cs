@@ -5,7 +5,6 @@ using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities.Pools;
 using HintServiceMeow.Core.Utilities.Tools;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;

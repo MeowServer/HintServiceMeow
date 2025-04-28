@@ -1,12 +1,10 @@
 ﻿using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Utilities.Tools;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace HintServiceMeow.Core.Utilities.Parser
 {

@@ -1,7 +1,6 @@
 ﻿using HintServiceMeow.Core.Models.Hints;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 
@@ -75,7 +74,7 @@ namespace HintServiceMeow.Core.Models
                         if (collection.Remove(hint))
                         {
                             success = true;
-                        }  
+                        }
                     }
                 }
                 else
@@ -89,7 +88,7 @@ namespace HintServiceMeow.Core.Models
                         success = true;
                     }
 
-                    if(!assemblyCollection.Any())
+                    if (!assemblyCollection.Any())
                     {
                         _hintGroups.Remove(assemblyName);
                     }
@@ -137,7 +136,7 @@ namespace HintServiceMeow.Core.Models
                     if (!_hintGroups.TryGetValue(assemblyName, out List<AbstractHint> assemblyCollection))
                         return updatedHints;
 
-                    for(int i = 0; i < assemblyCollection.Count; i++)
+                    for (int i = 0; i < assemblyCollection.Count; i++)
                     {
                         AbstractHint hint = assemblyCollection[i];
 
@@ -151,7 +150,7 @@ namespace HintServiceMeow.Core.Models
                         }
                     }
 
-                    if(!assemblyCollection.Any())
+                    if (!assemblyCollection.Any())
                     {
                         _hintGroups.Remove(assemblyName);
                     }

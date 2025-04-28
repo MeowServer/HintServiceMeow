@@ -2,10 +2,7 @@
 using MEC;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Reflection;
 using System.Threading;
-using System.Timers;
 
 namespace HintServiceMeow.Core.Utilities
 {
@@ -29,7 +26,7 @@ namespace HintServiceMeow.Core.Utilities
                 _actionTimeLock.EnterWriteLock();
                 try
                 {
-                    if(value)
+                    if (value)
                     {
                         _elapsed += DateTime.Now - _startTimeStamp; //Stop Timer
                     }

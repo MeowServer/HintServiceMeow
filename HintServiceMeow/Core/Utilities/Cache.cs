@@ -13,7 +13,7 @@ namespace HintServiceMeow.Core.Utilities
 
         public Cache(int maxSize)
         {
-            if(maxSize < 1)
+            if (maxSize < 1)
                 throw new ArgumentOutOfRangeException(nameof(maxSize), "Cache size must be greater than 0.");
 
             _removeQueueHead = new CacheItem(default, default);
@@ -25,7 +25,7 @@ namespace HintServiceMeow.Core.Utilities
 
         public void Add(TKey key, TItem data)
         {
-            if(key is null)
+            if (key is null)
                 throw new ArgumentNullException(nameof(key));
 
             CacheItem item = new CacheItem(key, data);
@@ -33,7 +33,7 @@ namespace HintServiceMeow.Core.Utilities
             lock (_lock)
             {
                 // Remove the old item
-                if(_cache.TryGetValue(key, out CacheItem oldItem))
+                if (_cache.TryGetValue(key, out CacheItem oldItem))
                 {
                     RemoveFromList(oldItem);
                     _cache.Remove(oldItem.Key);
@@ -91,7 +91,7 @@ namespace HintServiceMeow.Core.Utilities
 
         private void RemoveFromList(CacheItem item)
         {
-            if(item == null || item == _removeQueueHead)
+            if (item == null || item == _removeQueueHead)
                 return;
 
             item.PrevItem.NextItem = item.NextItem;

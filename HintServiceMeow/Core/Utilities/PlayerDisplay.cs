@@ -8,7 +8,6 @@ using HintServiceMeow.Core.Utilities.Tools;
 using MEC;
 using Mirror;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -112,7 +111,7 @@ namespace HintServiceMeow.Core.Utilities
         {
             lock (PlayerDisplayListLock)
             {
-                foreach(PlayerDisplay pd in PlayerDisplayList)
+                foreach (PlayerDisplay pd in PlayerDisplayList)
                 {
                     if (pd is null)
                         continue;
@@ -375,7 +374,7 @@ namespace HintServiceMeow.Core.Utilities
 
         public void RemoveDisplayOutput(IDisplayOutput output)
         {
-            lock(_displayOutputsLock)
+            lock (_displayOutputsLock)
             {
                 _displayOutputs.Remove(output);
             }
