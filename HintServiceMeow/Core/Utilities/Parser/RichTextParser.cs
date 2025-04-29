@@ -1,4 +1,5 @@
 ﻿using HintServiceMeow.Core.Enum;
+using HintServiceMeow.Core.Models;
 using HintServiceMeow.Core.Utilities.Tools;
 using System;
 using System.Collections.Generic;
@@ -607,79 +608,6 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
             align = HintAlignment.Center;
             return false;
-        }
-    }
-
-    internal readonly struct CharacterInfo
-    {
-        public char Character { get; }
-        public float FontSize { get; }
-        public float Width { get; }
-        public float Height { get; }
-        public float VOffset { get; }
-
-        public CharacterInfo(char character, float fontSize, float width, float height, float vOffset)
-        {
-            Character = character;
-            FontSize = fontSize;
-            Width = width;
-            Height = height;
-            VOffset = vOffset;
-        }
-    }
-
-    internal readonly struct LineInfo
-    {
-        /// <summary>
-        /// A list of character info that include all the characters after parsed. Include the line break at the end(if exist).
-        /// </summary>
-        public IReadOnlyList<CharacterInfo> Characters { get; }
-        public HintAlignment Alignment { get; }
-        public float LineHeight { get; }
-        public bool HasLineHeight { get; }
-        public float Pos { get; }
-
-        public string RawText { get; }
-
-        public float Width
-        {
-            get
-            {
-                if (Characters is null || !Characters.Any())
-                    return 0;
-
-                return Characters.Sum(c => c.Width);
-            }
-        }
-        public float Height
-        {
-            get
-            {
-                if (Characters is null || !Characters.Any())
-                    return 0;
-
-                if (HasLineHeight)
-                {
-                    return LineHeight;
-                }
-
-                return Characters.Max(c => c.Height);
-            }
-        }
-
-        public LineInfo(List<CharacterInfo> characters, HintAlignment alignment, float lineHeight, bool hasLineHeight, float pos, string rawText)
-        {
-            if (characters is null)
-                throw new ArgumentNullException(nameof(characters), "Characters cannot be null.");
-
-            Characters = new List<CharacterInfo>(characters).AsReadOnly();
-
-            Alignment = alignment;
-            LineHeight = lineHeight;
-            HasLineHeight = hasLineHeight;
-            Pos = pos;
-
-            RawText = rawText;
         }
     }
 }

@@ -88,6 +88,8 @@
     <Compile Include="Core\Models\Arguments\AutoContentUpdateArg.cs" />
     <Compile Include="Core\Models\Arguments\CompatibilityAdaptorArg.cs" />
     <Compile Include="Core\Models\Arguments\DisplayOutputArg.cs" />
+    <Compile Include="Core\Models\CharacterInfo.cs" />
+    <Compile Include="Core\Models\LineInfo.cs" />
     <Compile Include="Core\Models\TextArea.cs" />
     <Compile Include="Core\Models\Arguments\ContentUpdateArg.cs" />
     <Compile Include="Core\Models\Arguments\UpdateAvailableEventArg.cs" />

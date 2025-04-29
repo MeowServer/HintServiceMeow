@@ -3,6 +3,7 @@ using HintServiceMeow.Core.Utilities.Parser;
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using HintServiceMeow.Core.Models;
 
 namespace HintServiceMeow.Core.Utilities.Pools
 {
