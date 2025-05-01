@@ -25,7 +25,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
         public string ParseToMessage(HintCollection collection)
         {
-            List<IReadOnlyList<AbstractHint>> allGroups = collection.AllGroups.ToList();
+            IReadOnlyList<IReadOnlyList<AbstractHint>> allGroups = collection.AllGroups;
 
             List<TextArea> dynamicHintColliders = new List<TextArea>();
             foreach (AbstractHint h in allGroups.SelectMany(g => g))
@@ -253,4 +253,3 @@ namespace HintServiceMeow.Core.Utilities.Parser
         }
     }
 }
-
