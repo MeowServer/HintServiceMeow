@@ -28,7 +28,7 @@ namespace HintServiceMeow.Core.Models
             {
                 lock (_lock)
                 {
-                    return _hintGroups.Values.Select(x => x.AsReadOnly()).ToList().AsReadOnly();
+                    return _hintGroups.Values.Select(x => x.ToList().AsReadOnly()).ToList().AsReadOnly();
                 }
             }
         }
