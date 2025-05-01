@@ -1,18 +1,18 @@
 ﻿using HintServiceMeow.Core.Enum;
+using HintServiceMeow.Core.Models;
 using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities.Pools;
-
 using System.Collections.Generic;
-using System.Linq;
-using HintServiceMeow.Core.Models;
 
 namespace HintServiceMeow.Core.Utilities.Tools
 {
     /// <summary>
     /// Used to help calculate coordinate for hints
     /// </summary>
-    internal class CoordinateTools
+    internal static class CoordinateTools
     {
+        private const float CanvasHalfWidth = 1200f;
+
         public static float GetYCoordinate(Hint hint, HintVerticalAlign to)
         {
             return GetYCoordinate(hint, hint.YCoordinateAlign, to);
@@ -57,14 +57,15 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         public static float GetXCoordinateWithAlignment(Hint hint, HintAlignment alignment)
         {
+            float width = GetTextWidth(hint);
             float alignOffset;
             switch (alignment)
             {
                 case HintAlignment.Left:
-                    alignOffset = -1200 + GetTextWidth(hint) / 2;
+                    alignOffset = -CanvasHalfWidth + width / 2;
                     break;
                 case HintAlignment.Right:
-                    alignOffset = 1200 - GetTextWidth(hint) / 2;
+                    alignOffset = CanvasHalfWidth - width / 2;
                     break;
                 default:
                     alignOffset = 0;
@@ -83,7 +84,11 @@ namespace HintServiceMeow.Core.Utilities.Tools
         {
             IReadOnlyList<LineInfo> lineInfos = GetLineInfos(text, fontSize, align);
 
-            return lineInfos.Max(x => x.Width);
+            float max = 0f;
+            foreach (var line in lineInfos)
+                if (line.Width > max) max = line.Width;
+
+            return max;
         }
 
         public static float GetTextHeight(AbstractHint hint)
@@ -95,12 +100,13 @@ namespace HintServiceMeow.Core.Utilities.Tools
         {
             IReadOnlyList<LineInfo> lineInfos = GetLineInfos(text, fontSize);
 
-            return lineInfos.Sum(x => x.Height) + lineInfos.Count * lineHeight;
-        }
+            float height = 0f;
+            foreach (var line in lineInfos)
+            {
+                height += line.Height + lineHeight;
+            }
 
-        public static IReadOnlyList<LineInfo> GetLineInfos(Hint hint)
-        {
-            return GetLineInfos(hint.Content.GetText(), hint.FontSize, hint.Alignment);
+            return height > 0 ? height - lineHeight : 0f; // Remove the line height of the last line
         }
 
         public static IReadOnlyList<LineInfo> GetLineInfos(string text, int fontSize, HintAlignment align = HintAlignment.Center)

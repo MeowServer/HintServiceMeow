@@ -58,7 +58,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 if (dynamicHints.Any())
                 {
                     dynamicHints.Sort((a, b) => b.Priority - a.Priority);
-                    
+
                     foreach (DynamicHint dynamicHint in dynamicHints)
                     {
                         Hint handledDH = ParseToHint(dynamicHint, dynamicHintColliders);
@@ -238,7 +238,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 if (hint.XCoordinate != 0) richTextBuilder.AppendFormat("<pos={0:0.#}>", hint.XCoordinate);//X coordinate
                 richTextBuilder.Append("<line-height=0>");//Make sure each line will not affect each other's position
                 if (vOffset != 0) richTextBuilder.AppendFormat("<voffset={0:0.#}>", vOffset);//Y coordinate
-               
+
                 richTextBuilder.Append(line.RawText);//Content
 
                 if (vOffset != 0) richTextBuilder.Append("</voffset>");//End Y coordinate

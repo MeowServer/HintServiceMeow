@@ -18,38 +18,12 @@ namespace HintServiceMeow.Core.Models
 
         public string RawText { get; }
 
-        public float Width
+        public float Width { get; }
+        public float Height { get; }
+
+        public LineInfo(IReadOnlyList<CharacterInfo> characters, HintAlignment alignment, float lineHeight, bool hasLineHeight, float pos, string rawText)
         {
-            get
-            {
-                if (Characters is null || !Characters.Any())
-                    return 0;
-
-                return Characters.Sum(c => c.Width);
-            }
-        }
-        public float Height
-        {
-            get
-            {
-                if (Characters is null || !Characters.Any())
-                    return 0;
-
-                if (HasLineHeight)
-                {
-                    return LineHeight;
-                }
-
-                return Characters.Max(c => c.Height);
-            }
-        }
-
-        public LineInfo(List<CharacterInfo> characters, HintAlignment alignment, float lineHeight, bool hasLineHeight, float pos, string rawText)
-        {
-            if (characters is null)
-                throw new ArgumentNullException(nameof(characters), "Characters cannot be null.");
-
-            Characters = new List<CharacterInfo>(characters).AsReadOnly();
+            Characters = characters ?? throw new ArgumentNullException(nameof(characters), "Characters cannot be null.");
 
             Alignment = alignment;
             LineHeight = lineHeight;
@@ -57,6 +31,17 @@ namespace HintServiceMeow.Core.Models
             Pos = pos;
 
             RawText = rawText;
+
+            if (Characters.Count == 0)
+            {
+                Height = 0;
+                Width = 0;
+            }
+            else
+            {
+                Height = HasLineHeight ? LineHeight : Characters.Max(c => c.Height);
+                Width = Characters.Sum(c => c.Width);
+            }
         }
     }
 }

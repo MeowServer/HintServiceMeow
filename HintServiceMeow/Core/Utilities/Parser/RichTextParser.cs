@@ -222,7 +222,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
             _currentRawLineText.Clear();
 
             LineInfo line = new(
-                chs,
+                chs.AsReadOnly(),
                 align,
                 _lineHeight,
                 _hasLineHeight,
