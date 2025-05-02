@@ -118,7 +118,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
             if (text is null)
                 return new List<LineInfo>();
 
-            ValueTuple<string, int, HintAlignment> cacheKey = ValueTuple.Create(text, size, alignment);
+            ValueTuple<string, float, HintAlignment> cacheKey = ValueTuple.Create(text, size, alignment);
 
             //Check cache
             if (Cache.TryGet(cacheKey, out IReadOnlyList<LineInfo> cachedResult))
