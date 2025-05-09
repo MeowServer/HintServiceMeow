@@ -607,12 +607,12 @@ namespace HintServiceMeow.Core.Utilities
             _hints.ClearHints(name);
         }
 
-        internal IEnumerable<AbstractHint> InternalGetHints(string name)
+        internal IReadOnlyList<AbstractHint> InternalGetHints(string name)
         {
             return _hints.GetHints(name);
         }
 
-        internal IEnumerable<AbstractHint> InternalGetHints(string name, Func<AbstractHint, bool> predicate)
+        internal IReadOnlyList<AbstractHint> InternalGetHints(string name, Func<AbstractHint, bool> predicate)
         {
             return _hints.GetHints(name, predicate);
         }
