@@ -92,7 +92,9 @@ namespace HintServiceMeow.Core.Utilities
 
                 // Return if the content is already outdated
                 if (DateTime.Now > expireTime)
+                {
                     return;
+                }
 
                 ReplaceHint(internalAssemblyName, hintList);
             }
@@ -104,10 +106,10 @@ namespace HintServiceMeow.Core.Utilities
             }
         }
 
-        private void ReplaceHint(string name, IReadOnlyList<Hint> hints)
+        private void ReplaceHint(string assemblyName, IReadOnlyList<Hint> hints)
         {
-            _playerDisplay.InternalClearHint(name);
-            _playerDisplay.InternalAddHint(name, hints);
+            _playerDisplay.InternalClearHint(assemblyName);
+            _playerDisplay.InternalAddHint(assemblyName, hints);
             _playerDisplay.ForceUpdate();//Since all the CompatibilityAdaptor hint is not synced, we need to force update
         }
 
@@ -116,7 +118,9 @@ namespace HintServiceMeow.Core.Utilities
             IReadOnlyList<LineInfo> lineInfoList = RichTextParserPool.ParseText(content, 40);
 
             if (lineInfoList.IsEmpty())
+            {
                 return new List<Hint>();
+            }
 
             float totalHeight = lineInfoList.Sum(x => x.Height);
             float accumulatedHeight = 0f;

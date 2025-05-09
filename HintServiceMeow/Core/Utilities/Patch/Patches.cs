@@ -32,7 +32,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
             return false;
         }
 
-        public static bool ReceiveHintPatch1(ref string text, ref float duration, ref Player __instance)
+        public static bool SendHintPatch1(ref string text, ref float duration, ref Player __instance)
         {
             try
             {
@@ -51,7 +51,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
         }
 
 #pragma warning disable IDE0060 // Remove unused parameter
-        public static bool ReceiveHintPatch2(ref string text, ref HintEffect[] effects, ref float duration, ref Player __instance)
+        public static bool SendHintPatch2(ref string text, ref HintEffect[] effects, ref float duration, ref Player __instance)
         {
             try
             {

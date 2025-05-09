@@ -180,7 +180,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                         lines.Add(GetLineInfo(currentChInfos, _currentLineAlignment));
 
                         //Clear character list
-                        currentChInfos.Clear();
+                        currentChInfos = new List<CharacterInfo>();
 
                         //Set default alignment for next line
                         _currentLineAlignment = _hintAlignmentStack.Any() ? _hintAlignmentStack.Peek() : HintAlignment.Center;
@@ -207,8 +207,6 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
                 if (currentChInfos.Count != 0)
                     lines.Add(GetLineInfo(currentChInfos, _currentLineAlignment));
-
-                currentChInfos.Clear();
             }
 
             Cache.Add(cacheKey, new List<LineInfo>(lines).AsReadOnly());

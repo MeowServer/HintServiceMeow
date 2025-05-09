@@ -14,18 +14,18 @@ namespace HintServiceMeow.Core.Utilities.Patch
 
             //Unpatch all other patches
             MethodInfo hintDisplayMethod = typeof(Hints.HintDisplay).GetMethod(nameof(Hints.HintDisplay.Show));
-            MethodInfo receiveHintMethod1 = typeof(LabApi.Features.Wrappers.Player).GetMethod(nameof(LabApi.Features.Wrappers.Player.SendHint), new[] { typeof(string), typeof(float) });
-            MethodInfo receiveHintMethod2 = typeof(LabApi.Features.Wrappers.Player).GetMethod(nameof(LabApi.Features.Wrappers.Player.SendHint), new[] { typeof(string), typeof(Hints.HintEffect[]), typeof(float) });
+            MethodInfo sendHintMethod1 = typeof(LabApi.Features.Wrappers.Player).GetMethod(nameof(LabApi.Features.Wrappers.Player.SendHint), new[] { typeof(string), typeof(float) });
+            MethodInfo sendHintMethod2 = typeof(LabApi.Features.Wrappers.Player).GetMethod(nameof(LabApi.Features.Wrappers.Player.SendHint), new[] { typeof(string), typeof(Hints.HintEffect[]), typeof(float) });
             Harmony.Unpatch(hintDisplayMethod, HarmonyPatchType.All);
-            Harmony.Unpatch(receiveHintMethod1, HarmonyPatchType.All);
-            Harmony.Unpatch(receiveHintMethod2, HarmonyPatchType.All);
+            Harmony.Unpatch(sendHintMethod1, HarmonyPatchType.All);
+            Harmony.Unpatch(sendHintMethod2, HarmonyPatchType.All);
 
             Type patchType = typeof(Patches);
 
             // Patch the method
             Harmony.Patch(hintDisplayMethod, new HarmonyMethod(patchType.GetMethod(nameof(Patches.HintDisplayPatch))));
-            Harmony.Patch(receiveHintMethod1, new HarmonyMethod(patchType.GetMethod(nameof(Patches.ReceiveHintPatch1))));
-            Harmony.Patch(receiveHintMethod2, new HarmonyMethod(patchType.GetMethod(nameof(Patches.ReceiveHintPatch2))));
+            Harmony.Patch(sendHintMethod1, new HarmonyMethod(patchType.GetMethod(nameof(Patches.SendHintPatch1))));
+            Harmony.Patch(sendHintMethod2, new HarmonyMethod(patchType.GetMethod(nameof(Patches.SendHintPatch2))));
 
 
 #if EXILED
