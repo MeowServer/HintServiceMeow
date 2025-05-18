@@ -20,7 +20,7 @@ namespace HintServiceMeow
         public bool UseHintCompatibilityAdapter { get; set; } = true;
 
         [Description("The assembly that you do not want to included in the Compatibility Adapter. Use command GetCompatAssemblyName to get the name of all the assemblies")]
-        public List<string> DisabledCompatAdapter { get; set; } = new List<string>
+        public List<string> DisabledCompatAdapter { get; set; } = new()
         {
             "Some Plugin",
             "Some Other Plugin"

@@ -7,7 +7,7 @@ namespace HintServiceMeow.Core.Extension
 {
     public static class HintExtension
     {
-        private static readonly ConditionalWeakTable<AbstractHint, TaskScheduler> HideTimers = new ConditionalWeakTable<AbstractHint, TaskScheduler>();
+        private static readonly ConditionalWeakTable<AbstractHint, TaskScheduler> HideTimers = new();
 
         /// <summary>
         /// Set Hint.Hide to true after a delay. If a hiding task is in progress, it will be reset.
@@ -21,7 +21,7 @@ namespace HintServiceMeow.Core.Extension
                 HideTimers.Add(hint, scheduler);
             }
 
-            scheduler.StartAction(delay, TaskScheduler.DelayType.Override);
+            scheduler.ScheduleAction(delay, TaskScheduler.DelayType.Override);
         }
     }
 }

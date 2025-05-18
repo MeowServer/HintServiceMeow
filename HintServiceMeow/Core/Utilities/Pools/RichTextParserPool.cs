@@ -1,6 +1,6 @@
 ﻿using HintServiceMeow.Core.Enum;
+using HintServiceMeow.Core.Models;
 using HintServiceMeow.Core.Utilities.Parser;
-
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
@@ -8,7 +8,7 @@ namespace HintServiceMeow.Core.Utilities.Pools
 {
     internal class RichTextParserPool
     {
-        private static readonly ConcurrentQueue<RichTextParser> RichTextParserQueue = new ConcurrentQueue<RichTextParser>();
+        private static readonly ConcurrentQueue<RichTextParser> RichTextParserQueue = new();
 
         public static RichTextParser Rent()
         {

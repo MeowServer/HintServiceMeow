@@ -7,7 +7,7 @@ namespace HintServiceMeow.Core.Extension
 {
     public static class PlayerDisplayExtension
     {
-        private static readonly ConditionalWeakTable<PlayerDisplay, ConditionalWeakTable<AbstractHint, TaskScheduler>> RemoveTimers = new ConditionalWeakTable<PlayerDisplay, ConditionalWeakTable<AbstractHint, TaskScheduler>>();
+        private static readonly ConditionalWeakTable<PlayerDisplay, ConditionalWeakTable<AbstractHint, TaskScheduler>> RemoveTimers = new();
 
         /// <summary>
         /// Remove a hint after a delay. If a removal task is in progress, it will be reset.
@@ -28,7 +28,7 @@ namespace HintServiceMeow.Core.Extension
                 hintDict.Add(hint, scheduler);
             }
 
-            scheduler.StartAction(delay, TaskScheduler.DelayType.Override);
+            scheduler.ScheduleAction(delay, TaskScheduler.DelayType.Override);
         }
     }
 }

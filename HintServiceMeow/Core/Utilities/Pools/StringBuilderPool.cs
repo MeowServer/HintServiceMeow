@@ -6,13 +6,11 @@ namespace HintServiceMeow.Core.Utilities.Pools
 {
     internal static class StringBuilderPool
     {
-        private static readonly ConcurrentBag<StringBuilder> StringBuilderQueue = new ConcurrentBag<StringBuilder>();
+        private static readonly ConcurrentBag<StringBuilder> StringBuilderQueue = new();
 
         public static StringBuilder Rent(int capacity = 500)
         {
-            StringBuilder sb;
-
-            if (StringBuilderQueue.TryTake(out sb))
+            if (StringBuilderQueue.TryTake(out StringBuilder sb))
             {
                 if (sb.Capacity < capacity)
                     sb.Capacity = capacity;

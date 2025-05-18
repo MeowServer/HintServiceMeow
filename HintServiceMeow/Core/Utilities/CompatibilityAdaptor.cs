@@ -1,12 +1,11 @@
 ﻿using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Interface;
+using HintServiceMeow.Core.Models;
 using HintServiceMeow.Core.Models.Arguments;
 using HintServiceMeow.Core.Models.Hints;
-using HintServiceMeow.Core.Utilities.Parser;
 using HintServiceMeow.Core.Utilities.Pools;
 using HintServiceMeow.Core.Utilities.Tools;
 using MEC;
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -20,12 +19,9 @@ namespace HintServiceMeow.Core.Utilities
     /// </summary>
     internal class CompatibilityAdaptor : ICompatibilityAdaptor
     {
-        private static readonly ConcurrentDictionary<string, IReadOnlyList<Hint>> HintCache = new ConcurrentDictionary<string, IReadOnlyList<Hint>>();
+        private static readonly Cache<string, IReadOnlyList<Hint>> HintCache = new(500);
 
-        private readonly ConcurrentDictionary<string, int> _removeTickets = new ConcurrentDictionary<string, int>();
-        private readonly HashSet<string> _suppressedAssemblies = new HashSet<string>();
-
-        private readonly TimeSpan _suppressionDuration = TimeSpan.FromSeconds(0.45f);
+        private readonly ConcurrentDictionary<string, int> _removeTickets = new();
 
         private readonly PlayerDisplay _playerDisplay;
 
@@ -41,39 +37,29 @@ namespace HintServiceMeow.Core.Utilities
 
             string assemblyName = ev.AssemblyName;
             string content = ev.Content ?? string.Empty;
-            float duration = ev.Duration;
+            float duration = Math.Min(ev.Duration, float.MaxValue - 1f);
 
+            // Record the assembly that is using the compatibility adaptor
             GetCompatAssemblyName.RegisteredAssemblies.Add(assemblyName);
 
             if (PluginConfig.Instance.DisabledCompatAdapter.Contains(assemblyName) //Config limitation
-                || content.Length > ushort.MaxValue //Length limitation
-                || _suppressedAssemblies.Contains(assemblyName)) //Rate limitation
+                || content.Length > ushort.MaxValue) //Length limitation
                 return;
 
-            //Rate limitation
-            _suppressedAssemblies.Add(assemblyName);
-            Timing.CallDelayed((float)_suppressionDuration.TotalSeconds, () => _suppressedAssemblies.Remove(assemblyName));
-
+            // Use internal assembly name to ensure safety
             string internalAssemblyName = "CompatibilityAdaptor-" + assemblyName;
 
-            //For negative duration, clear hint
+            //For negative duration or empty content, clear hint
             if (duration <= 0f || string.IsNullOrEmpty(content))
             {
                 _playerDisplay.InternalClearHint(internalAssemblyName);
                 return;
             }
 
-            duration = Math.Min(duration, float.MaxValue - 1f);
-
             //Create new remove ticket to stop last remove action
-            int removeTicket = 0;
-            _removeTickets.AddOrUpdate(internalAssemblyName, 0, (_, oldValue) =>
-            {
-                removeTicket = oldValue + 1;
-                return removeTicket;
-            });
+            int removeTicket = _removeTickets.AddOrUpdate(internalAssemblyName, 0, (_, oldValue) => oldValue + 1);
 
-            //Stop previous remove action and start the new one
+            //Start the new remove action
             Timing.CallDelayed(duration + 0.1f, () => //Add an extra 0.1 second to prevent blinking
             {
                 //Check if the current remove ticket is same as the one passed in
@@ -81,8 +67,10 @@ namespace HintServiceMeow.Core.Utilities
                     _playerDisplay.InternalClearHint(internalAssemblyName);
             });
 
+            DateTime expireTime = DateTime.Now.AddSeconds(Math.Min(duration, 1f));// Wait for at most 1 second and at least the duration
+
             //Start new remove action, remove after the Duration
-            _ = InternalShowHint(internalAssemblyName, content, DateTime.Now.AddSeconds(duration));
+            _ = InternalShowHint(internalAssemblyName, content, expireTime);
         }
 
         private async Task InternalShowHint(string internalAssemblyName, string content, DateTime expireTime)
@@ -90,30 +78,25 @@ namespace HintServiceMeow.Core.Utilities
             try
             {
                 //Check if the hint is already cached
-                if (HintCache.TryGetValue(content, out IReadOnlyList<Hint> cachedHintList))
+                if (HintCache.TryGet(content, out IReadOnlyList<Hint> cachedHintList))
                 {
-                    _playerDisplay.InternalClearHint(internalAssemblyName);
-                    _playerDisplay.InternalAddHint(internalAssemblyName, cachedHintList);
-                    _playerDisplay.ForceUpdate(); //Since all the CompatibilityAdaptor hint is not synced, we need to force update
-
+                    ReplaceHint(internalAssemblyName, cachedHintList);
                     return;
                 }
 
-                DateTime startTime = DateTime.Now;
-
                 //Parse the content to hints
-                List<Hint> hintList = await Task.Run(() => this.ParseRichTextToHints(content, internalAssemblyName));
+                List<Hint> hintList = await Task.Run(() => this.ParseRichTextToHints(content));
 
                 //Cache
-                this.AddToCache(content, new List<Hint>(hintList).AsReadOnly());
+                HintCache.Add(content, new List<Hint>(hintList).AsReadOnly());
 
-                //Make sure for low performance server or if the Duration is shorter than converting time.
-                if (DateTime.Now - startTime > _suppressionDuration || DateTime.Now > expireTime)
+                // Return if the content is already outdated
+                if (DateTime.Now > expireTime)
+                {
                     return;
+                }
 
-                _playerDisplay.InternalClearHint(internalAssemblyName);
-                _playerDisplay.InternalAddHint(internalAssemblyName, hintList);
-                _playerDisplay.ForceUpdate();//Since all the CompatibilityAdaptor hint is not synced, we need to force update
+                ReplaceHint(internalAssemblyName, hintList);
             }
             catch (Exception ex)
             {
@@ -123,23 +106,32 @@ namespace HintServiceMeow.Core.Utilities
             }
         }
 
-        private List<Hint> ParseRichTextToHints(string content, string internalAssemblyName)
+        private void ReplaceHint(string assemblyName, IReadOnlyList<Hint> hints)
+        {
+            _playerDisplay.InternalClearHint(assemblyName);
+            _playerDisplay.InternalAddHint(assemblyName, hints);
+            _playerDisplay.ForceUpdate();//Since all the CompatibilityAdaptor hint is not synced, we need to force update
+        }
+
+        private List<Hint> ParseRichTextToHints(string content)
         {
             IReadOnlyList<LineInfo> lineInfoList = RichTextParserPool.ParseText(content, 40);
 
-            if (lineInfoList is null || lineInfoList.IsEmpty())
+            if (lineInfoList.IsEmpty())
+            {
                 return new List<Hint>();
+            }
 
             float totalHeight = lineInfoList.Sum(x => x.Height);
             float accumulatedHeight = 0f;
-            List<Hint> generatedHintList = new List<Hint>();
+            List<Hint> result = new();
 
             foreach (LineInfo lineInfo in lineInfoList)
             {
                 //If not empty line, then add hint
                 if (!string.IsNullOrEmpty(lineInfo.RawText.Trim()) && !lineInfo.Characters.IsEmpty())
                 {
-                    generatedHintList.Add(new Hint
+                    result.Add(new Hint
                     {
                         Text = lineInfo.RawText,
                         XCoordinate = lineInfo.Pos,
@@ -154,27 +146,7 @@ namespace HintServiceMeow.Core.Utilities
                 accumulatedHeight += lineInfo.Height;
             }
 
-            return generatedHintList;
-        }
-
-        private void AddToCache(string content, IReadOnlyList<Hint> hintList)
-        {
-            if (!HintCache.TryAdd(content, hintList))
-                return;
-
-            //Remove after certain amount of time
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    await Task.Delay(15000);
-                    HintCache.TryRemove(content, out _);
-                }
-                catch (Exception ex)
-                {
-                    LogTool.Error(ex);
-                }
-            });
+            return result;
         }
     }
 }

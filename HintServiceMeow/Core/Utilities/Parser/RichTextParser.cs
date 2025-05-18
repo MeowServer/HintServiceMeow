@@ -1,12 +1,11 @@
 ﻿using HintServiceMeow.Core.Enum;
+using HintServiceMeow.Core.Models;
 using HintServiceMeow.Core.Utilities.Tools;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace HintServiceMeow.Core.Utilities.Parser
 {
@@ -21,9 +20,9 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
     internal static class Tags
     {
-        private static readonly object Lock = new object();
+        private static readonly object Lock = new();
 
-        private static readonly HashSet<string> AllTags = new HashSet<string>
+        private static readonly HashSet<string> AllTags = new()
         {
             "align", "allcaps", "alpha", "b", "color", "cspace", "font", "font-weight",
             "gradient", "i", "indent", "line-height", "line-indent", "link", "lowercase",
@@ -89,14 +88,14 @@ namespace HintServiceMeow.Core.Utilities.Parser
     {
         private const float DefaultFontSize = 40f;
 
-        private static readonly ConcurrentDictionary<ValueTuple<string, float, HintAlignment>, IReadOnlyList<LineInfo>> Cache = new ConcurrentDictionary<ValueTuple<string, float, HintAlignment>, IReadOnlyList<LineInfo>>();
+        private static readonly Cache<ValueTuple<string, float, HintAlignment>, IReadOnlyList<LineInfo>> Cache = new(1000);
 
         //Lock
-        private readonly object _lock = new object();
+        private readonly object _lock = new();
 
         //Handling
         private int _index = 0;
-        private readonly StringBuilder _currentRawLineText = new StringBuilder(100);
+        private readonly StringBuilder _currentRawLineText = new(100);
 
         //Current line status. Only apply to a single line
         private float _pos = 0;
@@ -105,24 +104,24 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
         //Line status
         private HintAlignment _currentLineAlignment = HintAlignment.Center; //Used since line alignment apply to entire line but can affect multiple line
-        private readonly Stack<HintAlignment> _hintAlignmentStack = new Stack<HintAlignment>();
+        private readonly Stack<HintAlignment> _hintAlignmentStack = new();
 
         //Character status
         private float _vOffset = 0;
         private TextStyle _style = TextStyle.Normal;
-        private readonly Stack<float> _fontSizeStack = new Stack<float>();
-        private readonly List<CaseStyle> _caseStyleStack = new List<CaseStyle>();
-        private readonly List<ScriptStyle> _scriptStyles = new List<ScriptStyle>();
+        private readonly Stack<float> _fontSizeStack = new();
+        private readonly List<CaseStyle> _caseStyleStack = new();
+        private readonly List<ScriptStyle> _scriptStyles = new();
 
         public IReadOnlyList<LineInfo> ParseText(string text, int size = 20, HintAlignment alignment = HintAlignment.Center)
         {
             if (text is null)
                 return new List<LineInfo>();
 
-            ValueTuple<string, int, HintAlignment> cacheKey = ValueTuple.Create(text, size, alignment);
+            ValueTuple<string, float, HintAlignment> cacheKey = ValueTuple.Create(text, size, alignment);
 
             //Check cache
-            if (Cache.TryGetValue(cacheKey, out IReadOnlyList<LineInfo> cachedResult))
+            if (Cache.TryGet(cacheKey, out IReadOnlyList<LineInfo> cachedResult))
             {
                 return new List<LineInfo>(cachedResult);
             }
@@ -132,8 +131,8 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 .Replace("<br>", "\n")
                 .Replace("\\n", "\n");
 
-            List<LineInfo> lines = new List<LineInfo>();
-            List<CharacterInfo> currentChInfos = new List<CharacterInfo>();
+            List<LineInfo> lines = new();
+            List<CharacterInfo> currentChInfos = new();
 
             lock (_lock)
             {
@@ -181,7 +180,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                         lines.Add(GetLineInfo(currentChInfos, _currentLineAlignment));
 
                         //Clear character list
-                        currentChInfos.Clear();
+                        currentChInfos = new List<CharacterInfo>();
 
                         //Set default alignment for next line
                         _currentLineAlignment = _hintAlignmentStack.Any() ? _hintAlignmentStack.Peek() : HintAlignment.Center;
@@ -208,12 +207,9 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
                 if (currentChInfos.Count != 0)
                     lines.Add(GetLineInfo(currentChInfos, _currentLineAlignment));
-
-                currentChInfos.Clear();
             }
 
-            Cache[cacheKey] = new List<LineInfo>(lines).AsReadOnly();
-            Task.Run(() => Task.Delay(10000).ContinueWith(_ => Cache.TryRemove(cacheKey, out IReadOnlyList<LineInfo> _)));//Remove cache after 10 seconds
+            Cache.Add(cacheKey, new List<LineInfo>(lines).AsReadOnly());
 
             return new List<LineInfo>(lines).AsReadOnly();
         }
@@ -223,8 +219,8 @@ namespace HintServiceMeow.Core.Utilities.Parser
             string rawText = _currentRawLineText.ToString();
             _currentRawLineText.Clear();
 
-            LineInfo line = new LineInfo(
-                chs,
+            LineInfo line = new(
+                chs.AsReadOnly(),
                 align,
                 _lineHeight,
                 _hasLineHeight,
@@ -285,7 +281,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 chWidth *= (float)Math.Pow(0.5, _scriptStyles.Count(x => x == ScriptStyle.Subscript));
             }
 
-            CharacterInfo chInfo = new CharacterInfo(
+            CharacterInfo chInfo = new(
                 ch,
                 currentFontSize,
                 chWidth,
@@ -521,21 +517,13 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 float value = float.Parse(lineHeightMatch.Groups[1].Value);
                 string unit = lineHeightMatch.Groups[2].Value;
 
-                switch (unit.ToLower())
+                lineHeight = unit.ToLower() switch
                 {
-                    case "px":
-                        lineHeight = value;
-                        break;
-                    case "%":
-                        lineHeight = DefaultFontSize * value / 100f;
-                        break;
-                    case "em":
-                        lineHeight = DefaultFontSize * value;
-                        break;
-                    default:
-                        lineHeight = value;
-                        break;
-                }
+                    "px" => value,
+                    "%" => DefaultFontSize * value / 100f,
+                    "em" => DefaultFontSize * value,
+                    _ => value
+                };
 
                 return true;
             }
@@ -553,18 +541,12 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 int value = int.Parse(sizeMatch.Groups[1].Value);
                 string unit = sizeMatch.Groups[2].Value;
 
-                switch (unit.ToLower())
+                size = unit.ToLower() switch
                 {
-                    case "px":
-                        size = value;
-                        break;
-                    case "%":
-                        size = DefaultFontSize * value / 100f;
-                        break;
-                    default:
-                        size = value;
-                        break;
-                }
+                    "px" => value,
+                    "%" => DefaultFontSize * value / 100f,
+                    _ => value
+                };
 
                 return true;
             }
@@ -580,14 +562,10 @@ namespace HintServiceMeow.Core.Utilities.Parser
             if (posMatch.Success)
             {
                 int value = int.Parse(posMatch.Groups[1].Value);
-                string unit = posMatch.Groups[2].Value;
+                //string unit = posMatch.Groups[2].Value;
 
-                switch (unit.ToLower())
-                {
-                    default:
-                        pos = value;
-                        break;
-                }
+                //TODO: add unit support
+                pos = value;
 
                 return true;
             }
@@ -603,14 +581,10 @@ namespace HintServiceMeow.Core.Utilities.Parser
             if (vOffsetMatch.Success)
             {
                 int value = int.Parse(vOffsetMatch.Groups[1].Value);
-                string unit = vOffsetMatch.Groups[2].Value;
+                //string unit = vOffsetMatch.Groups[2].Value;
 
-                switch (unit.ToLower())
-                {
-                    default:
-                        vOffset = value;
-                        break;
-                }
+                //TODO: add unit support
+                vOffset = value;
 
                 return true;
             }
@@ -632,79 +606,6 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
             align = HintAlignment.Center;
             return false;
-        }
-    }
-
-internal readonly struct CharacterInfo
-    {
-        public char Character { get; }
-        public float FontSize { get; }
-        public float Width { get; }
-        public float Height { get; }
-        public float VOffset { get; }
-        
-        public CharacterInfo(char character, float fontSize, float width, float height, float vOffset)
-        {
-            Character = character;
-            FontSize = fontSize;
-            Width = width;
-            Height = height;
-            VOffset = vOffset;
-        }
-    }
-
-internal readonly struct LineInfo
-    {
-        /// <summary>
-        /// A list of character info that include all the characters after parsed. Include the line break at the end(if exist).
-        /// </summary>
-        public IReadOnlyList<CharacterInfo> Characters { get; }
-        public HintAlignment Alignment { get; }
-        public float LineHeight { get; }
-        public bool HasLineHeight { get; }
-        public float Pos { get; }
-
-        public string RawText { get; }
-
-        public float Width
-        {
-            get
-            {
-                if (Characters is null || !Characters.Any())
-                    return 0;
-
-                return Characters.Sum(c => c.Width);
-            }
-        }
-        public float Height
-        {
-            get
-            {
-                if (Characters is null || !Characters.Any())
-                    return 0;
-
-                if (HasLineHeight)
-                {
-                    return LineHeight;
-                }
-
-                return Characters.Max(c => c.Height);
-            }
-        }
-
-        public LineInfo(List<CharacterInfo> characters, HintAlignment alignment, float lineHeight, bool hasLineHeight, float pos, string rawText)
-        {
-            if (characters is null)
-                throw new ArgumentNullException(nameof(characters), "Characters cannot be null.");
-
-            Characters = new List<CharacterInfo>(characters).AsReadOnly();
-
-            Alignment = alignment;
-            LineHeight = lineHeight;
-            HasLineHeight = hasLineHeight;
-            Pos = pos;
-
-            RawText = rawText;
         }
     }
 }

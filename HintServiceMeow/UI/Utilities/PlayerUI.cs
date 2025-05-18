@@ -4,18 +4,14 @@ using System.Linq;
 
 namespace HintServiceMeow.UI.Utilities
 {
-    public class PlayerUI
+    public class PlayerUI : Core.Interface.IDestructible
     {
-        private static readonly HashSet<PlayerUI> PlayerUIList = new HashSet<PlayerUI>();
-
-        private object _lock = new object();
+        private static readonly HashSet<PlayerUI> PlayerUIList = new();
 
         public ReferenceHub ReferenceHub { get; }
         public PlayerDisplay PlayerDisplay { get; }
 
         public CommonHint CommonHint { get; }
-
-        //public Style Style { get; }
 
         #region Constructor and Destructors Methods
 
@@ -41,11 +37,16 @@ namespace HintServiceMeow.UI.Utilities
             if (ui == null)
                 return;
 
-            //Destruct Components
-            ui.CommonHint.Destruct();
+            ((Core.Interface.IDestructible)ui).Destruct();
 
             //Remove from list
             PlayerUIList.Remove(ui);
+        }
+
+        void Core.Interface.IDestructible.Destruct()
+        {
+            //Destruct Components
+            ((Core.Interface.IDestructible)CommonHint).Destruct();
         }
 
         internal static void ClearInstance()
@@ -53,7 +54,7 @@ namespace HintServiceMeow.UI.Utilities
             //Destruct Components
             foreach (PlayerUI ui in PlayerUIList)
             {
-                ui.CommonHint.Destruct();
+                ((Core.Interface.IDestructible)ui.CommonHint).Destruct();
             }
 
             //Clear the list
@@ -64,14 +65,28 @@ namespace HintServiceMeow.UI.Utilities
 
         public static PlayerUI Get(ReferenceHub referenceHub)
         {
+            if (referenceHub is null)
+                throw new System.ArgumentNullException(nameof(referenceHub));
+
             PlayerUI ui = PlayerUIList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
 
             return ui ?? new PlayerUI(referenceHub);
         }
 
+        public static PlayerUI Get(LabApi.Features.Wrappers.Player player)
+        {
+            if (player is null)
+                throw new System.ArgumentNullException(nameof(player));
+
+            return Get(player.ReferenceHub);
+        }
+
 #if EXILED
         public static PlayerUI Get(Exiled.API.Features.Player player)
         {
+            if (player is null)
+                throw new System.ArgumentNullException(nameof(player));
+
             return Get(player.ReferenceHub);
         }
 #endif

@@ -2,8 +2,6 @@
 using HintServiceMeow.Core.Utilities.Tools;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 
 namespace HintServiceMeow.Core.Utilities
 {
@@ -12,78 +10,83 @@ namespace HintServiceMeow.Core.Utilities
     /// </summary>
     internal class UpdateAnalyzer : IUpdateAnalyser
     {
-        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
+        private readonly object _lock = new();
 
-        private readonly TimeSpan _leastInterval = TimeSpan.FromMilliseconds(50f);
-        private readonly List<DateTime> _updateTimestamps = new List<DateTime>();
+        private static readonly TimeSpan LeastInterval = TimeSpan.FromMilliseconds(50);
+        private static readonly TimeSpan WindowInterval = TimeSpan.FromSeconds(30);
+
+        private DateTime _lastUpdateTime = DateTime.MinValue; // Last time the update was called
+        private readonly Queue<DateTime> _updateTimestamps = new(100);
 
         private DateTime _cachedTime = DateTime.MaxValue;
 
         public void OnUpdate()
         {
-            _lock.EnterWriteLock();
-
-            try
+            lock (_lock)
             {
                 DateTime now = DateTime.Now;
 
                 //Check if the Interval is too short
-                if (!_updateTimestamps.IsEmpty() && now - _updateTimestamps.Last() < _leastInterval)
+                if (now - _lastUpdateTime < LeastInterval)
                     return;
 
                 //Add timestamp and remove outdated ones
-                _updateTimestamps.Add(now);
-                _updateTimestamps.RemoveAll(x => now - x > TimeSpan.FromSeconds(30));
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
+                _lastUpdateTime = now;
+                _updateTimestamps.Enqueue(now);
+                while (now - _updateTimestamps.Peek() > WindowInterval)
+                {
+                    _updateTimestamps.Dequeue();
+                }
+
+                _cachedTime = DateTime.MaxValue; // Reset cached time
             }
         }
 
         public DateTime EstimateNextUpdate()
         {
-            _lock.EnterReadLock();
-
-            try
+            lock (_lock)
             {
-                if (_updateTimestamps.Count <= 1)
+                try
                 {
-                    return DateTime.MaxValue;
-                }
+                    if (_updateTimestamps.Count <= 1)
+                    {
+                        return DateTime.MaxValue;
+                    }
 
-                if (_cachedTime != DateTime.MaxValue)
-                {
+                    if (_cachedTime != DateTime.MaxValue)
+                    {
+                        return _cachedTime;
+                    }
+
+                    long baseT = _updateTimestamps.Peek().Ticks;
+                    int n = _updateTimestamps.Count;
+                    double sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+                    int i = 0;
+
+                    foreach (DateTime dt in _updateTimestamps)
+                    {
+                        double x = i++;
+                        double y = dt.Ticks - baseT;
+                        sumX += x;
+                        sumY += y;
+                        sumXY += x * y;
+                        sumXX += x * x;
+                    }
+
+                    double meanX = sumX / n;
+                    double meanY = sumY / n;
+
+                    double w1 = (sumXY - n * meanX * meanY) / (sumXX - n * meanX * meanX);
+                    double w0 = meanY - w1 * meanX;
+
+                    _cachedTime = new DateTime((long)(baseT + w1 * (n + 1) + w0));
                     return _cachedTime;
                 }
-
-                long baseTicks = _updateTimestamps.First().Ticks;
-                List<double> timeOffsets = _updateTimestamps.Select(date => (double)(date.Ticks - baseTicks)).ToList();
-                List<int> xValues = Enumerable.Range(0, timeOffsets.Count).ToList();
-
-                double avgX = xValues.Average();
-                double avgY = timeOffsets.Average();
-
-                double sumXY = xValues.Zip(timeOffsets, (x, y) => (x - avgX) * (y - avgY)).Sum();
-                double sumXX = xValues.Sum(x => Math.Pow(x - avgX, 2));
-
-                double slope = sumXY / sumXX;
-                double intercept = avgY - slope * avgX;
-
-                double nextOffset = slope * timeOffsets.Count + intercept;
-
-                MainThreadDispatcher.Dispatch(() => _cachedTime = DateTime.MaxValue);
-                _cachedTime = new DateTime((long)(baseTicks + nextOffset));
-                return _cachedTime;
-            }
-            catch (Exception ex)
-            {
-                LogTool.Error(ex);
-                return DateTime.MaxValue;
-            }
-            finally
-            {
-                _lock.ExitReadLock();
+                catch (Exception ex)
+                {
+                    LogTool.Error(ex);
+                    return DateTime.MaxValue;
+                }
             }
         }
     }

@@ -4,6 +4,8 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -19,7 +21,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
         private const float BaseFontSize = 34.7f;
         private const float DefaultFontWidth = 67.81861f;
 
-        private static readonly ConcurrentDictionary<char, float> ChWidth = new ConcurrentDictionary<char, float>();
+        private static readonly ConcurrentDictionary<char, float> ChWidth = new();
 
         static FontTool()
         {
@@ -27,8 +29,10 @@ namespace HintServiceMeow.Core.Utilities.Tools
             {
                 try
                 {
-                    using(Stream infoStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("HintServiceMeow.TextWidth"))
-                    using (StreamReader reader = new StreamReader(infoStream))
+                    using (Stream infoStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("HintServiceMeow.TextWidth"))
+                    using (ZipArchive archive = new ZipArchive(infoStream, ZipArchiveMode.Read))
+                    using (var entryStream = archive.Entries.First(x => x.Name == "TextWidth").Open())
+                    using (var reader = new StreamReader(entryStream))
                     {
                         Dictionary<int, float> dictionary = new DeserializerBuilder().Build().Deserialize<Dictionary<int, float>>(reader);
 

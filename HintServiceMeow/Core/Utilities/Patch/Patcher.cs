@@ -4,28 +4,28 @@ using System.Reflection;
 
 namespace HintServiceMeow.Core.Utilities.Patch
 {
-    internal static class Patcher
+    public static class Patcher
     {
-        private static Harmony Harmony { get; set; }
+        public static Harmony Harmony { get; private set; }
 
-        public static void Patch()
+        internal static void Patch()
         {
             Harmony = new Harmony("HintServiceMeowHarmony" + Guid.NewGuid());
 
             //Unpatch all other patches
             MethodInfo hintDisplayMethod = typeof(Hints.HintDisplay).GetMethod(nameof(Hints.HintDisplay.Show));
-            MethodInfo receiveHintMethod1 = typeof(PluginAPI.Core.Player).GetMethod(nameof(PluginAPI.Core.Player.ReceiveHint), new[] { typeof(string), typeof(float) });
-            MethodInfo receiveHintMethod2 = typeof(PluginAPI.Core.Player).GetMethod(nameof(PluginAPI.Core.Player.ReceiveHint), new[] { typeof(string), typeof(Hints.HintEffect[]), typeof(float) });
+            MethodInfo sendHintMethod1 = typeof(LabApi.Features.Wrappers.Player).GetMethod(nameof(LabApi.Features.Wrappers.Player.SendHint), new[] { typeof(string), typeof(float) });
+            MethodInfo sendHintMethod2 = typeof(LabApi.Features.Wrappers.Player).GetMethod(nameof(LabApi.Features.Wrappers.Player.SendHint), new[] { typeof(string), typeof(Hints.HintEffect[]), typeof(float) });
             Harmony.Unpatch(hintDisplayMethod, HarmonyPatchType.All);
-            Harmony.Unpatch(receiveHintMethod1, HarmonyPatchType.All);
-            Harmony.Unpatch(receiveHintMethod2, HarmonyPatchType.All);
+            Harmony.Unpatch(sendHintMethod1, HarmonyPatchType.All);
+            Harmony.Unpatch(sendHintMethod2, HarmonyPatchType.All);
 
             Type patchType = typeof(Patches);
 
             // Patch the method
             Harmony.Patch(hintDisplayMethod, new HarmonyMethod(patchType.GetMethod(nameof(Patches.HintDisplayPatch))));
-            Harmony.Patch(receiveHintMethod1, new HarmonyMethod(patchType.GetMethod(nameof(Patches.ReceiveHintPatch1))));
-            Harmony.Patch(receiveHintMethod2, new HarmonyMethod(patchType.GetMethod(nameof(Patches.ReceiveHintPatch2))));
+            Harmony.Patch(sendHintMethod1, new HarmonyMethod(patchType.GetMethod(nameof(Patches.SendHintPatch1))));
+            Harmony.Patch(sendHintMethod2, new HarmonyMethod(patchType.GetMethod(nameof(Patches.SendHintPatch2))));
 
 
 #if EXILED
@@ -43,7 +43,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
 #endif
         }
 
-        public static void Unpatch()
+        internal static void Unpatch()
         {
             Harmony?.UnpatchAll();
         }

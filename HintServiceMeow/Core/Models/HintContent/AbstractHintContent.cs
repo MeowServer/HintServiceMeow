@@ -1,4 +1,4 @@
-﻿using HintServiceMeow.Core.Models.Hints;
+﻿using HintServiceMeow.Core.Models.Arguments;
 using HintServiceMeow.Core.Utilities.Tools;
 using System;
 
@@ -22,7 +22,7 @@ namespace HintServiceMeow.Core.Models.HintContent
             }
         }
 
-        public abstract void TryUpdate(AbstractHint.TextUpdateArg ev);
+        public abstract void TryUpdate(ContentUpdateArg ev);
 
         public abstract string GetText();
     }

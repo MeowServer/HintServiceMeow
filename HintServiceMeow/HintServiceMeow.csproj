@@ -11,6 +11,7 @@
     <AssemblyName>HintServiceMeow</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <langVersion>latest</langVersion>
     <Deterministic>true</Deterministic>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -21,7 +22,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DebugType>full</DebugType>
     <PlatformTarget>x64</PlatformTarget>
-    <LangVersion>9.0</LangVersion>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
@@ -35,50 +35,34 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="0Harmony, Version=2.3.5.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="0Harmony, Version=2.3.6.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Lib.Harmony.2.3.6\lib\net48\0Harmony.dll</HintPath>
+    </Reference>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>..\..\Dependencies\LabAPI\Assembly-CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>..\..\Dependencies\LabAPI\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
+    <Reference Include="Assembly-CSharp-Publicized, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\x64\Debug\0Harmony.dll</HintPath>
+      <HintPath>..\..\Dependencies\Master\Assembly-CSharp-Publicized.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ExMod.Exiled.9.5.1\lib\net48\Assembly-CSharp-Publicized.dll</HintPath>
+    <Reference Include="CommandSystem.Core">
+      <HintPath>..\..\Dependencies\LabAPI\CommandSystem.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\SCPSL插件依赖\Master\Assembly-CSharp-firstpass.dll</HintPath>
+    <Reference Include="Exiled.API">
+      <HintPath>..\..\Dependencies\Exiled\V9.6.0 beta 5\Exiled.API.dll</HintPath>
     </Reference>
-    <Reference Include="CommandSystem.Core, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ExMod.Exiled.9.5.1\lib\net48\CommandSystem.Core.dll</HintPath>
+    <Reference Include="Exiled.Events">
+      <HintPath>..\..\Dependencies\Exiled\V9.6.0 beta 5\Exiled.Events.dll</HintPath>
     </Reference>
-    <Reference Include="Exiled.API, Version=9.5.1.0, Culture=neutral, processorArchitecture=Amd64">
-      <HintPath>..\packages\ExMod.Exiled.9.5.1\lib\net48\Exiled.API.dll</HintPath>
-    </Reference>
-    <Reference Include="Exiled.CreditTags, Version=9.5.1.0, Culture=neutral, processorArchitecture=Amd64">
-      <HintPath>..\packages\ExMod.Exiled.9.5.1\lib\net48\Exiled.CreditTags.dll</HintPath>
-    </Reference>
-    <Reference Include="Exiled.CustomItems, Version=9.5.1.0, Culture=neutral, processorArchitecture=Amd64">
-      <HintPath>..\packages\ExMod.Exiled.9.5.1\lib\net48\Exiled.CustomItems.dll</HintPath>
-    </Reference>
-    <Reference Include="Exiled.CustomRoles, Version=9.5.1.0, Culture=neutral, processorArchitecture=Amd64">
-      <HintPath>..\packages\ExMod.Exiled.9.5.1\lib\net48\Exiled.CustomRoles.dll</HintPath>
-    </Reference>
-    <Reference Include="Exiled.Events, Version=9.5.1.0, Culture=neutral, processorArchitecture=Amd64">
-      <HintPath>..\packages\ExMod.Exiled.9.5.1\lib\net48\Exiled.Events.dll</HintPath>
-    </Reference>
-    <Reference Include="Exiled.Loader, Version=9.5.1.0, Culture=neutral, processorArchitecture=Amd64">
-      <HintPath>..\packages\ExMod.Exiled.9.5.1\lib\net48\Exiled.Loader.dll</HintPath>
-    </Reference>
-    <Reference Include="Exiled.Permissions, Version=9.5.1.0, Culture=neutral, processorArchitecture=Amd64">
-      <HintPath>..\packages\ExMod.Exiled.9.5.1\lib\net48\Exiled.Permissions.dll</HintPath>
+    <Reference Include="LabApi">
+      <HintPath>..\..\Dependencies\LabAPI\LabApi.dll</HintPath>
     </Reference>
     <Reference Include="Mirror, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\SCPSL插件依赖\Master\Mirror.dll</HintPath>
-    </Reference>
-    <Reference Include="NorthwoodLib, Version=1.3.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ExMod.Exiled.9.5.1\lib\net48\NorthwoodLib.dll</HintPath>
-    </Reference>
-    <Reference Include="PluginAPI, Version=13.1.5.0, Culture=neutral, processorArchitecture=Amd64">
-      <HintPath>..\packages\ExMod.Exiled.9.5.1\lib\net48\PluginAPI.dll</HintPath>
+      <HintPath>..\..\Dependencies\LabAPI\Mirror.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -87,20 +71,33 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
+    <Reference Include="System.IO.Compression, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IO.Compression.4.3.0\lib\net46\System.IO.Compression.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\SCPSL插件依赖\Master\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>..\..\Dependencies\LabAPI\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
-    <Reference Include="YamlDotNet, Version=11.0.0.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e, processorArchitecture=MSIL">
-      <HintPath>..\packages\ExMod.Exiled.9.5.1\lib\net48\YamlDotNet.dll</HintPath>
+    <Reference Include="YamlDotNet, Version=16.0.0.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e, processorArchitecture=MSIL">
+      <HintPath>..\packages\YamlDotNet.16.3.0\lib\net47\YamlDotNet.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Interface\ICompatibilityAdaptor.cs" />
+    <Compile Include="Core\Interface\IDestructible.cs" />
     <Compile Include="Core\Interface\IDisplayOutput.cs" />
     <Compile Include="Core\Interface\IHintParser.cs" />
+    <Compile Include="Core\Models\Arguments\AutoContentUpdateArg.cs" />
     <Compile Include="Core\Models\Arguments\CompatibilityAdaptorArg.cs" />
     <Compile Include="Core\Models\Arguments\DisplayOutputArg.cs" />
+    <Compile Include="Core\Models\CharacterInfo.cs" />
+    <Compile Include="Core\Models\LineInfo.cs" />
+    <Compile Include="Core\Models\TextArea.cs" />
+    <Compile Include="Core\Models\Arguments\ContentUpdateArg.cs" />
+    <Compile Include="Core\Models\Arguments\UpdateAvailableEventArg.cs" />
+    <Compile Include="Core\Utilities\Cache.cs" />
     <Compile Include="Core\Utilities\DefaultDisplayOutput.cs" />
     <Compile Include="Core\Utilities\Pools\RichTextParserPool.cs" />
     <Compile Include="Core\Utilities\Tools\LogTool.cs" />
@@ -139,12 +136,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="UpdateLog.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
     <None Include="packages.config" />
     <EmbeddedResource Include="TextWidth" />
   </ItemGroup>
   <ItemGroup />
-  <ItemGroup>
-    <Content Include="UpdateLog.txt" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

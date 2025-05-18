@@ -1,4 +1,4 @@
-﻿using HintServiceMeow.Core.Models.Hints;
+﻿using HintServiceMeow.Core.Models.Arguments;
 
 namespace HintServiceMeow.Core.Models.HintContent
 {
@@ -27,8 +27,6 @@ namespace HintServiceMeow.Core.Models.HintContent
 
         public override string GetText() => Text;
 
-        public override void TryUpdate(AbstractHint.TextUpdateArg ev)
-        {
-        }
+        public override void TryUpdate(ContentUpdateArg ev) { }
     }
 }

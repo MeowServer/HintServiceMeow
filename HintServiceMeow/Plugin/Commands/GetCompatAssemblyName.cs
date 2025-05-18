@@ -9,7 +9,7 @@ namespace HintServiceMeow
     [CommandHandler(typeof(RemoteAdminCommandHandler))]
     internal class GetCompatAssemblyName : ICommand
     {
-        internal static readonly HashSet<string> RegisteredAssemblies = new HashSet<string>();
+        internal static readonly HashSet<string> RegisteredAssemblies = new();
 
         public string Command => "GetCompatAssemblyName";
 
