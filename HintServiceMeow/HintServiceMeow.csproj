@@ -2,6 +2,9 @@
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
+	<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	<PackageProjectUrl>https://github.com/MeowServer/HintServiceMeow</PackageProjectUrl>
+	<RepositoryUrl>https://github.com/MeowServer/HintServiceMeow</RepositoryUrl>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{097B585F-438D-4D50-A8AC-0FE0E3A7DE77}</ProjectGuid>
@@ -18,7 +21,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\x64\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DefineConstants>TRACE;EXILED</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DebugType>full</DebugType>
     <PlatformTarget>x64</PlatformTarget>
@@ -39,30 +42,29 @@
       <HintPath>..\packages\Lib.Harmony.2.3.6\lib\net48\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\Dependencies\LabAPI\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\..\Dependencies\14.1.0\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
-      <HintPath>..\..\Dependencies\LabAPI\Assembly-CSharp-firstpass.dll</HintPath>
+      <HintPath>..\..\Dependencies\14.1.0\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp-Publicized, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Dependencies\Master\Assembly-CSharp-Publicized.dll</HintPath>
+    <Reference Include="Assembly-CSharp-publicized">
+      <HintPath>..\..\Dependencies\14.1.0\Assembly-CSharp-publicized.dll</HintPath>
     </Reference>
     <Reference Include="CommandSystem.Core">
-      <HintPath>..\..\Dependencies\LabAPI\CommandSystem.Core.dll</HintPath>
+      <HintPath>..\..\Dependencies\14.1.0\CommandSystem.Core.dll</HintPath>
     </Reference>
     <Reference Include="Exiled.API">
-      <HintPath>..\..\Dependencies\Exiled\V9.6.0 beta 5\Exiled.API.dll</HintPath>
+      <HintPath>..\..\Dependencies\Exiled 9.6.0\Exiled.API.dll</HintPath>
     </Reference>
     <Reference Include="Exiled.Events">
-      <HintPath>..\..\Dependencies\Exiled\V9.6.0 beta 5\Exiled.Events.dll</HintPath>
+      <HintPath>..\..\Dependencies\Exiled 9.6.0\Exiled.Events.dll</HintPath>
     </Reference>
     <Reference Include="LabApi">
-      <HintPath>..\..\Dependencies\LabAPI\LabApi.dll</HintPath>
+      <HintPath>..\..\Dependencies\14.1.0\LabApi.dll</HintPath>
     </Reference>
     <Reference Include="Mirror, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Dependencies\LabAPI\Mirror.dll</HintPath>
+      <HintPath>..\..\Dependencies\14.1.0\Mirror.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -78,7 +80,7 @@
     </Reference>
     <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Dependencies\LabAPI\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>..\..\Dependencies\14.1.0\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="YamlDotNet, Version=16.0.0.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e, processorArchitecture=MSIL">
       <HintPath>..\packages\YamlDotNet.16.3.0\lib\net47\YamlDotNet.dll</HintPath>
@@ -139,6 +141,9 @@
     <Content Include="UpdateLog.txt" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="UpdateLog.txt">
+		<Pack>false</Pack>
+	 </None>
     <None Include="App.config" />
     <None Include="packages.config" />
     <EmbeddedResource Include="TextWidth" />
