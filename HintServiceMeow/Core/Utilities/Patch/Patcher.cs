@@ -8,7 +8,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
     {
         public static Harmony Harmony { get; private set; }
 
-        internal static void Patch()
+        public static void Patch()
         {
             Harmony = new Harmony("HintServiceMeowHarmony" + Guid.NewGuid());
 
@@ -43,7 +43,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
 #endif
         }
 
-        internal static void Unpatch()
+        public static void Unpatch()
         {
             Harmony?.UnpatchAll();
         }
