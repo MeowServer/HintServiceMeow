@@ -469,3 +469,4 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+HintServiceMeow/nuget.exe
