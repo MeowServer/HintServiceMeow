@@ -44,9 +44,6 @@
     <Reference Include="Mirror">
       <HintPath>..\..\Dependencies\14.1.0\Mirror.dll</HintPath>
     </Reference>
-    <Reference Include="PluginAPI, Version=13.1.5.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\ExMod.Exiled.9.5.2\lib\net48\PluginAPI.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.IO.Compression, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
