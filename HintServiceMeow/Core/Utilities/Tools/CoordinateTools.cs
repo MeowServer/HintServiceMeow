@@ -16,7 +16,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         public static float GetYCoordinate(Hint hint, HintVerticalAlign to)
         {
-            if(hint == null)
+            if (hint == null)
                 throw new ArgumentNullException(nameof(hint), "Hint cannot be null.");
 
             return GetYCoordinate(hint, hint.YCoordinateAlign, to);
@@ -24,7 +24,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         public static float GetYCoordinate(Hint hint, HintVerticalAlign from, HintVerticalAlign to)
         {
-            if(hint == null)
+            if (hint == null)
                 throw new ArgumentNullException(nameof(hint), "Hint cannot be null.");
 
             return GetYCoordinate(hint.YCoordinate, GetTextHeight(hint), from, to);
@@ -32,7 +32,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         public static float GetYCoordinate(float rawYCoordinate, float textHeight, HintVerticalAlign from, HintVerticalAlign to)
         {
-            if(from == to)
+            if (from == to)
                 return rawYCoordinate;
 
             float offset = 0;
@@ -62,7 +62,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         public static float GetXCoordinateWithAlignment(Hint hint)
         {
-            if(hint == null)
+            if (hint == null)
                 throw new ArgumentNullException(nameof(hint), "Hint cannot be null.");
 
             return GetXCoordinateWithAlignment(hint, hint.Alignment);
@@ -90,7 +90,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         public static float GetTextWidth(AbstractHint hint)
         {
-            if(hint == null)
+            if (hint == null)
                 throw new ArgumentNullException(nameof(hint), "Hint cannot be null.");
 
             return GetTextWidth(hint.Content.GetText(), hint.FontSize);
@@ -112,7 +112,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         public static float GetTextHeight(AbstractHint hint)
         {
-            if(hint == null)
+            if (hint == null)
                 throw new ArgumentNullException(nameof(hint), "Hint cannot be null.");
 
             return GetTextHeight(hint.Content.GetText(), hint.FontSize, hint.LineHeight);
@@ -120,10 +120,10 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         public static float GetTextHeight(string text, int fontSize, float lineHeight)
         {
-            if(fontSize < 0)
+            if (fontSize < 0)
                 throw new ArgumentOutOfRangeException(nameof(fontSize), "Font size must be greater than zero.");
-            
-            if(lineHeight < 0)
+
+            if (lineHeight < 0)
                 throw new ArgumentOutOfRangeException(nameof(lineHeight), "Line height cannot be negative.");
 
             IReadOnlyList<LineInfo> lineInfos = GetLineInfos(text, fontSize);
@@ -139,7 +139,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         public static IReadOnlyList<LineInfo> GetLineInfos(string text, int fontSize, HintAlignment align = HintAlignment.Center)
         {
-            if(text == null)
+            if (text == null)
                 throw new ArgumentException("Text cannot be null or empty.", nameof(text));
 
             return RichTextParserPool.ParseText(text, fontSize, align);

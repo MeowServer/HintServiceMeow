@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace HintServiceMeow.Core.Utilities.Tools
@@ -40,7 +37,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         public void Enqueue(Func<Task> task)
         {
-            if(task == null)
+            if (task == null)
                 throw new ArgumentNullException(nameof(task));
 
             var wrapper = new TaskPatch(task);
@@ -49,8 +46,8 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         public Task<T> Enqueue<T>(Func<Task<T>> task)
         {
-            if(task == null) 
-                throw new ArgumentNullException(nameof (task));
+            if (task == null)
+                throw new ArgumentNullException(nameof(task));
 
             var wrapper = new TaskPatch<T>(task);
             _taskQueue.Add(wrapper);
