@@ -10,6 +10,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace HintServiceMeow.Core.Utilities
@@ -21,7 +22,8 @@ namespace HintServiceMeow.Core.Utilities
     {
         private static readonly Cache<string, IReadOnlyList<Hint>> HintCache = new(500);
 
-        private readonly ConcurrentDictionary<string, int> _removeTickets = new();
+        private static readonly Dictionary<string, CoroutineHandle> RemoveHandles = new();
+        private static readonly object RemoveHandlesLock = new();
 
         private readonly PlayerDisplay _playerDisplay;
 
@@ -56,16 +58,21 @@ namespace HintServiceMeow.Core.Utilities
                 return;
             }
 
-            //Create new remove ticket to stop last remove action
-            int removeTicket = _removeTickets.AddOrUpdate(internalAssemblyName, 0, (_, oldValue) => oldValue + 1);
-
-            //Start the new remove action
-            Timing.CallDelayed(duration + 0.1f, () => //Add an extra 0.1 second to prevent blinking
+            lock (RemoveHandlesLock)
             {
-                //Check if the current remove ticket is same as the one passed in
-                if (_removeTickets.TryGetValue(internalAssemblyName, out int currentRemoveTicket) && currentRemoveTicket == removeTicket)
-                    _playerDisplay.InternalClearHint(internalAssemblyName);
-            });
+                if (RemoveHandles.TryGetValue(internalAssemblyName, out var oldHandle))
+                    Timing.KillCoroutines(oldHandle);
+
+                RemoveHandles[internalAssemblyName] =
+                    Timing.CallDelayed(duration + 0.1f, () =>
+                    {
+                        _playerDisplay.InternalClearHint(internalAssemblyName);
+                        lock (RemoveHandlesLock)
+                        {
+                            RemoveHandles.Remove(internalAssemblyName);
+                        }
+                    });
+            }
 
             DateTime expireTime = DateTime.Now.AddSeconds(Math.Min(duration, 1f));// Wait for at most 1 second and at least the duration
 
@@ -78,25 +85,25 @@ namespace HintServiceMeow.Core.Utilities
             try
             {
                 //Check if the hint is already cached
-                if (HintCache.TryGet(content, out IReadOnlyList<Hint> cachedHintList))
+                if (HintCache.TryGet(content, out IReadOnlyList<Hint> cachedHintList2))
                 {
-                    ReplaceHint(internalAssemblyName, cachedHintList);
+                    ReplaceHint(internalAssemblyName, cachedHintList2);
                     return;
                 }
 
                 //Parse the content to hints
-                List<Hint> hintList = await Task.Run(() => this.ParseRichTextToHints(content));
+                IReadOnlyList<Hint> hintList = await MultithreadDispatcher.Instance.
+                    Enqueue(async () => this.ParseRichTextToHints(content))
+                    .ConfigureAwait(false);
 
-                //Cache
-                HintCache.Add(content, new List<Hint>(hintList).AsReadOnly());
+                //Add result to cache
+                HintCache.Add(content, hintList);
 
-                // Return if the content is already outdated
-                if (DateTime.Now > expireTime)
+                // Update if the content is not outdated
+                if (DateTime.Now < expireTime)
                 {
-                    return;
+                    ReplaceHint(internalAssemblyName, hintList);
                 }
-
-                ReplaceHint(internalAssemblyName, hintList);
             }
             catch (Exception ex)
             {
@@ -113,7 +120,7 @@ namespace HintServiceMeow.Core.Utilities
             _playerDisplay.ForceUpdate();//Since all the CompatibilityAdaptor hint is not synced, we need to force update
         }
 
-        private List<Hint> ParseRichTextToHints(string content)
+        private IReadOnlyList<Hint> ParseRichTextToHints(string content)
         {
             IReadOnlyList<LineInfo> lineInfoList = RichTextParserPool.ParseText(content, 40);
 
@@ -146,7 +153,7 @@ namespace HintServiceMeow.Core.Utilities
                 accumulatedHeight += lineInfo.Height;
             }
 
-            return result;
+            return result.AsReadOnly();
         }
     }
 }

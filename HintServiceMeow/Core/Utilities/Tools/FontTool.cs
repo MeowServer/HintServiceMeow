@@ -25,7 +25,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         static FontTool()
         {
-            Task.Run(() =>
+            MultithreadDispatcher.Instance.Enqueue(async () =>
             {
                 try
                 {
