@@ -33,29 +33,15 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="0Harmony, Version=2.3.6.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Lib.Harmony.2.3.6\lib\net48\0Harmony.dll</HintPath>
-    </Reference>
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ExMod.Exiled.9.6.0\lib\net48\Assembly-CSharp-Publicized.dll</HintPath>
+      <HintPath>..\..\Dependencies\14.1.0\Assembly-CSharp.dll</HintPath>
       <Private>True</Private>
-    </Reference>
-    <Reference Include="HintServiceMeow, Version=5.4.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\HintServiceMeow.5.4.0\lib\net48\HintServiceMeow.dll</HintPath>
     </Reference>
     <Reference Include="netstandard">
       <HintPath>..\HintServiceMeow\bin\Debug\netstandard.dll</HintPath>
     </Reference>
-    <Reference Include="PluginAPI, Version=13.1.5.0, Culture=neutral, processorArchitecture=Amd64">
-      <HintPath>..\packages\ExMod.Exiled.9.5.2\lib\net48\PluginAPI.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.IO.Compression, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.IO.Compression.4.3.0\lib\net46\System.IO.Compression.dll</HintPath>
-      <Private>True</Private>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -67,16 +53,19 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Config.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="UpdateLog.txt" />
+    <PackageReference Include="HintServiceMeow">
+      <Version>5.4.0</Version>
+    </PackageReference>
+    <PackageReference Include="Northwood.LabAPI">
+      <Version>1.0.2</Version>
+    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
