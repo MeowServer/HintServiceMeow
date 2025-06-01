@@ -264,25 +264,25 @@ namespace HintServiceMeow.Core.Utilities
                     return;
 
                 _currentParserTask =
-                    Task.Run(() =>
+                    MultithreadDispatcher.Instance.Enqueue(async () =>
                     {
+                        string richText;
+
                         try
                         {
-                            return _hintParser.ParseToMessage(_hints);
+                            richText = _hintParser.ParseToMessage(_hints);
                         }
                         catch (Exception ex)
                         {
                             LogTool.Error(ex);
-                            return string.Empty;
+                            return Task.CompletedTask;
                         }
-                    })
-                    .ContinueWith(parserTask =>
-                    {
+
                         MainThreadDispatcher.Dispatch(() =>
                         {
                             try
                             {
-                                SendHint(parserTask.Result);
+                                SendHint(richText);
                             }
                             catch (Exception ex)
                             {
@@ -298,6 +298,8 @@ namespace HintServiceMeow.Core.Utilities
                                 }
                             }
                         });
+
+                        return Task.CompletedTask;
                     });
             }
         }

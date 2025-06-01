@@ -2,14 +2,11 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
-
-using YamlDotNet.Serialization;
 
 namespace HintServiceMeow.Core.Utilities.Tools
 {
@@ -25,7 +22,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         static FontTool()
         {
-            Task.Run(() =>
+            MultithreadDispatcher.Instance.Enqueue(async () =>
             {
                 try
                 {
@@ -34,11 +31,20 @@ namespace HintServiceMeow.Core.Utilities.Tools
                     using (var entryStream = archive.Entries.First(x => x.Name == "TextWidth").Open())
                     using (var reader = new StreamReader(entryStream))
                     {
-                        Dictionary<int, float> dictionary = new DeserializerBuilder().Build().Deserialize<Dictionary<int, float>>(reader);
-
-                        foreach (KeyValuePair<int, float> kvp in dictionary)
+                        string line;
+                        while ((line = reader.ReadLine()) != null)
                         {
-                            ChWidth.TryAdd((char)kvp.Key, kvp.Value);
+                            if (line == string.Empty)
+                                continue;
+
+                            int sep = line.IndexOf(':');
+                            if (sep <= 0)
+                                continue;
+
+                            char key = (char)int.Parse(line.Substring(0, sep));
+                            float value = float.Parse(line.Substring(sep + 1).TrimStart(), CultureInfo.InvariantCulture);
+
+                            ChWidth[key] = value;
                         }
                     }
                 }

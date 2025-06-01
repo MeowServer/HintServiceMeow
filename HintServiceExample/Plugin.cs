@@ -1,9 +1,9 @@
-﻿using Exiled.API.Features;
-using Exiled.Events.EventArgs.Player;
-using HintServiceMeow.Core.Enum;
+﻿using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.UI.Utilities;
+using LabApi.Events.Arguments.PlayerEvents;
+using System;
 using UnityEngine;
 using Hint = HintServiceMeow.Core.Models.Hints.Hint;
 
@@ -12,36 +12,35 @@ namespace HintServiceExample
     /// <summary>
     /// This is an Exiled only example of how to create a simple ui for players using Hint and PlayerDisplay.
     /// </summary>
-    public class Plugin : Plugin<Config>
+    public class Plugin : LabApi.Loader.Features.Plugins.Plugin
     {
         public override string Name => "HintServiceExample";
-
-        public override void OnEnabled()
+        public override string Author => "MeowServer";
+        public override string Description => "A example plugin for HSM";
+        public override Version Version { get; } = new Version(5, 4, 0);
+        public override Version RequiredApiVersion { get; } = Version.Parse(LabApi.Features.LabApiProperties.CompiledVersion);
+        public override void Enable()
         {
-            Exiled.Events.Handlers.Player.Verified += EventHandler.OnVerified;
-            Exiled.Events.Handlers.Server.WaitingForPlayers += OnWaitingForPlayer;
-
-            base.OnEnabled();
+            LabApi.Events.Handlers.PlayerEvents.Joined += EventHandler.OnVerified;
+            LabApi.Events.Handlers.ServerEvents.WaitingForPlayers += EventHandler.OnWaitingForPlayer;
         }
 
-        public override void OnDisabled()
+        public override void Disable()
         {
-            Exiled.Events.Handlers.Player.Verified -= EventHandler.OnVerified;
-            Exiled.Events.Handlers.Server.WaitingForPlayers -= OnWaitingForPlayer;
-
-            base.OnDisabled();
-        }
-
-        public void OnWaitingForPlayer()
-        {
-            //To better demonstrate the hint, we will hide the lobby timer
-            GameObject.Find("StartRound").transform.localScale = Vector3.zero;
+            LabApi.Events.Handlers.PlayerEvents.Joined -= EventHandler.OnVerified;
+            LabApi.Events.Handlers.ServerEvents.WaitingForPlayers -= EventHandler.OnWaitingForPlayer;
         }
     }
 
     public static class EventHandler
     {
-        public static void OnVerified(VerifiedEventArgs ev)
+        public static void OnWaitingForPlayer()
+        {
+            //To better demonstrate the hint, we will hide the lobby timer
+            GameObject.Find("StartRound").transform.localScale = Vector3.zero;
+        }
+
+        public static void OnVerified(PlayerJoinedEventArgs ev)
         {
             Hint hint = new Hint
             {

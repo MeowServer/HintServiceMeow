@@ -171,13 +171,16 @@
 -		Bug Fixing
 -   V5.3.14
 -       Fix the bug that the AutoText will continue to call after PlayerDisplay is being destructed
--	V5.4.0
+-	V5.4.0 Beta 1
 -		Support for LabAPI
 -		Remove support for NWAPI
 -		Remove hint update frequency limitation
 -		Bug Fixing
--	V5.4.1
+-	V5.4.0 Beta 2
 -		Fix a part of code that mistakenly used PluginAPI instead of LabAPI
--	V5.4.2
+-	V5.4.0
 -		==============Breaking Change================
-	-		AutoText parameter is updated
+-		AutoText parameter is updated
+-	V5.4.1
+-		Centralized multithread actions to improve performance
+-		Removed YamlDotNet for better compatibility
