@@ -66,9 +66,6 @@
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Northwood.LabAPI">
       <Version>1.0.2</Version>
     </PackageReference>

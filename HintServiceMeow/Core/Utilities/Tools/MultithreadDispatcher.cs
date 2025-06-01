@@ -16,11 +16,11 @@ namespace HintServiceMeow.Core.Utilities.Tools
         {
             for (; workerCount > 0; workerCount--)
             {
-                _workers.Add(Task.Run(() => WorkerLoop()));
+                _workers.Add(Task.Run(WorkerMethod));
             }
         }
 
-        private async Task WorkerLoop()
+        private async Task WorkerMethod()
         {
             foreach (var task in _taskQueue.GetConsumingEnumerable())
             {

@@ -41,7 +41,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
                             if (sep <= 0)
                                 continue;
 
-                            char key = char.Parse(line.Substring(0, sep));
+                            char key = (char)int.Parse(line.Substring(0, sep));
                             float value = float.Parse(line.Substring(sep + 1).TrimStart(), CultureInfo.InvariantCulture);
 
                             ChWidth[key] = value;

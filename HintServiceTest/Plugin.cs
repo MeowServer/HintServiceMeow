@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using HintServiceMeow.Core.Extension;
 using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities;
@@ -44,6 +45,31 @@ namespace HintServiceTest
             };
             pd.AddHint(hint);
             pd.RemoveAfter(hint, 10f);
+
+            pd.AddHint(new List<Hint>
+            {
+                new Hint
+                {
+                    Text = "TopAlignment",
+                    FontSize = 40,
+                    YCoordinate = 700,
+                    YCoordinateAlign = HintServiceMeow.Core.Enum.HintVerticalAlign.Top
+                },
+                new Hint
+                {
+                    Text = "MiddleAlignment",
+                    FontSize = 40,
+                    YCoordinate = 700,
+                    YCoordinateAlign = HintServiceMeow.Core.Enum.HintVerticalAlign.Middle
+                },
+                new Hint
+                {
+                    Text = "BottomAlignment",
+                    FontSize = 40,
+                    YCoordinate = 700,
+                    YCoordinateAlign = HintServiceMeow.Core.Enum.HintVerticalAlign.Bottom
+                },
+            });
 
             Timing.CallDelayed(5f, () =>
             {

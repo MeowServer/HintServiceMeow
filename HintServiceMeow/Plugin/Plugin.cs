@@ -63,8 +63,9 @@ namespace HintServiceMeow
             PlayerEvents.Left += OnLeft;
 #endif
 
-            //Initialize Font Tool
+            //Initialize Components
             _ = FontTool.GetCharWidth('a', 40, Core.Enum.TextStyle.Normal);
+            _ = MultithreadDispatcher.Instance;
 
 #if EXILED
             base.OnEnabled();
