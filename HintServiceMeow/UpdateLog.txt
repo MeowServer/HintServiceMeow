@@ -184,3 +184,5 @@
 -	V5.4.1
 -		Centralized multithread actions to improve performance
 -		Removed YamlDotNet for better compatibility
+-	V5.4.2
+-		Fix a bug that cause CA not to clear the hint correctly

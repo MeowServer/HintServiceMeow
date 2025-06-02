@@ -16,7 +16,7 @@ namespace HintServiceTest
     {
         public override string Name => "HintServiceTest";
         public override string Author => "MeowServer";
-        public override Version Version => new Version(5, 4, 0);
+        public override Version Version => new Version(5, 4, 2);
         public override Version RequiredApiVersion => new Version(LabApiProperties.CompiledVersion);
         public override string Description => "A hint framework";
 
@@ -37,49 +37,25 @@ namespace HintServiceTest
     {
         public static void OnJoined(PlayerJoinedEventArgs ev)
         {
-            var pd = PlayerDisplay.Get(ev.Player);
-            Hint hint = new Hint
-            {
-                Text = "Hello HSM!",
-                YCoordinate = 100f
-            };
-            pd.AddHint(hint);
-            pd.RemoveAfter(hint, 10f);
+            ev.Player.SendHint("Hello, world! (3s)", 3f);
 
-            pd.AddHint(new List<Hint>
-            {
-                new Hint
-                {
-                    Text = "TopAlignment",
-                    FontSize = 40,
-                    YCoordinate = 700,
-                    YCoordinateAlign = HintServiceMeow.Core.Enum.HintVerticalAlign.Top
-                },
-                new Hint
-                {
-                    Text = "MiddleAlignment",
-                    FontSize = 40,
-                    YCoordinate = 700,
-                    YCoordinateAlign = HintServiceMeow.Core.Enum.HintVerticalAlign.Middle
-                },
-                new Hint
-                {
-                    Text = "BottomAlignment",
-                    FontSize = 40,
-                    YCoordinate = 700,
-                    YCoordinateAlign = HintServiceMeow.Core.Enum.HintVerticalAlign.Bottom
-                },
+            Timing.CallDelayed(2f, () => {
+                ev.Player.SendHint("Second hint! (3s)", 10f);
             });
 
-            Timing.CallDelayed(5f, () =>
-            {
-                ev.Player.ReferenceHub.hints.Show(new Hints.TextHint("Hello World!"));
+            Timing.CallDelayed(5f, () => {
+                ev.Player.SendHint("", 0f); // duration为0表示立即清空
             });
-            Timing.CallDelayed(10f, () =>
-            {
-                ev.Player.SendHint("Hello World LabAPI!", 10f);
+
+            Timing.CallDelayed(10f, () => {
+                for (int i = 0; i < 5; i++)
+                {
+                    float delay = i * 1.5f;
+                    Timing.CallDelayed(delay, () => {
+                        ev.Player.SendHint($"Hint #{i + 1} (1.2s)", 1.2f);
+                    });
+                }
             });
-            //Exiled.API.Features.Player.Get(ev.Player.ReferenceHub).ShowHint("Hello World Exiled!\n\n", 10f);
         }
     }
 }

@@ -105,6 +105,8 @@ namespace HintServiceMeow.Core.Utilities
             this._hints.ClearHints(null);
 
             ((Interface.IDestructible)this._updateScheduler).Destruct(); // Stop task scheduler's coroutine
+
+            ((Interface.IDestructible)this._adapter).Destruct(); // Stop compatibility adaptor's coroutine
         }
 
         internal static void ClearInstance()
