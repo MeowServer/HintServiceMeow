@@ -16,7 +16,7 @@ namespace HintServiceTest
     {
         public override string Name => "HintServiceTest";
         public override string Author => "MeowServer";
-        public override Version Version => new Version(5, 4, 0);
+        public override Version Version => new Version(5, 4, 2);
         public override Version RequiredApiVersion => new Version(LabApiProperties.CompiledVersion);
         public override string Description => "A hint framework";
 
