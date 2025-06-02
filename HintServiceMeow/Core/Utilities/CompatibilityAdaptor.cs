@@ -16,18 +16,33 @@ namespace HintServiceMeow.Core.Utilities
     /// <summary>
     /// Used to adapt other plugins' hint system to HintServiceMeow's hint system
     /// </summary>
-    internal class CompatibilityAdaptor : ICompatibilityAdaptor
+    internal class CompatibilityAdaptor : ICompatibilityAdaptor, Interface.IDestructible
     {
         private static readonly Cache<string, IReadOnlyList<Hint>> HintCache = new(500);
 
-        private static readonly Dictionary<string, CoroutineHandle> RemoveHandles = new();
-        private static readonly object RemoveHandlesLock = new();
+        private bool _destructed = false; // To prevent multiple destruct calls
 
+        private readonly Dictionary<string, CoroutineHandle> RemoveHandles = new();
         private readonly PlayerDisplay _playerDisplay;
 
         internal CompatibilityAdaptor(PlayerDisplay playerDisplay)
         {
             this._playerDisplay = playerDisplay ?? throw new ArgumentNullException(nameof(playerDisplay));
+        }
+
+        void Interface.IDestructible.Destruct()
+        {
+            if (_destructed)
+                return;
+
+            foreach (var handle in RemoveHandles.Values)
+            {
+                Timing.KillCoroutines(handle); // Stop all running coroutines
+            }
+
+            RemoveHandles.Clear(); // Clear the dictionary
+
+            _destructed = true; // Mark as destructed
         }
 
         public void ShowHint(CompatibilityAdaptorArg ev)
@@ -53,26 +68,27 @@ namespace HintServiceMeow.Core.Utilities
             if (duration <= 0f || string.IsNullOrEmpty(content))
             {
                 _playerDisplay.InternalClearHint(internalAssemblyName);
+                _playerDisplay.ForceUpdate();
                 return;
             }
 
-            lock (RemoveHandlesLock)
-            {
-                if (RemoveHandles.TryGetValue(internalAssemblyName, out var oldHandle))
-                    Timing.KillCoroutines(oldHandle);
+            // Clear hint after duration + 0.1 seconds
+            if (_destructed) // If the adaptor has been destructed, do not proceed
+                return;
 
-                RemoveHandles[internalAssemblyName] =
-                    Timing.CallDelayed(duration + 0.1f, () =>
-                    {
-                        _playerDisplay.InternalClearHint(internalAssemblyName);
-                        lock (RemoveHandlesLock)
-                        {
-                            RemoveHandles.Remove(internalAssemblyName);
-                        }
-                    });
-            }
+            if (RemoveHandles.TryGetValue(internalAssemblyName, out var oldHandle))
+                Timing.KillCoroutines(oldHandle); // Stop the previous coroutine if exists
 
-            DateTime expireTime = DateTime.Now.AddSeconds(Math.Min(duration, 1f));// Wait for at most 1 second and at least the duration
+            // Start a new coroutine to remove the hint after the duration
+            RemoveHandles[internalAssemblyName] =
+                Timing.CallDelayed(duration + 0.1f, () =>
+                {
+                    _playerDisplay.InternalClearHint(internalAssemblyName);
+                    _playerDisplay.ForceUpdate();
+                    RemoveHandles.Remove(internalAssemblyName);
+                });
+
+            DateTime expireTime = DateTime.Now.AddSeconds(Math.Min(duration, 5f)); // Wait for at most 5 second and at least the duration
 
             //Start new remove action, remove after the Duration
             _ = InternalShowHint(internalAssemblyName, content, expireTime);
@@ -83,9 +99,9 @@ namespace HintServiceMeow.Core.Utilities
             try
             {
                 //Check if the hint is already cached
-                if (HintCache.TryGet(content, out IReadOnlyList<Hint> cachedHintList2))
+                if (HintCache.TryGet(content, out IReadOnlyList<Hint> cachedHintList))
                 {
-                    ReplaceHint(internalAssemblyName, cachedHintList2);
+                    ReplaceHint(internalAssemblyName, cachedHintList);
                     return;
                 }
 
@@ -129,7 +145,7 @@ namespace HintServiceMeow.Core.Utilities
 
             float totalHeight = lineInfoList.Sum(x => x.Height);
             float accumulatedHeight = 0f;
-            List<Hint> result = new();
+            List<Hint> result = new(lineInfoList.Count);
 
             foreach (LineInfo lineInfo in lineInfoList)
             {
@@ -144,7 +160,7 @@ namespace HintServiceMeow.Core.Utilities
                         YCoordinateAlign = HintVerticalAlign.Bottom,
                         Alignment = lineInfo.Alignment,
                         FontSize = (int)lineInfo.Characters.First().FontSize,
-                        SyncSpeed = HintSyncSpeed.UnSync //To make sure that when the compatibility adaptor is clearing the previous hint, the player display will not be updated
+                        SyncSpeed = HintSyncSpeed.UnSync // To make sure that when the compatibility adaptor is clearing the previous hint, the player display will not be updated
                     });
                 }
 
