@@ -68,6 +68,7 @@ jobs:
         echo "" >> $GITHUB_OUTPUT
         echo "Please back up your older version before updating to the new version! If you have any issues, please let me know on the Discord server (and if applicable, pull up an issue on GitHub)." >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
+      shell: bash
 
     # Release both DLLs
     - name: Create Release and Upload DLLs
