@@ -57,26 +57,18 @@ jobs:
         echo "commit_msg<<EOF" >> $GITHUB_OUTPUT
         git log -1 --pretty=%B >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
-
-    # Generate Release Note
-    - name: Set release body
-      id: set_body
-      run: |
-        echo "body<<EOF" >> $GITHUB_OUTPUT
-        echo "### ${{ steps.get_tag.outputs.tag }}" >> $GITHUB_OUTPUT
-        echo "${{ steps.get_commit_msg.outputs.commit_msg }}" >> $GITHUB_OUTPUT
-        echo "" >> $GITHUB_OUTPUT
-        echo "Please back up your older version before updating to the new version! If you have any issues, please let me know on the Discord server (and if applicable, pull up an issue on GitHub)." >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
-      shell: bash
-
-    # Release both DLLs
+    
+    #Generate release
     - name: Create Release and Upload DLLs
       uses: softprops/action-gh-release@v2
       with:
         files: |
           HintServiceMeow/bin/Release/HintServiceMeow-LabAPI.dll
           HintServiceMeow/bin/Release/HintServiceMeow-Exiled.dll
-        body: ${{ steps.set_body.outputs.body }}
+        body: |
+          ### ${{ steps.get_tag.outputs.tag }}
+          ${{ steps.get_commit_msg.outputs.commit_msg }}
+
+          Please back up your older version before updating to the new version! If you have any issues, please let me know on the Discord server (and if applicable, pull up an issue on GitHub).
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
