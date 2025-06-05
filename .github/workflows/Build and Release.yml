@@ -62,9 +62,8 @@ jobs:
           HintServiceMeow/bin/Release/HintServiceMeow-LabAPI.dll
           HintServiceMeow/bin/Release/HintServiceMeow-Exiled.dll
         body: |
-          ### ${{ steps.get_tag.outputs.tag }}
-          ${{ steps.get_commit_msg.outputs.commit_msg }}
-
-          Please back up your older version before updating to the new version! If you have any issues, please let me know on the Discord server (and if applicable, pull up an issue on GitHub).
+          Please back up your older version before updating to the new version!
+          If you have any issues, please let me know on the Discord server
+          (and if applicable, pull up an issue on GitHub).
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
