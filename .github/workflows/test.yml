@@ -1,4 +1,4 @@
-# This script build Exiled and LabAPI version of HSM and release them with release note.
+# This script build Exiled and LabAPI version of HSM and release both DLLs with release note.
 name: Build and Release
 
 on:
