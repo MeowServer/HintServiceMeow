@@ -1,74 +1,31 @@
 # This script build Exiled and LabAPI version of HSM and release both DLLs with release note.
-name: Build and Release
+name: Test
 
 on:
   push:
     tags:
       - 'v*'
       - 'V*'
-  workflow_dispatch:
 
 jobs:
-  build-and-release:
+  Test:
     runs-on: windows-latest
 
     steps:
-    - name: Checkout source
-      uses: actions/checkout@v4
-
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v2
-
-    - name: Restore NuGet packages
-      run: nuget restore HintServiceMeow.sln
-
-    # Build for LabAPI
-    - name: Build with LabAPI
-      run: msbuild HintServiceMeow/HintServiceMeow.csproj /p:Platform=x64 /p:Configuration=Release /p:OutputPath=bin/Release/LabAPI/
-
-    # Build for Exiled
-    - name: Build with Exiled
-      run: msbuild HintServiceMeow/HintServiceMeow.csproj /p:Platform=x64 /p:Configuration=Release /p:DefineConstants=EXILED /p:OutputPath=bin/Release/Exiled/
-
-    # Rename output DLLs
-    - name: Rename output DLLs
-      run: |
-        mv HintServiceMeow/bin/Release/LabAPI/HintServiceMeow.dll HintServiceMeow/bin/Release/HintServiceMeow-LabAPI.dll
-        mv HintServiceMeow/bin/Release/Exiled/HintServiceMeow.dll HintServiceMeow/bin/Release/HintServiceMeow-Exiled.dll
-    
-    # Backup build result
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: DLLs
-        path: |
-          HintServiceMeow/bin/Release/HintServiceMeow-LabAPI.dll
-          HintServiceMeow/bin/Release/HintServiceMeow-Exiled.dll
-
-    # Get Tag name
     - name: Get tag name
       id: get_tag
+      shell: bash
       run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
-    # Get commit message
     - name: Get commit message
       id: get_commit_msg
+      shell: bash
       run: |
         echo "commit_msg<<EOF" >> $GITHUB_OUTPUT
         git log -1 --pretty=%B >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
-    
-    #Generate release
-    - name: Create Release and Upload DLLs
-      uses: softprops/action-gh-release@v2
-      with:
-        files: |
-          HintServiceMeow/bin/Release/HintServiceMeow-LabAPI.dll
-          HintServiceMeow/bin/Release/HintServiceMeow-Exiled.dll
-        body: |
-          ### ${{ steps.get_tag.outputs.tag }}
-          ${{ steps.get_commit_msg.outputs.commit_msg }}
 
-          Please back up your older version before updating to the new version! If you have any issues, please let me know on the Discord server (and if applicable, pull up an issue on GitHub).
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Debug tag
+      run: echo "${{ steps.get_tag.outputs.tag }}"
+    - name: Debug commit msg
+      run: echo "${{ steps.get_commit_msg.outputs.commit_msg }}"
