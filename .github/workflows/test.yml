@@ -20,7 +20,7 @@ jobs:
       uses: microsoft/setup-msbuild@v2
 
     - name: Restore NuGet packages
-      run: nuget restore HintServiceMeow/HintServiceMeow.sln
+      run: nuget restore HintServiceMeow.sln
 
     # Build for LabAPI
     - name: Build with LabAPI
