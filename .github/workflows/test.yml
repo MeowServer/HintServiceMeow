@@ -1,4 +1,3 @@
-# This script build Exiled and LabAPI version of HSM and release them with release note
 name: Build and Release
 
 on:
@@ -43,7 +42,7 @@ jobs:
         path: |
           HintServiceMeow/bin/Release/HintServiceMeow-LabAPI.dll
           HintServiceMeow/bin/Release/HintServiceMeow-Exiled.dll
-
+        
     # Get Tag name
     - name: Get tag name
       id: get_tag
