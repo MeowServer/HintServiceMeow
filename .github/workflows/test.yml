@@ -1,10 +1,79 @@
-name: Hello World
+name: Build and Release
 
-on: [push]
+on:
+  push:
+    tags:
+      - 'v*'
+      - 'V*'
+  workflow_dispatch:
 
 jobs:
-  say_hello:
-    runs-on: ubuntu-latest
+  build-and-release:
+    runs-on: windows-latest
+
     steps:
-      - name: Print hello
-        run: echo "Hello, GitHub Actions!"
+    - name: Checkout source
+      uses: actions/checkout@v4
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Restore NuGet packages
+      run: nuget restore HintServiceMeow/HintServiceMeow.csproj
+
+    # Build for LabAPI
+    - name: Build with DEFINE1
+      run: msbuild HintServiceMeow/HintServiceMeow.csproj /p:Platform=x64 /p:Configuration=Release /p:OutputPath=bin/Release/LabAPI/
+
+    # Build for Exiled
+    - name: Build with DEFINE2
+      run: msbuild HintServiceMeow/HintServiceMeow.csproj /p:Platform=x64 /p:Configuration=Release /p:DefineConstants=EXILED /p:OutputPath=bin/Release/Exiled/
+
+    # Rename output DLLs
+    - name: Rename output DLLs
+      run: |
+        mv HintServiceMeow/bin/Release/LabAPI/HintServiceMeow.dll HintServiceMeow/bin/Release/HintServiceMeow-LabAPI.dll
+        mv HintServiceMeow/bin/Release/Exiled/HintServiceMeow.dll HintServiceMeow/bin/Release/HintServiceMeow-Exiled.dll
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: DLLs
+        path: |
+          HintServiceMeow/bin/Release/HintServiceMeow-LabAPI.dll
+          HintServiceMeow/bin/Release/HintServiceMeow-Exiled.dll
+        
+    # Get Tag name
+    - name: Get tag name
+      id: get_tag
+      run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+    # Get commit message
+    - name: Get commit message
+      id: get_commit_msg
+      run: |
+        echo "commit_msg<<EOF" >> $GITHUB_OUTPUT
+        git log -1 --pretty=%B >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    # Generate Release Note
+    - name: Set release body
+      id: set_body
+      run: |
+        echo "body<<EOF" >> $GITHUB_OUTPUT
+        echo "### ${{ steps.get_tag.outputs.tag }}" >> $GITHUB_OUTPUT
+        echo "${{ steps.get_commit_msg.outputs.commit_msg }}" >> $GITHUB_OUTPUT
+        echo "" >> $GITHUB_OUTPUT
+        echo "Please back up your older version before updating to the new version! If you have any issues, please let me know on the Discord server (and if applicable, pull up an issue on GitHub)." >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    # Release both DLLs
+    - name: Create Release and Upload DLLs
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          HintServiceMeow/bin/Release/HintServiceMeow-LabAPI.dll
+          HintServiceMeow/bin/Release/HintServiceMeow-Exiled.dll
+        body: ${{ steps.set_body.outputs.body }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
