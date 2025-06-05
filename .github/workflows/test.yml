@@ -20,14 +20,14 @@ jobs:
       uses: microsoft/setup-msbuild@v2
 
     - name: Restore NuGet packages
-      run: nuget restore HintServiceMeow/HintServiceMeow.csproj
+      run: nuget restore HintServiceMeow/HintServiceMeow.sln
 
     # Build for LabAPI
-    - name: Build with DEFINE1
+    - name: Build with LabAPI
       run: msbuild HintServiceMeow/HintServiceMeow.csproj /p:Platform=x64 /p:Configuration=Release /p:OutputPath=bin/Release/LabAPI/
 
     # Build for Exiled
-    - name: Build with DEFINE2
+    - name: Build with Exiled
       run: msbuild HintServiceMeow/HintServiceMeow.csproj /p:Platform=x64 /p:Configuration=Release /p:DefineConstants=EXILED /p:OutputPath=bin/Release/Exiled/
 
     # Rename output DLLs
@@ -35,7 +35,8 @@ jobs:
       run: |
         mv HintServiceMeow/bin/Release/LabAPI/HintServiceMeow.dll HintServiceMeow/bin/Release/HintServiceMeow-LabAPI.dll
         mv HintServiceMeow/bin/Release/Exiled/HintServiceMeow.dll HintServiceMeow/bin/Release/HintServiceMeow-Exiled.dll
-      
+    
+    # Backup build result
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
