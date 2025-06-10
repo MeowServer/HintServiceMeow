@@ -54,7 +54,7 @@ namespace HintServiceMeow.Core.Models.HintContent
             catch (Exception ex)
             {
                 _text = string.Empty;
-                LogTool.Error(ex);
+                Logger.Instance.Error(ex);
             }
         }
     }

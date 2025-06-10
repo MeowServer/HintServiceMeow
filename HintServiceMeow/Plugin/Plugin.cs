@@ -27,13 +27,13 @@ namespace HintServiceMeow
 #if EXILED
         public override string Name => "HintServiceMeow";
         public override string Author => "MeowServer";
-        public override Version Version => new(5, 4, 2);
+        public override Version Version => new(5, 4, 3);
         public override Version RequiredExiledVersion => new(9, 6, 0);
         public override Exiled.API.Enums.PluginPriority Priority => Exiled.API.Enums.PluginPriority.Highest;
 #else
         public override string Name => "HintServiceMeow";
         public override string Author => "MeowServer";
-        public override Version Version => new(5, 4, 2);
+        public override Version Version => new(5, 4, 3);
         public override Version RequiredApiVersion => new(LabApiProperties.CompiledVersion);
         public override string Description => "A hint framework";
         public override LoadPriority Priority => LoadPriority.Highest;
@@ -64,8 +64,8 @@ namespace HintServiceMeow
 #endif
 
             //Initialize Components
-            _ = FontTool.GetCharWidth('a', 40, Core.Enum.TextStyle.Normal);
-            _ = MultithreadDispatcher.Instance;
+            _ = FontTool.Instance;
+            _ = ConcurrentTaskDispatcher.Instance;
 
 #if EXILED
             base.OnEnabled();

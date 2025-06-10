@@ -17,11 +17,30 @@ namespace HintServiceMeow.Core.Utilities.Parser
     /// </summary>
     internal class HintParser : IHintParser
     {
+        private const string PlaceholderTop = "<line-height=0><voffset=9999>P</voffset>";
+        private const string PlaceholderBottom = "<line-height=0><voffset=-9999>P</voffset>";
+
         private static readonly Regex IllegalTagRegex = new(
             @"<line-height=[^>]*>|<voffset=[^>]*>|<pos=[^>]*>|</voffset>|{|}",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-        private readonly Cache<Guid, ValueTuple<float, float>> _dynamicHintPositionCache = new(500);
+        private readonly ICache<Guid, ValueTuple<float, float>> _dynamicHintPositionCache;
+        private readonly ICoordinateTools _coordinateTool;
+        private readonly IPool<StringBuilder> _stringBuilderPool;
+        private readonly IPool<RichTextParser> _richTextParserPool;
+
+        public HintParser(
+            ICache<Guid, ValueTuple<float, float>> dynamicHintPositionCache = null,
+            ICoordinateTools coordinateTool = null,
+            IPool<StringBuilder> stringBuilderPool = null,
+            IPool<RichTextParser> richTextParserPool = null
+            )
+        {
+            _dynamicHintPositionCache = dynamicHintPositionCache ?? new Cache<Guid, ValueTuple<float, float>>(500);
+            _coordinateTool = coordinateTool ?? new CoordinateTools();
+            _stringBuilderPool = stringBuilderPool ?? StringBuilderPool.Instance;
+            _richTextParserPool = richTextParserPool ?? RichTextParserPool.Instance;
+        }
 
         public string ParseToMessage(HintCollection collection)
         {
@@ -72,7 +91,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 }
 
                 List<(Hint hint, float y)> temp = orderedHints
-                    .Select(h => (hint: h, y: CoordinateTools.GetYCoordinate(h, HintVerticalAlign.Bottom)))
+                    .Select(h => (hint: h, y: _coordinateTool.GetYCoordinate(h, HintVerticalAlign.Bottom)))
                     .ToList();
 
                 temp.Sort((a, b) => a.y.CompareTo(b.y));
@@ -83,10 +102,10 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 orderedHintGroups.Add(result);
             }
 
-            StringBuilder messageBuilder = StringBuilderPool.Rent(5000);
+            StringBuilder messageBuilder = _stringBuilderPool.Rent();
             const int NetLimit = 65000;
 
-            messageBuilder.AppendLine("<line-height=0><voffset=9999>P</voffset>");//Place Holder
+            messageBuilder.AppendLine(PlaceholderTop);//Place Holder
 
             foreach (List<Hint> hintList in orderedHintGroups)
             {
@@ -109,14 +128,16 @@ namespace HintServiceMeow.Core.Utilities.Parser
                 messageBuilder.AppendLine("</align></size></b></i>"); //Make sure one group will not affect another group
             }
 
-            messageBuilder.AppendLine("<line-height=0><voffset=-9999>P</voffset>");//Place Holder
-            return StringBuilderPool.ToStringReturn(messageBuilder);
+            messageBuilder.AppendLine(PlaceholderBottom);//Place Holder
+            string message = messageBuilder.ToString();
+            _stringBuilderPool.Return(messageBuilder);
+            return message;
         }
 
         private Hint ParseToHint(DynamicHint dynamicHint, IList<TextArea> colliders)
         {
-            float dhWidth = CoordinateTools.GetTextWidth(dynamicHint);
-            float dhHeight = CoordinateTools.GetTextHeight(dynamicHint);
+            float dhWidth = _coordinateTool.GetTextWidth(dynamicHint);
+            float dhHeight = _coordinateTool.GetTextHeight(dynamicHint);
 
             TextArea DynamicHintToArea(ValueTuple<float, float> tuple) =>
                 new()
@@ -188,11 +209,11 @@ namespace HintServiceMeow.Core.Utilities.Parser
 
         private TextArea ParseToArea(Hint hint)
         {
-            float xCoordinate = CoordinateTools.GetXCoordinateWithAlignment(hint);
-            float yCoordinate = CoordinateTools.GetYCoordinate(hint, HintVerticalAlign.Bottom);
+            float xCoordinate = _coordinateTool.GetXCoordinateWithAlignment(hint);
+            float yCoordinate = _coordinateTool.GetYCoordinate(hint, HintVerticalAlign.Bottom);
 
-            float width = CoordinateTools.GetTextWidth(hint);
-            float height = CoordinateTools.GetTextHeight(hint);
+            float width = _coordinateTool.GetTextWidth(hint);
+            float height = _coordinateTool.GetTextHeight(hint);
 
             return new TextArea
             {
@@ -210,7 +231,9 @@ namespace HintServiceMeow.Core.Utilities.Parser
             string text = IllegalTagRegex.Replace(raw, string.Empty);
 
             //Parse into line infos
-            IReadOnlyList<LineInfo> lineList = RichTextParserPool.ParseText(text, hint.FontSize);
+            RichTextParser parser = _richTextParserPool.Rent();
+            IReadOnlyList<LineInfo> lineList = parser.ParseText(text, hint.FontSize);
+            _richTextParserPool.Return(parser);
 
             if (lineList is null || lineList.IsEmpty())
                 return null;
@@ -218,11 +241,11 @@ namespace HintServiceMeow.Core.Utilities.Parser
             //Get the bottom y coordinate of first line
             float vOffset =
                 700
-                - CoordinateTools.GetYCoordinate(hint, HintVerticalAlign.Top)// Start at the top of the first line
+                - _coordinateTool.GetYCoordinate(hint, HintVerticalAlign.Top)// Start at the top of the first line
                 + hint.LineHeight;// Add extra line height on top of the first line so that the line height will not be calculated for the first line
 
             //Start to generate rich text
-            StringBuilder richTextBuilder = StringBuilderPool.Rent(text.Length + 200);
+            StringBuilder richTextBuilder = _stringBuilderPool.Rent();
 
             //Add default size/alignment
             richTextBuilder.AppendFormat("<size={0}>", hint.FontSize);
@@ -249,7 +272,9 @@ namespace HintServiceMeow.Core.Utilities.Parser
             if (hint.Alignment != HintAlignment.Center) richTextBuilder.Append("</align>");
             richTextBuilder.Append("</size>");
 
-            return StringBuilderPool.ToStringReturn(richTextBuilder);
+            string result = richTextBuilder.ToString();
+            _stringBuilderPool.Return(richTextBuilder);
+            return result;
         }
     }
 }

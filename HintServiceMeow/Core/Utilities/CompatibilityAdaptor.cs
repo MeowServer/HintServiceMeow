@@ -3,6 +3,7 @@ using HintServiceMeow.Core.Interface;
 using HintServiceMeow.Core.Models;
 using HintServiceMeow.Core.Models.Arguments;
 using HintServiceMeow.Core.Models.Hints;
+using HintServiceMeow.Core.Utilities.Parser;
 using HintServiceMeow.Core.Utilities.Pools;
 using HintServiceMeow.Core.Utilities.Tools;
 using MEC;
@@ -18,16 +19,21 @@ namespace HintServiceMeow.Core.Utilities
     /// </summary>
     internal class CompatibilityAdaptor : ICompatibilityAdaptor, Interface.IDestructible
     {
-        private static readonly Cache<string, IReadOnlyList<Hint>> HintCache = new(500);
+        private static readonly ICache<string, IReadOnlyList<Hint>> HintCache = new Cache<string, IReadOnlyList<Hint>>(500);
 
         private bool _destructed = false; // To prevent multiple destruct calls
 
         private readonly Dictionary<string, CoroutineHandle> RemoveHandles = new();
         private readonly PlayerDisplay _playerDisplay;
+        private readonly IPool<RichTextParser> _richTextParserPool;
 
-        internal CompatibilityAdaptor(PlayerDisplay playerDisplay)
+        internal CompatibilityAdaptor(
+            PlayerDisplay playerDisplay,
+            IPool<RichTextParser> richTextParserPool = null
+            )
         {
             this._playerDisplay = playerDisplay ?? throw new ArgumentNullException(nameof(playerDisplay));
+            this._richTextParserPool = richTextParserPool ?? RichTextParserPool.Instance;
         }
 
         void Interface.IDestructible.Destruct()
@@ -106,7 +112,7 @@ namespace HintServiceMeow.Core.Utilities
                 }
 
                 //Parse the content to hints
-                IReadOnlyList<Hint> hintList = await MultithreadDispatcher.Instance.
+                IReadOnlyList<Hint> hintList = await ConcurrentTaskDispatcher.Instance.
                     Enqueue(async () => this.ParseRichTextToHints(content))
                     .ConfigureAwait(false);
 
@@ -123,7 +129,7 @@ namespace HintServiceMeow.Core.Utilities
             {
                 //Make sure to clear hint if error occurs
                 _playerDisplay.InternalClearHint(internalAssemblyName);
-                LogTool.Error($"Error while generating hint for {internalAssemblyName}: {ex}");
+                Logger.Instance.Error($"Error while generating hint for {internalAssemblyName}: {ex}");
             }
         }
 
@@ -136,7 +142,9 @@ namespace HintServiceMeow.Core.Utilities
 
         private IReadOnlyList<Hint> ParseRichTextToHints(string content)
         {
-            IReadOnlyList<LineInfo> lineInfoList = RichTextParserPool.ParseText(content, 40);
+            RichTextParser parser = _richTextParserPool.Rent();
+            IReadOnlyList<LineInfo> lineInfoList = parser.ParseText(content, 40);
+            _richTextParserPool.Return(parser);
 
             if (lineInfoList.IsEmpty())
             {

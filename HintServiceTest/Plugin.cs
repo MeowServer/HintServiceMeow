@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using HintServiceMeow.Core.Extension;
-using HintServiceMeow.Core.Models.Hints;
-using HintServiceMeow.Core.Utilities;
-using LabApi.Events.Arguments.PlayerEvents;
+﻿using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Features;
 using MEC;
+using System;
 
 namespace HintServiceTest
 {
@@ -39,19 +35,23 @@ namespace HintServiceTest
         {
             ev.Player.SendHint("Hello, world! (3s)", 3f);
 
-            Timing.CallDelayed(2f, () => {
+            Timing.CallDelayed(2f, () =>
+            {
                 ev.Player.SendHint("Second hint! (3s)", 10f);
             });
 
-            Timing.CallDelayed(5f, () => {
+            Timing.CallDelayed(5f, () =>
+            {
                 ev.Player.SendHint("", 0f); // duration为0表示立即清空
             });
 
-            Timing.CallDelayed(10f, () => {
+            Timing.CallDelayed(10f, () =>
+            {
                 for (int i = 0; i < 5; i++)
                 {
                     float delay = i * 1.5f;
-                    Timing.CallDelayed(delay, () => {
+                    Timing.CallDelayed(delay, () =>
+                    {
                         ev.Player.SendHint($"Hint #{i + 1} (1.2s)", 1.2f);
                     });
                 }

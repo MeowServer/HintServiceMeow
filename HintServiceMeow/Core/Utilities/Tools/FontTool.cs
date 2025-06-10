@@ -7,14 +7,17 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
+using HintServiceMeow.Core.Interface;
 
 namespace HintServiceMeow.Core.Utilities.Tools
 {
     /// <summary>
     /// Used to get the size of the characters.
     /// </summary>
-    internal static class FontTool
+    internal class FontTool: IFontTool
     {
+        public static IFontTool Instance { get; } = new FontTool();
+
         private const float BaseFontSize = 34.7f;
         private const float DefaultFontWidth = 67.81861f;
 
@@ -22,7 +25,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
 
         static FontTool()
         {
-            MultithreadDispatcher.Instance.Enqueue(async () =>
+            ConcurrentTaskDispatcher.Instance.Enqueue(async () =>
             {
                 try
                 {
@@ -50,12 +53,12 @@ namespace HintServiceMeow.Core.Utilities.Tools
                 }
                 catch (Exception ex)
                 {
-                    LogTool.Error(ex);
+                    Logger.Instance.Error(ex);
                 }
             });
         }
 
-        public static float GetCharWidth(char c, float fontSize, TextStyle style)
+        public float GetCharWidth(char c, float fontSize, TextStyle style)
         {
             if (char.IsControl(c))
                 return 0f;

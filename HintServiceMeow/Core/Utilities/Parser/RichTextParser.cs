@@ -1,4 +1,5 @@
 ﻿using HintServiceMeow.Core.Enum;
+using HintServiceMeow.Core.Interface;
 using HintServiceMeow.Core.Models;
 using HintServiceMeow.Core.Utilities.Tools;
 using System;
@@ -88,7 +89,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
     {
         private const float DefaultFontSize = 40f;
 
-        private static readonly Cache<ValueTuple<string, float, HintAlignment>, IReadOnlyList<LineInfo>> Cache = new(1000);
+        private static readonly ICache<ValueTuple<string, float, HintAlignment>, IReadOnlyList<LineInfo>> Cache = new Cache<ValueTuple<string, float, HintAlignment>, IReadOnlyList<LineInfo>>(1000);
 
         //Lock
         private readonly object _lock = new();
@@ -116,7 +117,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
         public IReadOnlyList<LineInfo> ParseText(string text, int size = 20, HintAlignment alignment = HintAlignment.Center)
         {
             if (text is null)
-                return new List<LineInfo>();
+                return new List<LineInfo>().AsReadOnly();
 
             ValueTuple<string, float, HintAlignment> cacheKey = ValueTuple.Create(text, size, alignment);
 
@@ -268,7 +269,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
             float chHeight = currentFontSize + _vOffset;
 
             //Get character size
-            float chWidth = FontTool.GetCharWidth(ch, currentFontSize, _style);
+            float chWidth = FontTool.Instance.GetCharWidth(ch, currentFontSize, _style);
 
             //Script style
             if (_scriptStyles.Contains(ScriptStyle.Superscript))

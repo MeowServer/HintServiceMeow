@@ -19,7 +19,7 @@ namespace HintServiceMeow
 
         public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
         {
-            StringBuilder sb = StringBuilderPool.Rent();
+            StringBuilder sb = StringBuilderPool.Instance.Rent();
 
             sb.AppendLine("The following assemblies are using Compatibility Adaptor in HintServiceMeow:");
 
@@ -29,7 +29,7 @@ namespace HintServiceMeow
                 sb.AppendLine(name);
             }
 
-            response = StringBuilderPool.ToStringReturn(sb);
+            response = StringBuilderPool.Instance.ToStringReturn(sb);
             return true;
         }
     }

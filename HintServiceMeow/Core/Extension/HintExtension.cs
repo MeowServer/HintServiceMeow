@@ -1,4 +1,5 @@
-﻿using HintServiceMeow.Core.Models.Hints;
+﻿using HintServiceMeow.Core.Enum;
+using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities;
 using System;
 using System.Runtime.CompilerServices;
@@ -16,12 +17,13 @@ namespace HintServiceMeow.Core.Extension
         {
             if (!HideTimers.TryGetValue(hint, out TaskScheduler scheduler))
             {
-                scheduler = new TaskScheduler(TimeSpan.Zero, () => hint.Hide = true);
+                scheduler = new TaskScheduler();
+                scheduler.Start(TimeSpan.Zero, () => hint.Hide = true);
 
                 HideTimers.Add(hint, scheduler);
             }
 
-            scheduler.ScheduleAction(delay, TaskScheduler.DelayType.Override);
+            scheduler.Invoke(delay, DelayType.Override);
         }
     }
 }

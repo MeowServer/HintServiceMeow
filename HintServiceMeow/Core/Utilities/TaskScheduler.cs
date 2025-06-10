@@ -1,48 +1,23 @@
-﻿using HintServiceMeow.Core.Utilities.Tools;
-using MEC;
+﻿using HintServiceMeow.Core.Enum;
+using HintServiceMeow.Core.Utilities.Tools;
 using System;
-using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace HintServiceMeow.Core.Utilities
 {
-    internal class TaskScheduler : Interface.IDestructible
+    internal class TaskScheduler : Interface.ITaskScheduler, Interface.IDestructible
     {
         private readonly ReaderWriterLockSlim _actionTimeLock = new();
 
-        private readonly Action _action;
+        private Action _action;
         private DateTime _scheduledActionTime; // Indicate when the timer will begin trying invoking the action
-        private readonly TimeSpan _interval; // Minimum time between two actions
-        private DateTime _startTimeStamp;
-        private TimeSpan _elapsed;
+        private TimeSpan _interval; // Minimum time between two actions
+        private DateTime _startTimeStamp; // Used to calculate elapsed time since last action, = DateTime.MinValue if there's no last action.
+        private TimeSpan _elapsed; // Time elapsed since last action, does not include the time when the scheduler is paused. If there's not last action, it is DateTime.Now - DateTime.MinValue.
         private bool _paused = false;
-        private CoroutineHandle _coroutine;
-
-        public bool Paused
-        {
-            get => _paused;
-            set
-            {
-                _actionTimeLock.EnterWriteLock();
-                try
-                {
-                    if (value)
-                    {
-                        _elapsed += DateTime.Now - _startTimeStamp; //Stop Timer
-                    }
-                    else
-                    {
-                        _startTimeStamp = DateTime.Now; //Start new timer
-                    }
-
-                    _paused = value;
-                }
-                finally
-                {
-                    _actionTimeLock.ExitWriteLock();
-                }
-            }
-        }
+        private PeriodicRunner runner;
+        public bool IsPaused => _paused;
 
         /// <summary>
         /// Time elapsed since last action. Does not include the time when the scheduler is paused.
@@ -54,11 +29,10 @@ namespace HintServiceMeow.Core.Utilities
                 _actionTimeLock.EnterWriteLock();
                 try
                 {
-                    if (Paused)
-                        return _elapsed;
+                    if (IsPaused)
+                        return _elapsed; // Do not calculate elapsed time during paused period
 
-                    _elapsed += DateTime.Now - _startTimeStamp;
-                    _startTimeStamp = DateTime.Now;
+                    CalculateElapsedTime();
                     return _elapsed;
                 }
                 finally
@@ -111,13 +85,13 @@ namespace HintServiceMeow.Core.Utilities
 
         public bool IsReadyForNextAction => Elapsed >= _interval;
 
-        public TaskScheduler(TimeSpan interval, Action action)
+        public TaskScheduler(int tickRate = 30)
         {
-            this._interval = interval;
-            this._action = action ?? throw new ArgumentNullException(nameof(action));
-            _startTimeStamp = DateTime.MinValue;
+            this._interval = TimeSpan.FromSeconds(0);
+            this._action = () => { }; // Default empty action
+            _startTimeStamp = DateTime.MinValue; // Default zero interval
 
-            MainThreadDispatcher.Dispatch(() => _coroutine = Timing.RunCoroutine(TaskCoroutineMethod()));
+            runner = PeriodicRunner.Start(PeriodicRunnerMethod, TimeSpan.FromSeconds(1.0 / tickRate));
         }
 
         /// <summary>
@@ -125,28 +99,62 @@ namespace HintServiceMeow.Core.Utilities
         /// </summary>
         void Interface.IDestructible.Destruct()
         {
-            Timing.KillCoroutines(this._coroutine);
+            runner.Dispose();
         }
 
-        public void ScheduleAction(float delay = -1f, DelayType delayType = DelayType.Override)
+        /// <summary>
+        /// Start the scheduler with a specified interval and action.
+        /// </summary>
+        /// <param name="interval">Minimum interval between each action</param>
+        /// <param name="action">The action to invoke</param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        /// <exception cref="ArgumentNullException"></exception>
+        public void Start(TimeSpan interval, Action action)
+        {
+            _actionTimeLock.EnterWriteLock();
+            try
+            {
+                if (interval <= TimeSpan.Zero)
+                    interval = TimeSpan.Zero;
+                _interval = interval;
+                _action = action ?? throw new ArgumentNullException(nameof(action), "Action cannot be null.");
+            }
+            finally
+            {
+                _actionTimeLock.ExitWriteLock();
+            }
+
+            // Reset the timer
+            Elapsed = TimeSpan.Zero;
+            ScheduledActionTime = DateTime.MaxValue; // Reset scheduled action time
+        }
+
+        /// <summary>
+        /// Schedule an action to be invoked after a specified delay. The action will be invoked when the elapsed time reaches the interval limit and when scheduled action time is reached.
+        /// </summary>
+        /// <param name="delay">How long scheduler should wait before trying to invoek the action</param>
+        /// <param name="delayType">What to do if there's already a scheduled action</param>
+        public void Invoke(float delay = -1f, DelayType delayType = DelayType.Override)
         {
             _actionTimeLock.EnterWriteLock();
 
             try
             {
+                // If there's not scheduled time, then set it to the current time plus delay
                 if (_scheduledActionTime == DateTime.MaxValue)
                 {
                     _scheduledActionTime = DateTime.Now.AddSeconds(delay);
                     return;
                 }
 
+                // If there is a scheduled time, set based on the DelayType passed in
                 switch (delayType)
                 {
                     case DelayType.KeepFastest:
                         if (_scheduledActionTime > DateTime.Now.AddSeconds(delay))
                             _scheduledActionTime = DateTime.Now.AddSeconds(delay);
                         break;
-                    case DelayType.KeepLatest:
+                    case DelayType.KeepSlowest:
                         if (_scheduledActionTime < DateTime.Now.AddSeconds(delay))
                             _scheduledActionTime = DateTime.Now.AddSeconds(delay);
                         break;
@@ -162,9 +170,66 @@ namespace HintServiceMeow.Core.Utilities
         }
 
         /// <summary>
+        /// Stop the scheduler and reset the action and interval.
+        /// </summary>
+        public void Stop()
+        {
+            _actionTimeLock.EnterWriteLock();
+            try
+            {
+                // Reset the action and interval
+                _action = () => { }; // Default empty action
+                _interval = TimeSpan.FromSeconds(0);
+                _scheduledActionTime = DateTime.MaxValue; // Reset scheduled action time
+            }
+            finally
+            {
+                _actionTimeLock.ExitWriteLock();
+            }
+
+            Elapsed = TimeSpan.Zero; // Reset elapsed time
+            ScheduledActionTime = DateTime.MaxValue; // Reset scheduled action time
+        }
+
+        public void Pause()
+        {
+            _actionTimeLock.EnterWriteLock();
+            try
+            {
+                if (_paused)
+                    return;
+
+                CalculateElapsedTime(); // Add time to the timer before pausing
+
+                _paused = true;
+            }
+            finally
+            {
+                _actionTimeLock.ExitWriteLock();
+            }
+        }
+
+        public void Resume()
+        {
+            _actionTimeLock.EnterWriteLock();
+            try
+            {
+                if (!_paused)
+                    return;
+
+                _paused = false;
+                _startTimeStamp = DateTime.Now; // Reset time stamp
+            }
+            finally
+            {
+                _actionTimeLock.ExitWriteLock();
+            }
+        }
+
+        /// <summary>
         /// Invoke the action and reset the timer and scheduled action time.
         /// </summary>
-        internal void InvokeAction()
+        private void InvokeAction()
         {
             try
             {
@@ -177,60 +242,34 @@ namespace HintServiceMeow.Core.Utilities
             }
             catch (Exception ex)
             {
-                LogTool.Error(ex);
+                Logger.Instance.Error(ex);
             }
         }
 
-        private IEnumerator<float> TaskCoroutineMethod()
+        private void CalculateElapsedTime()
         {
-            while (true)
+            // If the scheduled action time is in the future, skip
+            if (_startTimeStamp > DateTime.Now)
+                return;
+
+            _elapsed += DateTime.Now - _startTimeStamp; // Calculate elapsed time
+            _startTimeStamp = DateTime.Now; //Reset time stamp
+        }
+
+        private async Task PeriodicRunnerMethod()
+        {
+            //Check if the action should be executed, if not, continue, else, break the loop
+            try
             {
-                while (true)
-                {
-                    yield return Timing.WaitForOneFrame;
-
-                    //Reset error flag
-                    bool isSuccessful = true;
-
-                    //Check if the action should be executed, if not, continue, else, break the loop
-                    try
-                    {
-                        if (_interval > Elapsed || ScheduledActionTime == DateTime.MaxValue || DateTime.Now < ScheduledActionTime || Paused)
-                            continue;
-
-                        break;
-                    }
-                    catch (Exception ex)
-                    {
-                        LogTool.Error(ex);
-                        isSuccessful = false; //If an error occurs, set error flag to false
-                    }
-
-                    //If an error occurs, wait for a while so it will not stuck the log.
-                    if (!isSuccessful)
-                    {
-                        yield return Timing.WaitForSeconds(0.5f);
-                    }
-                }
-
-                InvokeAction();
+                if (!IsReadyForNextAction || ScheduledActionTime == DateTime.MaxValue || DateTime.Now < ScheduledActionTime || IsPaused)
+                    return;
             }
-        }
+            catch (Exception ex)
+            {
+                Logger.Instance.Error(ex);
+            }
 
-        public enum DelayType
-        {
-            /// <summary>
-            /// Only keep the fastest scheduled action time
-            /// </summary>
-            KeepFastest,
-            /// <summary>
-            /// Only keep the latest scheduled action time
-            /// </summary>
-            KeepLatest,
-            /// <summary>
-            /// Update the action time without comparing
-            /// </summary>
-            Override
+            InvokeAction();
         }
     }
 }

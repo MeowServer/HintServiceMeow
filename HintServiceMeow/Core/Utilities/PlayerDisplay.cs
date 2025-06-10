@@ -6,7 +6,6 @@ using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities.Parser;
 using HintServiceMeow.Core.Utilities.Tools;
 using MEC;
-using Mirror;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -20,13 +19,12 @@ namespace HintServiceMeow.Core.Utilities
     /// <summary>
     /// Represent a player's display. This class is used to manage hints and update hint to player's display
     /// </summary>
-    public class PlayerDisplay : Interface.IDestructible
+    public class PlayerDisplay : IPlayerDisplay, Interface.IDestructible
     {
         /// <summary>
         /// The player this instance bind to
         /// </summary>
-        public ReferenceHub ReferenceHub { get; }
-        public NetworkConnection ConnectionToClient { get; }
+        public ReferenceHub ReferenceHub => _playerContext is ReferenceHubContext context ? context.ReferenceHub : null;
 
         /// <summary>
         /// Invoke every tick when ReferenceHub display is ready to update.
@@ -37,35 +35,53 @@ namespace HintServiceMeow.Core.Utilities
         private static readonly HashSet<PlayerDisplay> PlayerDisplayList = new HashSet<PlayerDisplay>();
         private static readonly object PlayerDisplayListLock = new object();
 
-        private readonly List<IDisplayOutput> _displayOutputs = new() { new DefaultDisplayOutput() };
+        private readonly List<IDisplayOutput> _displayOutputs = new();
         private readonly object _displayOutputsLock = new object();
 
+        private readonly IPlayerContext _playerContext;
         private readonly HintCollection _hints = new HintCollection();
-        private readonly TaskScheduler _updateScheduler;//Initialize in constructor
+        private readonly ITaskScheduler _updateScheduler;//Initialize in constructor
         private IHintParser _hintParser = new HintParser();
         private ICompatibilityAdaptor _adapter;//Initialize in constructor
 
-        private CoroutineHandle _coroutine;//Initialize in constructor(MultiThreadTool)
+        private CoroutineHandle _coroutine;//Initialize in constructor
 
         private Task _currentParserTask;
         private readonly object _currentParserTaskLock = new object();
 
-        private PlayerDisplay(ReferenceHub referenceHub)
+        private PlayerDisplay(
+            IPlayerContext playerContext,
+            HintCollection hints = null,
+            ITaskScheduler updateScheduler = null,
+            ICompatibilityAdaptor adaptor = null,
+            IHintParser hintParser = null,
+            IEnumerable<IDisplayOutput> displayOutputs = null)
         {
-            this.ConnectionToClient = referenceHub.netIdentity.connectionToClient;
-            this.ReferenceHub = referenceHub;
+            _playerContext = playerContext ?? throw new ArgumentNullException(nameof(playerContext));
 
-            this._updateScheduler = new TaskScheduler(TimeSpan.Zero, () =>
+            if (hints != null)
+                _hints = hints;
+            if (hintParser != null)
+                _hintParser = hintParser;
+            if (displayOutputs != null)
+                _displayOutputs = displayOutputs?.ToList();
+
+            _adapter = adaptor ?? new CompatibilityAdaptor(this); // Default compatibility adaptor
+            _updateScheduler = updateScheduler ?? new TaskScheduler(); // Default task scheduler with zero interval
+
+            _hints.CollectionChanged += OnCollectionChanged;
+            _updateScheduler.Start(TimeSpan.Zero, () =>
             {
-                _updateScheduler.Paused = true;//Pause action until the parser task is finishing
+                _updateScheduler.Pause();//Pause action until the parser task is finishing
                 StartParserTask();
             });
-
-            this._adapter = new CompatibilityAdaptor(this);
-
-            this._hints.CollectionChanged += OnCollectionChanged;
-
             MainThreadDispatcher.Dispatch(() => this._coroutine = Timing.RunCoroutine(CoroutineMethod()));
+        }
+
+        private PlayerDisplay(ReferenceHub referenceHub)
+            : this(new ReferenceHubContext(referenceHub))
+        {
+            this._displayOutputs.Add(new DefaultDisplayOutput(referenceHub.connectionToClient));
         }
 
         /// <summary>
@@ -73,9 +89,14 @@ namespace HintServiceMeow.Core.Utilities
         /// </summary>
         internal static void Destruct(ReferenceHub referenceHub)
         {
+            if (referenceHub is null)
+                throw new ArgumentNullException(nameof(referenceHub));
+
+            ReferenceHubContext context = new ReferenceHubContext(referenceHub);
+
             lock (PlayerDisplayListLock)
             {
-                PlayerDisplay pd = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
+                PlayerDisplay pd = PlayerDisplayList.FirstOrDefault(x => x._playerContext.Equals(context));
 
                 if (pd is null)
                     return;
@@ -144,7 +165,7 @@ namespace HintServiceMeow.Core.Utilities
                 yield return Timing.WaitForOneFrame;
 
                 //If player has quit, then stop the coroutine
-                if (this.ReferenceHub == null)
+                if (this._playerContext.IsValid())
                     break;
 
                 //Reset the success flag
@@ -163,7 +184,7 @@ namespace HintServiceMeow.Core.Utilities
                 }
                 catch (Exception ex)
                 {
-                    LogTool.Error(ex);
+                    Logger.Instance.Error(ex);
                     isSuccessful = false; //If error occurred, set the success flag to false
                 }
 
@@ -221,7 +242,7 @@ namespace HintServiceMeow.Core.Utilities
         {
             if (maxWaitingTime <= 0)
             {
-                _updateScheduler.ScheduleAction();
+                _updateScheduler.Invoke();
                 return;
             }
 
@@ -245,9 +266,9 @@ namespace HintServiceMeow.Core.Utilities
             delay = Math.Max(maxWaitingTime, delay * 1.1f); //Increase by 10% to make increase hit rate of prediction
 
             if (delay <= 0)
-                _updateScheduler.ScheduleAction();
+                _updateScheduler.Invoke();
             else
-                _updateScheduler.ScheduleAction(delay, TaskScheduler.DelayType.KeepFastest);
+                _updateScheduler.Invoke(delay, DelayType.KeepFastest);
         }
 
         /// <summary>
@@ -266,7 +287,7 @@ namespace HintServiceMeow.Core.Utilities
                     return;
 
                 _currentParserTask =
-                    MultithreadDispatcher.Instance.Enqueue(async () =>
+                    ConcurrentTaskDispatcher.Instance.Enqueue(async () =>
                     {
                         string richText;
 
@@ -276,7 +297,7 @@ namespace HintServiceMeow.Core.Utilities
                         }
                         catch (Exception ex)
                         {
-                            LogTool.Error(ex);
+                            Logger.Instance.Error(ex);
                             return Task.CompletedTask;
                         }
 
@@ -288,11 +309,11 @@ namespace HintServiceMeow.Core.Utilities
                             }
                             catch (Exception ex)
                             {
-                                LogTool.Error(ex);
+                                Logger.Instance.Error(ex);
                             }
                             finally
                             {
-                                _updateScheduler.Paused = false; //Resume action after the parser task is finishing
+                                _updateScheduler.Resume(); //Resume action after the parser task is finishing
 
                                 lock (_currentParserTaskLock)
                                 {
@@ -316,7 +337,7 @@ namespace HintServiceMeow.Core.Utilities
                 }
                 catch (Exception ex)
                 {
-                    LogTool.Error(ex);
+                    Logger.Instance.Error(ex);
                 }
             }
         }
@@ -330,9 +351,11 @@ namespace HintServiceMeow.Core.Utilities
             if (referenceHub is null)
                 throw new ArgumentNullException(nameof(referenceHub));
 
+            ReferenceHubContext context = new ReferenceHubContext(referenceHub);
+
             lock (PlayerDisplayListLock)
             {
-                PlayerDisplay existing = PlayerDisplayList.FirstOrDefault(x => x.ReferenceHub == referenceHub);
+                PlayerDisplay existing = PlayerDisplayList.FirstOrDefault(x => x._playerContext.Equals(context));
 
                 if (!(existing is null))
                     return existing;
