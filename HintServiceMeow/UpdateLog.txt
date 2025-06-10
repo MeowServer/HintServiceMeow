@@ -186,3 +186,5 @@
 -		Removed YamlDotNet for better compatibility
 -	V5.4.2
 -		Fix a bug that cause CA not to clear the hint correctly
+-	V5.4.3
+-		Fix a bug that cause CoordinateTool::GetTextWidth to throw exception when handling empty string

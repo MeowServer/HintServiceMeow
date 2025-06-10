@@ -17,7 +17,7 @@ namespace HintServiceExample
         public override string Name => "HintServiceExample";
         public override string Author => "MeowServer";
         public override string Description => "A example plugin for HSM";
-        public override Version Version { get; } = new Version(5, 4, 2);
+        public override Version Version { get; } = new Version(5, 4, 3);
         public override Version RequiredApiVersion { get; } = Version.Parse(LabApi.Features.LabApiProperties.CompiledVersion);
         public override void Enable()
         {
