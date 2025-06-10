@@ -1,16 +1,16 @@
-﻿using HintServiceMeow.Core.Enum;
-using HintServiceMeow.Core.Models;
+﻿using HintServiceMeow.Core.Interface;
 using HintServiceMeow.Core.Utilities.Parser;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 
 namespace HintServiceMeow.Core.Utilities.Pools
 {
-    internal class RichTextParserPool
+    internal class RichTextParserPool : IPool<RichTextParser>
     {
-        private static readonly ConcurrentQueue<RichTextParser> RichTextParserQueue = new();
+        public static RichTextParserPool Instance { get; } = new RichTextParserPool();
 
-        public static RichTextParser Rent()
+        private readonly ConcurrentQueue<RichTextParser> RichTextParserQueue = new();
+
+        public RichTextParser Rent()
         {
             if (RichTextParserQueue.TryDequeue(out RichTextParser rtp))
                 return rtp;
@@ -18,21 +18,9 @@ namespace HintServiceMeow.Core.Utilities.Pools
             return new RichTextParser();
         }
 
-        public static void Return(RichTextParser parser)
+        public void Return(RichTextParser parser)
         {
             RichTextParserQueue.Enqueue(parser);
-        }
-
-        public static IReadOnlyList<LineInfo> ParseTextReturn(RichTextParser parser, string text, int size = 20, HintAlignment alignment = HintAlignment.Center)
-        {
-            IReadOnlyList<LineInfo> result = parser.ParseText(text, size, alignment);
-            Return(parser);
-            return result;
-        }
-
-        public static IReadOnlyList<LineInfo> ParseText(string text, int size = 20, HintAlignment alignment = HintAlignment.Center)
-        {
-            return ParseTextReturn(Rent(), text, size, alignment);
         }
     }
 }

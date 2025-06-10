@@ -301,7 +301,7 @@ namespace HintServiceMeow.Core.Models.Hints
                 }
                 catch (Exception ex)
                 {
-                    LogTool.Error(ex);
+                    Logger.Instance.Error(ex);
                 }
                 finally
                 {

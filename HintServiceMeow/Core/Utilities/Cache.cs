@@ -1,9 +1,10 @@
-﻿using System;
+﻿using HintServiceMeow.Core.Interface;
+using System;
 using System.Collections.Generic;
 
 namespace HintServiceMeow.Core.Utilities
 {
-    internal class Cache<TKey, TItem>
+    internal class Cache<TKey, TItem> : ICache<TKey, TItem>
     {
         private readonly object _lock = new();
 

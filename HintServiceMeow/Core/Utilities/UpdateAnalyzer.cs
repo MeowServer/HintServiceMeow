@@ -84,7 +84,7 @@ namespace HintServiceMeow.Core.Utilities
                 }
                 catch (Exception ex)
                 {
-                    LogTool.Error(ex);
+                    Logger.Instance.Error(ex);
                     return DateTime.MaxValue;
                 }
             }

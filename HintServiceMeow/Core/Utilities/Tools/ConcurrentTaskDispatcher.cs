@@ -1,18 +1,19 @@
-﻿using System;
+﻿using HintServiceMeow.Core.Interface;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace HintServiceMeow.Core.Utilities.Tools
 {
-    internal class MultithreadDispatcher
+    internal class ConcurrentTaskDispatcher: IConcurrentTaskDispatcher
     {
-        public static MultithreadDispatcher Instance { get; private set; } = new MultithreadDispatcher(Environment.ProcessorCount);
+        public static IConcurrentTaskDispatcher Instance { get; private set; } = new ConcurrentTaskDispatcher(Environment.ProcessorCount - 1);
 
         private readonly BlockingCollection<ITaskPatch> _taskQueue = new();
         private readonly List<Task> _workers = new();
 
-        public MultithreadDispatcher(int workerCount)
+        public ConcurrentTaskDispatcher(int workerCount)
         {
             for (; workerCount > 0; workerCount--)
             {
@@ -30,7 +31,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
                 }
                 catch (Exception ex)
                 {
-                    LogTool.Error(ex);
+                    Logger.Instance.Error(ex);
                 }
             }
         }
@@ -101,7 +102,7 @@ namespace HintServiceMeow.Core.Utilities.Tools
                 }
                 catch (Exception ex)
                 {
-                    LogTool.Error(ex);
+                    Logger.Instance.Error(ex);
                 }
             }
         }

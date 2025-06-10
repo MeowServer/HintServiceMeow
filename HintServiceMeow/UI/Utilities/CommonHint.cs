@@ -1,4 +1,5 @@
-﻿using HintServiceMeow.Core.Extension;
+﻿using HintServiceMeow.Core.Enum;
+using HintServiceMeow.Core.Extension;
 using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities;
 using System;
@@ -81,9 +82,13 @@ namespace HintServiceMeow.UI.Utilities
         {
             this.ReferenceHub = referenceHub;
 
-            _itemHintsHideScheduler = new TaskScheduler(TimeSpan.Zero, () => _itemHints.ForEach(x => x.Hide = true));
-            _mapHintsHideScheduler = new TaskScheduler(TimeSpan.Zero, () => _mapHints.ForEach(x => x.Hide = true));
-            _roleHintsHideScheduler = new TaskScheduler(TimeSpan.Zero, () => _roleHints.ForEach(x => x.Hide = true));
+            _itemHintsHideScheduler = new TaskScheduler();
+            _mapHintsHideScheduler = new TaskScheduler();
+            _roleHintsHideScheduler = new TaskScheduler();
+
+            _itemHintsHideScheduler.Start(TimeSpan.Zero, () => _itemHints.ForEach(x => x.Hide = true));
+            _mapHintsHideScheduler.Start(TimeSpan.Zero, () => _mapHints.ForEach(x => x.Hide = true));
+            _roleHintsHideScheduler.Start(TimeSpan.Zero, () => _roleHints.ForEach(x => x.Hide = true));
 
             //Add hint
             PlayerDisplay.InternalAddHint(HintGroupId, _itemHints);
@@ -113,7 +118,7 @@ namespace HintServiceMeow.UI.Utilities
 
         public void ShowItemHint(string itemName, string[] description, float time)
         {
-            _itemHintsHideScheduler.ScheduleAction(time, TaskScheduler.DelayType.Override);
+            _itemHintsHideScheduler.Invoke(time, DelayType.Override);
 
             _itemHints[0].Text = itemName;
             _itemHints[0].Hide = false;
@@ -142,7 +147,7 @@ namespace HintServiceMeow.UI.Utilities
 
         public void ShowMapHint(string roomName, string[] description, float time)
         {
-            _mapHintsHideScheduler.ScheduleAction(time, TaskScheduler.DelayType.Override);
+            _mapHintsHideScheduler.Invoke(time, DelayType.Override);
 
             _mapHints.ForEach(x => x.Hide = true);
 
@@ -173,7 +178,7 @@ namespace HintServiceMeow.UI.Utilities
 
         public void ShowRoleHint(string roleName, string[] description, float time)
         {
-            _roleHintsHideScheduler.ScheduleAction(time, TaskScheduler.DelayType.Override);
+            _roleHintsHideScheduler.Invoke(time, Core.Enum.DelayType.Override);
 
             _roleHints.ForEach(x => x.Hide = true);
 

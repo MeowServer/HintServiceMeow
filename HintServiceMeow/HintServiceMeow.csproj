@@ -81,23 +81,35 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\Enum\DelayType.cs" />
+    <Compile Include="Core\Interface\ICache.cs" />
     <Compile Include="Core\Interface\ICompatibilityAdaptor.cs" />
+    <Compile Include="Core\Interface\ICoordinateTool.cs" />
     <Compile Include="Core\Interface\IDestructible.cs" />
     <Compile Include="Core\Interface\IDisplayOutput.cs" />
+    <Compile Include="Core\Interface\IFontTool.cs" />
     <Compile Include="Core\Interface\IHintParser.cs" />
+    <Compile Include="Core\Interface\ILogger.cs" />
+    <Compile Include="Core\Interface\IConcurrentTaskDispatcher.cs" />
+    <Compile Include="Core\Interface\IPlayerContext.cs" />
+    <Compile Include="Core\Interface\IPlayerDisplay.cs" />
+    <Compile Include="Core\Interface\IPool.cs" />
+    <Compile Include="Core\Interface\ITaskScheduler.cs" />
     <Compile Include="Core\Models\Arguments\AutoContentUpdateArg.cs" />
     <Compile Include="Core\Models\Arguments\CompatibilityAdaptorArg.cs" />
     <Compile Include="Core\Models\Arguments\DisplayOutputArg.cs" />
     <Compile Include="Core\Models\CharacterInfo.cs" />
     <Compile Include="Core\Models\LineInfo.cs" />
+    <Compile Include="Core\Models\ReferenceHubContext.cs" />
     <Compile Include="Core\Models\TextArea.cs" />
     <Compile Include="Core\Models\Arguments\ContentUpdateArg.cs" />
     <Compile Include="Core\Models\Arguments\UpdateAvailableEventArg.cs" />
     <Compile Include="Core\Utilities\Cache.cs" />
     <Compile Include="Core\Utilities\DefaultDisplayOutput.cs" />
+    <Compile Include="Core\Utilities\PeriodicRunner.cs" />
     <Compile Include="Core\Utilities\Pools\RichTextParserPool.cs" />
-    <Compile Include="Core\Utilities\Tools\LogTool.cs" />
-    <Compile Include="Core\Utilities\Tools\MultithreadDispatcher.cs" />
+    <Compile Include="Core\Utilities\Tools\Logger.cs" />
+    <Compile Include="Core\Utilities\Tools\ConcurrentTaskDispatcher.cs" />
     <Compile Include="Plugin\Commands\GetCompatAssemblyName.cs" />
     <Compile Include="Core\Enum\CaseStyle.cs" />
     <Compile Include="Core\Enum\FontStyle.cs" />
