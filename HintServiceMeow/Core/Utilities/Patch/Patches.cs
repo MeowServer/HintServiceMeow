@@ -83,7 +83,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
             }
             catch (Exception ex)
             {
-                LogTool.Error(ex);
+                Logger.Instance.Error(ex);
             }
 
             return false;
@@ -104,7 +104,7 @@ namespace HintServiceMeow.Core.Utilities.Patch
             }
             catch (Exception ex)
             {
-                LogTool.Error(ex);
+                Logger.Instance.Error(ex);
             }
 
             return false;
