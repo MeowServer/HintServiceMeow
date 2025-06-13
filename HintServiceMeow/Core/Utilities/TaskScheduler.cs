@@ -14,13 +14,14 @@ namespace HintServiceMeow.Core.Utilities
         private DateTime _scheduledActionTime; // Indicate when the timer will begin trying invoking the action
         private TimeSpan _interval; // Minimum time between two actions
         private DateTime _startTimeStamp; // Used to calculate elapsed time since last action, = DateTime.MinValue if there's no last action.
-        private TimeSpan _elapsed; // Time elapsed since last action, does not include the time when the scheduler is paused. If there's not last action, it is DateTime.Now - DateTime.MinValue.
+        private TimeSpan _elapsed; // Time elapsed since last action, does not include the time when the scheduler is paused.
         private bool _paused = false;
         private PeriodicRunner runner;
         public bool IsPaused => _paused;
 
         /// <summary>
         /// Time elapsed since last action. Does not include the time when the scheduler is paused.
+        /// If there's no last action, it is DateTime.Now - DateTime.MinValue.
         /// </summary>
         public TimeSpan Elapsed
         {
