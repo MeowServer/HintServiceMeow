@@ -121,16 +121,26 @@ namespace HintServiceMeow.Tests
         [TestMethod]
         public void IsReadyForNextAction_ReturnsFalse_IfElapsedLessThanInterval()
         {
-            _scheduler.Start(TimeSpan.FromMilliseconds(200), () => { });
+            _scheduler.Start(TimeSpan.FromMilliseconds(200), () =>
+            {
+                Console.WriteLine($"Action Executed at {DateTime.Now}");
+            });
+            _scheduler.Invoke();
+            Thread.Sleep(100/6);
             Assert.IsFalse(_scheduler.IsReadyForNextAction);
         }
 
         [TestMethod]
         public void IsReadyForNextAction_ReturnsTrue_IfElapsedGreaterThanInterval()
         {
-            _scheduler.Start(TimeSpan.FromMilliseconds(1), () => { });
+            _scheduler.Start(TimeSpan.FromMilliseconds(1), () =>
+            {
+                Console.WriteLine($"Action Executed at {DateTime.Now}");
+            });
+            _scheduler.Invoke();
 
-            Thread.Sleep(3);
+            Thread.Sleep(100/6); // Wait for 1 tick
+            Thread.Sleep(10); // Wait for interval
 
             Console.WriteLine($"Elapsed for {_scheduler.Elapsed} since last action");
             Assert.IsTrue(_scheduler.IsReadyForNextAction);

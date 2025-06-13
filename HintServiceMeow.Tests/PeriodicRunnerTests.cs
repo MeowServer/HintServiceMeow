@@ -68,15 +68,15 @@ namespace HintServiceMeow.Tests
                        ShortInterval))
             {
                 await Task.Delay(GetLength(ShortInterval, 3));
-                int beforePause = count;
 
                 runner.Pause();
+                int before = count;
                 await Task.Delay(GetLength(ShortInterval, 4));
-                Assert.AreEqual(beforePause, count);
+                Assert.AreEqual(before, count);
 
                 runner.Resume();
                 await Task.Delay(GetLength(ShortInterval, 3));
-                Assert.IsTrue(count > beforePause);
+                Assert.IsTrue(count > before);
             }
         }
 

@@ -165,7 +165,7 @@ namespace HintServiceMeow.Core.Utilities
                 yield return Timing.WaitForOneFrame;
 
                 //If player has quit, then stop the coroutine
-                if (this._playerContext.IsValid())
+                if (!this._playerContext.IsValid())
                     break;
 
                 //Reset the success flag
