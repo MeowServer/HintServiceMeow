@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace HintServiceMeow.Core.Utilities.Tools
 {
-    internal class ConcurrentTaskDispatcher: IConcurrentTaskDispatcher
+    internal class ConcurrentTaskDispatcher : IConcurrentTaskDispatcher
     {
         public static IConcurrentTaskDispatcher Instance { get; private set; } = new ConcurrentTaskDispatcher(Environment.ProcessorCount - 1);
 

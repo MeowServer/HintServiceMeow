@@ -16,7 +16,7 @@ namespace HintServiceMeow.Core.Utilities
         private DateTime _startTimeStamp; // Used to calculate elapsed time since last action, = DateTime.MinValue if there's no last action.
         private TimeSpan _elapsed; // Time elapsed since last action, does not include the time when the scheduler is paused.
         private bool _paused = false;
-        private PeriodicRunner runner;
+        private readonly PeriodicRunner _runner;
         public bool IsPaused => _paused;
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace HintServiceMeow.Core.Utilities
             this._action = () => { }; // Default empty action
             _startTimeStamp = DateTime.MinValue; // Default zero interval
 
-            runner = PeriodicRunner.Start(PeriodicRunnerMethod, TimeSpan.FromSeconds(1.0 / tickRate));
+            _runner = PeriodicRunner.Start(PeriodicRunnerMethod, TimeSpan.FromSeconds(1.0 / tickRate));
         }
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace HintServiceMeow.Core.Utilities
         /// </summary>
         void Interface.IDestructible.Destruct()
         {
-            runner.Dispose();
+            _runner.Dispose();
         }
 
         /// <summary>

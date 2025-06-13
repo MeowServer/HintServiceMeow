@@ -32,14 +32,14 @@ namespace HintServiceMeow.Core.Utilities
         public event UpdateAvailableEventHandler UpdateAvailable;
         public delegate void UpdateAvailableEventHandler(UpdateAvailableEventArg ev);
 
-        private static readonly HashSet<PlayerDisplay> PlayerDisplayList = new HashSet<PlayerDisplay>();
-        private static readonly object PlayerDisplayListLock = new object();
+        private static readonly HashSet<PlayerDisplay> PlayerDisplayList = new();
+        private static readonly object PlayerDisplayListLock = new();
 
         private readonly List<IDisplayOutput> _displayOutputs = new();
-        private readonly object _displayOutputsLock = new object();
+        private readonly object _displayOutputsLock = new();
 
         private readonly IPlayerContext _playerContext;
-        private readonly HintCollection _hints = new HintCollection();
+        private readonly HintCollection _hints = new();
         private readonly ITaskScheduler _updateScheduler;//Initialize in constructor
         private IHintParser _hintParser = new HintParser();
         private ICompatibilityAdaptor _adapter;//Initialize in constructor
@@ -47,7 +47,7 @@ namespace HintServiceMeow.Core.Utilities
         private CoroutineHandle _coroutine;//Initialize in constructor
 
         private Task _currentParserTask;
-        private readonly object _currentParserTaskLock = new object();
+        private readonly object _currentParserTaskLock = new();
 
         private PlayerDisplay(
             IPlayerContext playerContext,
@@ -92,7 +92,7 @@ namespace HintServiceMeow.Core.Utilities
             if (referenceHub is null)
                 throw new ArgumentNullException(nameof(referenceHub));
 
-            ReferenceHubContext context = new ReferenceHubContext(referenceHub);
+            ReferenceHubContext context = new(referenceHub);
 
             lock (PlayerDisplayListLock)
             {
@@ -128,22 +128,6 @@ namespace HintServiceMeow.Core.Utilities
             ((Interface.IDestructible)this._updateScheduler).Destruct(); // Stop task scheduler's coroutine
 
             ((Interface.IDestructible)this._adapter).Destruct(); // Stop compatibility adaptor's coroutine
-        }
-
-        internal static void ClearInstance()
-        {
-            lock (PlayerDisplayListLock)
-            {
-                foreach (PlayerDisplay pd in PlayerDisplayList)
-                {
-                    if (pd is null)
-                        continue;
-
-                    ((Interface.IDestructible)pd).Destruct();
-                }
-
-                PlayerDisplayList.Clear();
-            }
         }
 
         public IHintParser HintParser
@@ -203,7 +187,7 @@ namespace HintServiceMeow.Core.Utilities
 
         private void OnHintUpdate(object sender, PropertyChangedEventArgs ev)
         {
-            if (!(sender is AbstractHint hint))
+            if (sender is not AbstractHint hint)
                 return;
 
             //Skip if the hint's property changed when it is hided
@@ -213,27 +197,16 @@ namespace HintServiceMeow.Core.Utilities
             if (hint.SyncSpeed == HintSyncSpeed.UnSync)
                 return;
 
-            float maxWaitingTime;
-            switch (hint.SyncSpeed)
+            float maxWaitingTime = hint.SyncSpeed switch
             {
-                case HintSyncSpeed.Fastest:
-                    maxWaitingTime = 0;
-                    break;
-                case HintSyncSpeed.Fast:
-                    maxWaitingTime = 0.1f;
-                    break;
-                case HintSyncSpeed.Normal:
-                    maxWaitingTime = 0.3f;
-                    break;
-                case HintSyncSpeed.Slow:
-                    maxWaitingTime = 1f;
-                    break;
-                case HintSyncSpeed.Slowest:
-                    maxWaitingTime = 3f;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                HintSyncSpeed.Fastest => 0,
+                HintSyncSpeed.Fast => 0.1f,
+                HintSyncSpeed.Normal => 0.3f,
+                HintSyncSpeed.Slow => 1f,
+                HintSyncSpeed.Slowest => 3f,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
 
             ScheduleUpdate(maxWaitingTime, hint);
         }
@@ -283,7 +256,7 @@ namespace HintServiceMeow.Core.Utilities
         {
             lock (_currentParserTaskLock)
             {
-                if (!(_currentParserTask is null))
+                if (_currentParserTask is not null)
                     return;
 
                 _currentParserTask =
@@ -351,13 +324,13 @@ namespace HintServiceMeow.Core.Utilities
             if (referenceHub is null)
                 throw new ArgumentNullException(nameof(referenceHub));
 
-            ReferenceHubContext context = new ReferenceHubContext(referenceHub);
+            ReferenceHubContext context = new(referenceHub);
 
             lock (PlayerDisplayListLock)
             {
                 PlayerDisplay existing = PlayerDisplayList.FirstOrDefault(x => x._playerContext.Equals(context));
 
-                if (!(existing is null))
+                if (existing is not null)
                     return existing;
 
                 PlayerDisplay newPlayerDisplay = new(referenceHub);

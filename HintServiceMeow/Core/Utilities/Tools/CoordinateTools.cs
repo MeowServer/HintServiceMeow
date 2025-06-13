@@ -5,7 +5,6 @@ using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities.Parser;
 using System;
 using System.Collections.Generic;
-using HintServiceMeow.Core.Utilities.Pools;
 
 namespace HintServiceMeow.Core.Utilities.Tools
 {
@@ -16,11 +15,11 @@ namespace HintServiceMeow.Core.Utilities.Tools
     {
         private const float CanvasHalfWidth = 1200f;
 
-        private IPool<RichTextParser> _richTextParserPool { get; }
+        private readonly IPool<RichTextParser> _richTextParserPool;
 
         public CoordinateTools(IPool<RichTextParser> richTextParserPool = null)
         {
-            _richTextParserPool = richTextParserPool ?? RichTextParserPool.Instance;
+            this._richTextParserPool = richTextParserPool ?? Pools.RichTextParserPool.Instance;
         }
 
         public float GetYCoordinate(Hint hint, HintVerticalAlign to)
@@ -80,19 +79,12 @@ namespace HintServiceMeow.Core.Utilities.Tools
         public float GetXCoordinateWithAlignment(Hint hint, HintAlignment alignment)
         {
             float width = GetTextWidth(hint);
-            float alignOffset;
-            switch (alignment)
+            float alignOffset = alignment switch
             {
-                case HintAlignment.Left:
-                    alignOffset = -CanvasHalfWidth + width / 2;
-                    break;
-                case HintAlignment.Right:
-                    alignOffset = CanvasHalfWidth - width / 2;
-                    break;
-                default:
-                    alignOffset = 0;
-                    break;
-            }
+                HintAlignment.Left => -CanvasHalfWidth + width / 2,
+                HintAlignment.Right => CanvasHalfWidth - width / 2,
+                _ => 0,
+            };
 
             return hint.XCoordinate + alignOffset;
         }

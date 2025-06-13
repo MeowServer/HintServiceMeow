@@ -24,6 +24,16 @@ namespace HintServiceMeow.Core.Models
             return false;
         }
 
+        public override bool Equals(object obj)
+        {
+            if (obj is IPlayerContext context)
+            {
+                return Equals(context);
+            }
+
+            return false;
+        }
+
         public override int GetHashCode()
         {
             return ReferenceHub?.GetHashCode() ?? 0;

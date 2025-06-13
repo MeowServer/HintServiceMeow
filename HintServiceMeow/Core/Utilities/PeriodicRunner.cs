@@ -7,11 +7,11 @@ namespace HintServiceMeow.Core.Utilities
 {
     internal class PeriodicRunner : IDisposable
     {
-        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cts = new();
         private readonly TimeSpan _interval;
         private readonly Func<Task> _actionAsync;
         private readonly Task _loopTask;
-        private readonly object _pauseLock = new object();
+        private readonly object _pauseLock = new();
 
         private bool _paused;
 
@@ -34,7 +34,7 @@ namespace HintServiceMeow.Core.Utilities
             Func<Task> actionAsync,
             TimeSpan interval,
             bool runImmediately = false)
-            => new PeriodicRunner(actionAsync, interval, runImmediately);
+            => new(actionAsync, interval, runImmediately);
 
         public void Pause()
         {

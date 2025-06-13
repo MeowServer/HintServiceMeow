@@ -1,5 +1,5 @@
 ﻿using HintServiceMeow.Core.Enum;
-
+using HintServiceMeow.Core.Interface;
 using System;
 using System.Collections.Concurrent;
 using System.Globalization;
@@ -7,14 +7,13 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
-using HintServiceMeow.Core.Interface;
 
 namespace HintServiceMeow.Core.Utilities.Tools
 {
     /// <summary>
     /// Used to get the size of the characters.
     /// </summary>
-    internal class FontTool: IFontTool
+    internal class FontTool : IFontTool
     {
         public static IFontTool Instance { get; } = new FontTool();
 
@@ -29,26 +28,26 @@ namespace HintServiceMeow.Core.Utilities.Tools
             {
                 try
                 {
-                    using (Stream infoStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("HintServiceMeow.TextWidth"))
-                    using (ZipArchive archive = new ZipArchive(infoStream, ZipArchiveMode.Read))
-                    using (var entryStream = archive.Entries.First(x => x.Name == "TextWidth").Open())
-                    using (var reader = new StreamReader(entryStream))
+                    using Stream infoStream = Assembly.GetExecutingAssembly()
+                        .GetManifestResourceStream("HintServiceMeow.TextWidth");
+                    using ZipArchive archive = new(infoStream, ZipArchiveMode.Read);
+                    using var entryStream = archive.Entries.First(x => x.Name == "TextWidth").Open();
+                    using var reader = new StreamReader(entryStream);
+
+                    string line;
+                    while ((line = reader.ReadLine()) != null)
                     {
-                        string line;
-                        while ((line = reader.ReadLine()) != null)
-                        {
-                            if (line == string.Empty)
-                                continue;
+                        if (line == string.Empty)
+                            continue;
 
-                            int sep = line.IndexOf(':');
-                            if (sep <= 0)
-                                continue;
+                        int sep = line.IndexOf(':');
+                        if (sep <= 0)
+                            continue;
 
-                            char key = (char)int.Parse(line.Substring(0, sep));
-                            float value = float.Parse(line.Substring(sep + 1).TrimStart(), CultureInfo.InvariantCulture);
+                        char key = (char)int.Parse(line.Substring(0, sep));
+                        float value = float.Parse(line.Substring(sep + 1).TrimStart(), CultureInfo.InvariantCulture);
 
-                            ChWidth[key] = value;
-                        }
+                        ChWidth[key] = value;
                     }
                 }
                 catch (Exception ex)
