@@ -91,9 +91,9 @@ namespace HintServiceMeow.UI.Utilities
             _roleHintsHideScheduler.Start(TimeSpan.Zero, () => _roleHints.ForEach(x => x.Hide = true));
 
             //Add hint
-            PlayerDisplay.InternalAddHint(HintGroupId, _itemHints);
-            PlayerDisplay.InternalAddHint(HintGroupId, _mapHints);
-            PlayerDisplay.InternalAddHint(HintGroupId, _roleHints);
+            foreach (Hint itemHint in _itemHints)  PlayerDisplay.InternalAddHint(HintGroupId, itemHint);
+            foreach (Hint mapHint in _mapHints)  PlayerDisplay.InternalAddHint(HintGroupId, mapHint);
+            foreach (Hint roleHint in _roleHints)  PlayerDisplay.InternalAddHint(HintGroupId, roleHint);
         }
 
         void Core.Interface.IDestructible.Destruct()

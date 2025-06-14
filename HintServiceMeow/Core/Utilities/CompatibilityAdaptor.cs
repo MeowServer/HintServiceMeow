@@ -136,7 +136,7 @@ namespace HintServiceMeow.Core.Utilities
         private void ReplaceHint(string assemblyName, IReadOnlyList<Hint> hints)
         {
             _playerDisplay.InternalClearHint(assemblyName);
-            _playerDisplay.InternalAddHint(assemblyName, hints);
+            foreach(Hint hint in hints) _playerDisplay.InternalAddHint(assemblyName, hint);
             _playerDisplay.ForceUpdate();//Since all the CompatibilityAdaptor hint is not synced, we need to force update
         }
 

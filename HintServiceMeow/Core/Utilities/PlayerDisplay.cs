@@ -49,7 +49,7 @@ namespace HintServiceMeow.Core.Utilities
         private Task _currentParserTask;
         private readonly object _currentParserTaskLock = new();
 
-        private PlayerDisplay(
+        internal PlayerDisplay(
             IPlayerContext playerContext,
             HintCollection hints = null,
             ITaskScheduler updateScheduler = null,
@@ -401,7 +401,24 @@ namespace HintServiceMeow.Core.Utilities
             if (hints is null)
                 return;
 
-            this.InternalAddHint(Assembly.GetCallingAssembly().FullName, hints);
+            string groupName = Assembly.GetCallingAssembly().FullName;
+
+            foreach (AbstractHint hint in hints)
+            {
+                this.InternalAddHint(groupName, hint);
+            }
+        }
+
+        public void AddHint(params AbstractHint[] hints)
+        {
+            if (hints is null || hints.Length == 0)
+                return;
+
+            string groupName = Assembly.GetCallingAssembly().FullName;
+            foreach (AbstractHint hint in hints)
+            {
+                this.InternalAddHint(groupName, hint);
+            }
         }
 
         public void RemoveHint(AbstractHint hint)
@@ -417,7 +434,23 @@ namespace HintServiceMeow.Core.Utilities
             if (hints is null)
                 return;
 
-            this.InternalRemoveHint(Assembly.GetCallingAssembly().FullName, hints);
+            string groupName = Assembly.GetCallingAssembly().FullName;
+            foreach (AbstractHint hint in hints)
+            {
+                this.InternalRemoveHint(groupName, hint);
+            }
+        }
+
+        public void RemoveHint(params AbstractHint[] hints)
+        {
+            if (hints is null || hints.Length == 0)
+                return;
+
+            string groupName = Assembly.GetCallingAssembly().FullName;
+            foreach (AbstractHint hint in hints)
+            {
+                this.InternalRemoveHint(groupName, hint);
+            }
         }
 
         public void RemoveHint(string id)
@@ -455,6 +488,12 @@ namespace HintServiceMeow.Core.Utilities
             return InternalGetHints(Assembly.GetCallingAssembly().FullName, x => x.Id == id).FirstOrDefault();
         }
 
+        /// <summary>
+        /// Return the first hint that match the guid
+        /// </summary>
+        public AbstractHint GetHint(Guid guid)
+            => InternalGetHints(Assembly.GetCallingAssembly().FullName, x => x.Guid == guid).FirstOrDefault();
+
         public IEnumerable<AbstractHint> GetHints(string id)
         {
             if (id is null)
@@ -464,14 +503,6 @@ namespace HintServiceMeow.Core.Utilities
                 throw new ArgumentException("A empty string had been passed to GetHints");
 
             return InternalGetHints(Assembly.GetCallingAssembly().FullName, x => x.Id == id);
-        }
-
-        /// <summary>
-        /// Return the first hint that match the guid
-        /// </summary>
-        public AbstractHint GetHint(Guid guid)
-        {
-            return InternalGetHints(Assembly.GetCallingAssembly().FullName, x => x.Guid == guid).FirstOrDefault();
         }
 
         public IEnumerable<AbstractHint> GetHints()
@@ -540,34 +571,12 @@ namespace HintServiceMeow.Core.Utilities
             _hints.AddHint(name, hint);
         }
 
-        internal void InternalAddHint(string name, IEnumerable<AbstractHint> hints)
-        {
-            foreach (AbstractHint hint in hints)
-            {
-                hint.PropertyChanged += OnHintUpdate;
-                UpdateAvailable += hint.TryUpdateHint;
-
-                _hints.AddHint(name, hint);
-            }
-        }
-
         internal void InternalRemoveHint(string name, AbstractHint hint)
         {
             hint.PropertyChanged -= OnHintUpdate;
             UpdateAvailable -= hint.TryUpdateHint;
 
             _hints.RemoveHint(name, hint);
-        }
-
-        internal void InternalRemoveHint(string name, IEnumerable<AbstractHint> hints)
-        {
-            foreach (AbstractHint hint in hints)
-            {
-                hint.PropertyChanged -= OnHintUpdate;
-                UpdateAvailable -= hint.TryUpdateHint;
-
-                _hints.RemoveHint(name, hint);
-            }
         }
 
         internal void InternalRemoveHint(string name, Guid guid)

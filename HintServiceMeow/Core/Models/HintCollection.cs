@@ -12,8 +12,8 @@ namespace HintServiceMeow.Core.Models
     /// </summary>
     public class HintCollection : INotifyCollectionChanged
     {
-        private readonly object _lock = new object();
-        private readonly Dictionary<string, List<AbstractHint>> _hintGroups = new Dictionary<string, List<AbstractHint>>();
+        private readonly object _lock = new();
+        private readonly Dictionary<string, List<AbstractHint>> _hintGroups = new();
 
         public event NotifyCollectionChangedEventHandler CollectionChanged;
 
@@ -105,7 +105,7 @@ namespace HintServiceMeow.Core.Models
 
         internal List<AbstractHint> RemoveHint(string assemblyName, Func<AbstractHint, bool> predicate)
         {
-            List<AbstractHint> updatedHints = new List<AbstractHint>();
+            List<AbstractHint> updatedHints = new();
 
             lock (_lock)
             {
