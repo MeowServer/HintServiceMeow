@@ -1,4 +1,4 @@
-﻿using HintServiceMeow.Core.Utilities;
+using HintServiceMeow.Core.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Threading;
@@ -17,10 +17,12 @@ namespace HintServiceMeow.Tests
         }
 
         [TestMethod]
-        public async Task Start_RunsPeriodically()
+        public async Task Start_WithInterval_RunsPeriodically()
         {
+            // Arrange
             int count = 0;
 
+            // Act
             using (var runner = PeriodicRunner.Start(
                        () =>
                        {
@@ -31,6 +33,8 @@ namespace HintServiceMeow.Tests
                        runImmediately: false))
             {
                 await Task.Delay(GetLength(ShortInterval, 5));
+
+                // Assert
                 Assert.IsTrue(count >= 4);
             }
         }
@@ -38,8 +42,10 @@ namespace HintServiceMeow.Tests
         [TestMethod]
         public async Task Start_WithRunImmediately_InvokesAtOnce()
         {
+            // Arrange
             int count = 0;
 
+            // Act
             using (var runner = PeriodicRunner.Start(
                        () =>
                        {
@@ -50,13 +56,16 @@ namespace HintServiceMeow.Tests
                        runImmediately: true))
             {
                 await Task.Delay(TimeSpan.FromMilliseconds(10));
+
+                // Assert
                 Assert.AreEqual(1, count);
             }
         }
 
         [TestMethod]
-        public async Task PauseAndResume_Works()
+        public async Task PauseAndResume_WhenRunning_StopsAndResumesExecution()
         {
+            // Arrange
             int count = 0;
 
             using (var runner = PeriodicRunner.Start(
@@ -69,20 +78,27 @@ namespace HintServiceMeow.Tests
             {
                 await Task.Delay(GetLength(ShortInterval, 3));
 
+                // Act - Pause
                 runner.Pause();
                 int before = count;
                 await Task.Delay(GetLength(ShortInterval, 4));
+
+                // Assert - Paused
                 Assert.AreEqual(before, count);
 
+                // Act - Resume
                 runner.Resume();
                 await Task.Delay(GetLength(ShortInterval, 3));
+
+                // Assert - Resumed
                 Assert.IsTrue(count > before);
             }
         }
 
         [TestMethod]
-        public async Task Dispose_StopsFurtherInvocations()
+        public async Task Dispose_WhenRunning_StopsFurtherInvocations()
         {
+            // Arrange
             int count = 0;
             var runner = PeriodicRunner.Start(
                 () =>
@@ -95,18 +111,23 @@ namespace HintServiceMeow.Tests
             await Task.Delay(GetLength(ShortInterval, 3));
             int beforeDispose = count;
 
+            // Act
             runner.Dispose();
             await Task.Delay(GetLength(ShortInterval, 4));
+
+            // Assert
             Assert.AreEqual(beforeDispose, count);
 
             await runner.CurrentTask;
         }
 
         [TestMethod]
-        public async Task Callback_Exception_IsSwallowedAndContinues()
+        public async Task Start_CallbackThrowsException_ContinuesExecution()
         {
+            // Arrange
             int count = 0;
 
+            // Act
             using (var runner = PeriodicRunner.Start(
                        () =>
                        {
@@ -118,16 +139,21 @@ namespace HintServiceMeow.Tests
                        ShortInterval))
             {
                 await Task.Delay(GetLength(ShortInterval, 4));
+
+                // Assert
                 Assert.IsTrue(count >= 3);
             }
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentOutOfRangeException))]
-        public void NegativeInterval_Throws()
+        public void Start_NegativeInterval_ThrowsArgumentOutOfRangeException()
         {
+            // Arrange & Act
             PeriodicRunner.Start(() => Task.CompletedTask,
                                  TimeSpan.FromMilliseconds(-1));
+
+            // Assert - ExpectedException
         }
     }
 }

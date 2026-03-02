@@ -1,4 +1,5 @@
-﻿using HintServiceMeow.Core.Utilities;
+using HintServiceMeow.Core.Utilities;
+using HintServiceMeow.Tests.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -10,89 +11,115 @@ namespace HintServiceMeow.Tests
     public class UpdateAnalyzerTests
     {
         [TestMethod]
-        public void EstimateNextUpdate_Initially_MaxValue()
+        public void EstimateNextUpdate_NoUpdates_ReturnsMaxValue()
         {
+            // Arrange
             var analyzer = new UpdateAnalyzer();
-            Assert.AreEqual(DateTime.MaxValue, analyzer.EstimateNextUpdate(), "Should be DateTime.MaxValue under initial condition");
+
+            // Act
+            var result = analyzer.EstimateNextUpdate();
+
+            // Assert
+            Assert.AreEqual(DateTime.MaxValue, result, "Should be DateTime.MaxValue under initial condition");
         }
 
         [TestMethod]
-        public void EstimateNextUpdate_AfterFirstUpdate_StillMaxValue()
+        public void EstimateNextUpdate_SingleUpdate_ReturnsMaxValue()
         {
+            // Arrange
             var analyzer = new UpdateAnalyzer();
+
+            // Act
             analyzer.OnUpdate();
-            Assert.AreEqual(DateTime.MaxValue, analyzer.EstimateNextUpdate(), "Should be DateTime.MaxValue when having only 1 data");
+            var result = analyzer.EstimateNextUpdate();
+
+            // Assert
+            Assert.AreEqual(DateTime.MaxValue, result, "Should be DateTime.MaxValue when having only 1 data");
         }
 
         [TestMethod]
-        public void EstimateNextUpdate_AfterTwoUpdates_ShouldReturnTime()
+        public void EstimateNextUpdate_TwoUpdates_ReturnsEstimatedTime()
         {
+            // Arrange
             var analyzer = new UpdateAnalyzer();
 
+            // Act
             analyzer.OnUpdate();
             Thread.Sleep(60);
             analyzer.OnUpdate();
-
             var next = analyzer.EstimateNextUpdate();
+
+            // Assert
             Assert.AreNotEqual(DateTime.MaxValue, next, "Should return estimated time when having more than 1 data");
             Assert.IsTrue(next > DateTime.Now, "Estimated time should be later than current time.");
         }
 
         [TestMethod]
-        public void OnUpdate_TooFrequent_ShouldIgnore()
+        public void OnUpdate_TooFrequentCall_IgnoresUpdate()
         {
+            // Arrange
             var analyzer = new UpdateAnalyzer();
-
             analyzer.OnUpdate();
             Thread.Sleep(60);
             analyzer.OnUpdate(); // Valid call
+
+            // Act
             var before = analyzer.EstimateNextUpdate();
             analyzer.OnUpdate(); // Invalid call due to short interval
             var after = analyzer.EstimateNextUpdate();
 
+            // Assert
             Assert.AreEqual(before, after, "Analyzer should ignore the second call since the time elapsed between two action is too short");
         }
 
         [TestMethod]
-        public void OnUpdate_ShouldRemoveOldTimestamps()
+        public void OnUpdate_WithOldTimestamps_RemovesExpiredEntries()
         {
+            // Arrange
             var analyzer = new UpdateAnalyzer();
-
-            // Inject data to simulate old timestamps
-            var field = typeof(UpdateAnalyzer).GetField("_updateTimestamps", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var queue = (Queue<DateTime>)field.GetValue(analyzer);
+            var queue = ReflectionHelper.GetFieldValue<Queue<DateTime>>(analyzer, "_updateTimestamps");
 
             var old = DateTime.Now - TimeSpan.FromSeconds(31); // Old timestamp, should be removed during next OnUpdate call
             queue.Enqueue(old);
             queue.Enqueue(DateTime.Now);
 
+            // Act
             Thread.Sleep(60);
-            analyzer.OnUpdate();// Should remove old timestamps here
+            analyzer.OnUpdate(); // Should remove old timestamps here
 
+            // Assert
             Assert.IsTrue(queue.Count <= 2, "Queue should remove timestamp that is older than 30 seconds");
         }
 
         [TestMethod]
-        public void EstimateNextUpdate_CachesResult()
+        public void EstimateNextUpdate_CalledTwice_ReturnsCachedResult()
         {
+            // Arrange
             var analyzer = new UpdateAnalyzer();
             analyzer.OnUpdate();
             Thread.Sleep(60);
             analyzer.OnUpdate();
 
+            // Act
             var t1 = analyzer.EstimateNextUpdate();
             var t2 = analyzer.EstimateNextUpdate();
+
+            // Assert
             Assert.AreEqual(t1, t2, "Two value should be identical due to cache");
         }
 
         [TestMethod]
-        public void EstimateNextUpdate_Exception_ShouldReturnMaxValue()
+        public void EstimateNextUpdate_NullTimestamps_ReturnsMaxValue()
         {
+            // Arrange
             var analyzer = new UpdateAnalyzer();
-            var field = typeof(UpdateAnalyzer).GetField("_updateTimestamps", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            field.SetValue(analyzer, null); // use this to trigger NullReferenceException
+            ReflectionHelper.SetFieldValue(analyzer, "_updateTimestamps", null); // use this to trigger NullReferenceException
 
-            Assert.AreEqual(DateTime.MaxValue, analyzer.EstimateNextUpdate(), "Should return MaxValue when there's exception");
+            // Act
+            var result = analyzer.EstimateNextUpdate();
+
+            // Assert
+            Assert.AreEqual(DateTime.MaxValue, result, "Should return MaxValue when there's exception");
         }
     }
 }
