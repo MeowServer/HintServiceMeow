@@ -4,20 +4,20 @@ namespace HintServiceMeow.UI.Models.RichTags
     /// Represents the monospace-spacing rich text tag <c>&lt;mspace&gt;</c>.
     /// Forces each character to occupy the same fixed width, simulating monospace rendering.
     /// Accepts font unit values.
-    /// Example: <c>&lt;mspace=1em&gt;text&lt;/mspace&gt;</c>
-    /// Example (pixels): <c>&lt;mspace=10&gt;text&lt;/mspace&gt;</c>
+    /// Example: <c>&lt;mspace=1em&gt;text&lt;/mspace&gt;</c>.
+    /// Example (pixels): <c>&lt;mspace=10&gt;text&lt;/mspace&gt;</c>.
     /// </summary>
     public sealed class MSpaceTag : RichTag
     {
-        private readonly string _value;
+        private readonly string value;
 
         private MSpaceTag(string value)
         {
-            _value = value;
+            this.value = value;
         }
 
         /// <inheritdoc/>
-        public override string OpenTag => $"<mspace={_value}>";
+        public override string OpenTag => $"<mspace={this.value}>";
 
         /// <inheritdoc/>
         public override string CloseTag => "</mspace>";
@@ -33,8 +33,9 @@ namespace HintServiceMeow.UI.Models.RichTags
         /// <param name="value">
         /// The fixed character width in font units (e.g., <c>1em</c>) or pixels (e.g., <c>10</c>).
         /// All characters in the enclosed text will be rendered at this width.
-        /// Syntax result: <c>&lt;mspace=value&gt;</c>
+        /// Syntax result: <c>&lt;mspace=value&gt;</c>.
         /// </param>
+        /// <returns>A new <see cref="MSpaceTag"/> with the specified character width.</returns>
         public static MSpaceTag Get(string value)
         {
             return new MSpaceTag(value);

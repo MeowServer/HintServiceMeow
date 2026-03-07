@@ -4,19 +4,19 @@ namespace HintServiceMeow.UI.Models.RichTags
     /// Represents the hyperlink rich text tag <c>&lt;a&gt;</c>.
     /// Marks the enclosed text as a clickable hyperlink pointing to the given URL.
     /// URLs are limited to 256 characters.
-    /// Example: <c>&lt;a href="https://example.com"&gt;click here&lt;/a&gt;</c>
+    /// Example: <c>&lt;a href="https://example.com"&gt;click here&lt;/a&gt;</c>.
     /// </summary>
     public sealed class HyperlinkTag : RichTag
     {
-        private readonly string _href;
+        private readonly string href;
 
         private HyperlinkTag(string href)
         {
-            _href = href;
+            this.href = href;
         }
 
         /// <inheritdoc/>
-        public override string OpenTag => $"<a href=\"{_href}\">";
+        public override string OpenTag => $"<a href=\"{this.href}\">";
 
         /// <inheritdoc/>
         public override string CloseTag => "</a>";
@@ -32,8 +32,9 @@ namespace HintServiceMeow.UI.Models.RichTags
         /// <param name="href">
         /// The URL the hyperlink points to (e.g., <c>https://example.com</c>).
         /// Maximum length is 256 characters.
-        /// Syntax result: <c>&lt;a href="href"&gt;</c>
+        /// Syntax result: <c>&lt;a href="href"&gt;</c>.
         /// </param>
+        /// <returns>A new <see cref="HyperlinkTag"/> pointing to the specified URL.</returns>
         public static HyperlinkTag Get(string href)
         {
             return new HyperlinkTag(href);
