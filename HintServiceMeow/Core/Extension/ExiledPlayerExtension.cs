@@ -213,14 +213,14 @@ namespace HintServiceMeow.Core.Extension
         /// <summary>
         /// Removes all hints registered by the calling assembly.
         /// </summary>
-        /// <param name="player">The Exiled player whose hint is removed.</param>
+        /// <param name="player">The Exiled player whose hint is cleared.</param>
         public static void ClearHint(this Exiled.API.Features.Player player) =>
             PlayerDisplay.Get(player).InternalClearHint(Assembly.GetCallingAssembly().FullName);
 
         /// <summary>
         /// Returns the first hint registered by the calling assembly that matches the specified identifier.
         /// </summary>
-        /// <param name="player">The Exiled player whose hint is removed.</param>
+        /// <param name="player">The Exiled player whose hint is acquired from.</param>
         /// <param name="id">The identifier to search for.</param>
         /// <returns>The matching <see cref="AbstractHint"/>, or <see langword="null"/> if none is found.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="id"/> is <see langword="null"/>.</exception>
@@ -236,7 +236,7 @@ namespace HintServiceMeow.Core.Extension
         /// <summary>
         /// Returns the first hint registered by the calling assembly that matches the specified <see cref="Guid"/>.
         /// </summary>
-        /// <param name="player">The Exiled player whose hint is removed.</param>
+        /// <param name="player">The Exiled player whose hint is acquired from.</param>
         /// <param name="guid">The unique identifier to search for.</param>
         /// <returns>The matching <see cref="AbstractHint"/>, or <see langword="null"/> if none is found.</returns>
         public static AbstractHint? GetHint(this Exiled.API.Features.Player player, Guid guid) =>
@@ -245,7 +245,7 @@ namespace HintServiceMeow.Core.Extension
         /// <summary>
         /// Returns all hints registered by the calling assembly that match the specified identifier.
         /// </summary>
-        /// <param name="player">The Exiled player whose hint is removed.</param>
+        /// <param name="player">The Exiled player whose hints is acquired from.</param>
         /// <param name="id">The identifier to filter hints by.</param>
         /// <returns>An enumerable sequence of matching hints.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="id"/> is <see langword="null"/>.</exception>
@@ -261,7 +261,7 @@ namespace HintServiceMeow.Core.Extension
         /// <summary>
         /// Returns all hints registered by the calling assembly.
         /// </summary>
-        /// <param name="player">The Exiled player whose hint is removed.</param>
+        /// <param name="player">The Exiled player whose hint is acquired from.</param>
         /// <returns>An enumerable sequence of all hints belonging to the calling assembly.</returns>
         public static IEnumerable<AbstractHint> GetHints(this Exiled.API.Features.Player player) =>
             PlayerDisplay.Get(player).InternalGetHints(Assembly.GetCallingAssembly().FullName);
@@ -269,7 +269,7 @@ namespace HintServiceMeow.Core.Extension
         /// <summary>
         /// Determines whether any hint registered by the calling assembly has the specified identifier.
         /// </summary>
-        /// <param name="player">The Exiled player whose hint is removed.</param>
+        /// <param name="player">The Exiled player whose hint is checked.</param>
         /// <param name="id">The identifier to search for.</param>
         /// <returns><see langword="true"/> if a matching hint exists; otherwise <see langword="false"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="id"/> is <see langword="null"/>.</exception>
@@ -285,7 +285,7 @@ namespace HintServiceMeow.Core.Extension
         /// <summary>
         /// Determines whether any hint registered by the calling assembly matches the specified <see cref="Guid"/>.
         /// </summary>
-        /// <param name="player">The Exiled player whose hint is removed.</param>
+        /// <param name="player">The Exiled player whose hint is checked.</param>
         /// <param name="guid">The unique identifier to search for.</param>
         /// <returns><see langword="true"/> if a matching hint exists; otherwise <see langword="false"/>.</returns>
         public static bool HasHint(this Exiled.API.Features.Player player, Guid guid) =>
@@ -294,7 +294,7 @@ namespace HintServiceMeow.Core.Extension
         /// <summary>
         /// Attempts to retrieve the first hint registered by the calling assembly that matches the specified identifier.
         /// </summary>
-        /// <param name="player">The Exiled player whose hint is removed.</param>
+        /// <param name="player">The Exiled player whose hint is acquired from.</param>
         /// <param name="id">The identifier to search for.</param>
         /// <param name="hint">When this method returns, contains the matching hint, or <see langword="null"/> if none was found.</param>
         /// <returns><see langword="true"/> if a matching hint was found; otherwise <see langword="false"/>.</returns>
@@ -313,7 +313,7 @@ namespace HintServiceMeow.Core.Extension
         /// <summary>
         /// Attempts to retrieve the first hint registered by the calling assembly that matches the specified <see cref="Guid"/>.
         /// </summary>
-        /// <param name="player">The Exiled player whose hint is removed.</param>
+        /// <param name="player">The Exiled player whose hint is acquired from.</param>
         /// <param name="guid">The unique identifier to search for.</param>
         /// <param name="hint">When this method returns, contains the matching hint, or <see langword="null"/> if none was found.</param>
         /// <returns><see langword="true"/> if a matching hint was found; otherwise <see langword="false"/>.</returns>
@@ -327,7 +327,7 @@ namespace HintServiceMeow.Core.Extension
         /// <summary>
         /// Attempts to retrieve all hints registered by the calling assembly that match the specified identifier.
         /// </summary>
-        /// <param name="player">The Exiled player whose hint is removed.</param>
+        /// <param name="player">The Exiled player whose hint is acquired from.</param>
         /// <param name="id">The identifier to search for.</param>
         /// <param name="hints">When this method returns, contains the matching hints.</param>
         /// <returns><see langword="true"/> if at least one matching hint was found; otherwise <see langword="false"/>.</returns>
