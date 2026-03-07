@@ -4,19 +4,19 @@ namespace HintServiceMeow.UI.Models.RichTags
     /// Represents the gradient rich text tag <c>&lt;gradient&gt;</c>.
     /// Applies a color gradient to the enclosed text using a named Gradient Asset.
     /// The gradient name must exactly match a TMP_ColorGradient asset loaded in the project.
-    /// Example: <c>&lt;gradient="Fire"&gt;text&lt;/gradient&gt;</c>
+    /// Example: <c>&lt;gradient="Fire"&gt;text&lt;/gradient&gt;</c>.
     /// </summary>
     public sealed class GradientTag : RichTag
     {
-        private readonly string _gradientName;
+        private readonly string gradientName;
 
         private GradientTag(string gradientName)
         {
-            _gradientName = gradientName;
+            this.gradientName = gradientName;
         }
 
         /// <inheritdoc/>
-        public override string OpenTag => $"<gradient=\"{_gradientName}\">";
+        public override string OpenTag => $"<gradient=\"{this.gradientName}\">";
 
         /// <inheritdoc/>
         public override string CloseTag => "</gradient>";
@@ -32,8 +32,9 @@ namespace HintServiceMeow.UI.Models.RichTags
         /// <param name="gradientAssetName">
         /// The exact name of the TMP_ColorGradient asset to apply (e.g., <c>Fire</c>).
         /// The name is case-sensitive and must match the asset registered in the project.
-        /// Syntax result: <c>&lt;gradient="gradientAssetName"&gt;</c>
+        /// Syntax result: <c>&lt;gradient="gradientAssetName"&gt;</c>.
         /// </param>
+        /// <returns>A new <see cref="GradientTag"/> for the specified gradient asset.</returns>
         public static GradientTag Get(string gradientAssetName)
         {
             return new GradientTag(gradientAssetName);

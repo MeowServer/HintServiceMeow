@@ -4,19 +4,19 @@ namespace HintServiceMeow.UI.Models.RichTags
     /// Represents the style rich text tag <c>&lt;style&gt;</c>.
     /// Applies a named TMP Style Sheet entry to the enclosed text, expanding into the
     /// opening and closing markup defined by that style.
-    /// Example: <c>&lt;style="Title"&gt;text&lt;/style&gt;</c>
+    /// Example: <c>&lt;style="Title"&gt;text&lt;/style&gt;</c>.
     /// </summary>
     public sealed class StyleTag : RichTag
     {
-        private readonly string _styleName;
+        private readonly string styleName;
 
         private StyleTag(string styleName)
         {
-            _styleName = styleName;
+            this.styleName = styleName;
         }
 
         /// <inheritdoc/>
-        public override string OpenTag => $"<style=\"{_styleName}\">";
+        public override string OpenTag => $"<style=\"{this.styleName}\">";
 
         /// <inheritdoc/>
         public override string CloseTag => "</style>";
@@ -32,8 +32,9 @@ namespace HintServiceMeow.UI.Models.RichTags
         /// <param name="styleName">
         /// The name of the style defined in a TMP Style Sheet asset (e.g., <c>Title</c>, <c>Subtitle</c>).
         /// The name is case-sensitive and must match a style entry in the active style sheet.
-        /// Syntax result: <c>&lt;style="styleName"&gt;</c>
+        /// Syntax result: <c>&lt;style="styleName"&gt;</c>.
         /// </param>
+        /// <returns>A new <see cref="StyleTag"/> for the specified style name.</returns>
         public static StyleTag Get(string styleName)
         {
             return new StyleTag(styleName);
