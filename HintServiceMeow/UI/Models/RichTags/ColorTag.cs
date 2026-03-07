@@ -74,5 +74,10 @@ namespace HintServiceMeow.UI.Models.RichTags
             string formatted = value.StartsWith("#") ? value : $"\"{value}\"";
             return new ColorTag(formatted);
         }
+
+        public static ColorTag Get(byte red, byte green, byte blue)
+        {
+            return new ColorTag($"#{red:X2}{green:X2}{blue:X2}");
+        }
     }
 }
