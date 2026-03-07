@@ -16,7 +16,7 @@
         /// priority tags applied first.</param>
         /// <returns>The modified text after applying the rich tags. Returns null if the input text is null. If no tags are
         /// provided, returns the original text unchanged.</returns>
-        public static string UseRichTag(this string text, params RichTag[] tags)
+        public static string UseTag(this string text, params RichTag[] tags)
         {
             Array.Sort(tags, (a, b) =>
             {
@@ -47,7 +47,7 @@
         /// <param name="tag1">The rich tag to apply to the text. This parameter cannot be null.</param>
         /// <returns>A new string with the rich tag applied to the input text. If the input text is null or empty, or if the tag
         /// is null, the original text is returned.</returns>
-        public static string UseRichTag(this string text, RichTag tag1)
+        public static string UseTag(this string text, RichTag tag1)
         {
             return tag1.Apply(text);
         }

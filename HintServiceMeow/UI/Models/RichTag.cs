@@ -22,7 +22,7 @@
 
         public static string operator /(string text, RichTag tag)
         {
-            return text.UseRichTag(tag);
+            return text.UseTag(tag);
         }
 
         /// <summary>

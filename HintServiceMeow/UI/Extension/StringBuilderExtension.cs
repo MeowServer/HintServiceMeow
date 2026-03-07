@@ -4,9 +4,9 @@
     using System.Text;
     using HintServiceMeow.UI.Models;
 
-    internal static class StringBuilderExtension
+    public static class StringBuilderExtension
     {
-        public static StringBuilder? UseRichTag(this StringBuilder? sb, params RichTag[] tags)
+        public static StringBuilder UseRichTag(this StringBuilder? sb, params RichTag[] tags)
         {
             if (sb is null)
                 throw new ArgumentNullException(nameof(sb));
@@ -34,7 +34,7 @@
             return sb;
         }
 
-        public static StringBuilder? AppendOpenTag(this StringBuilder sb, RichTag tag)
+        public static StringBuilder AppendOpenTag(this StringBuilder sb, RichTag tag)
         {
             if (sb is null)
                 throw new ArgumentNullException(nameof(sb));
@@ -44,7 +44,7 @@
             return sb.Append(tag.OpenTag);
         }
 
-        public static StringBuilder? AppendCloseTag(this StringBuilder sb, RichTag tag)
+        public static StringBuilder AppendCloseTag(this StringBuilder sb, RichTag tag)
         {
             if (sb is null)
                 throw new ArgumentNullException(nameof(sb));
@@ -54,7 +54,7 @@
             return sb.Append(tag.CloseTag);
         }
 
-        public static StringBuilder? AppendWithTag(this StringBuilder sb, string text, RichTag tag)
+        public static StringBuilder AppendWithTag(this StringBuilder sb, string text, RichTag tag)
         {
             if (sb is null)
                 throw new ArgumentNullException(nameof(sb));
@@ -64,7 +64,7 @@
             return sb.Append(tag.OpenTag).Append(text).Append(tag.CloseTag);
         }
 
-        public static StringBuilder? AppendWithTags(this StringBuilder sb, string text, params RichTag[] tags)
+        public static StringBuilder AppendWithTag(this StringBuilder sb, string text, params RichTag[] tags)
         {
             if (sb is null)
                 throw new ArgumentNullException(nameof(sb));
