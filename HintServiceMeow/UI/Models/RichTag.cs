@@ -1,5 +1,7 @@
 ﻿namespace HintServiceMeow.UI.Models
 {
+    using HintServiceMeow.UI.Extension;
+
     public abstract class RichTag
     {
         /// <summary>
@@ -17,6 +19,11 @@
         /// Gets priority of this tag. Higher priority tags will be applied before lower priority tags.
         /// </summary>
         internal abstract int Priority { get; }
+
+        public static string operator /(string text, RichTag tag)
+        {
+            return text.UseRichTag(tag);
+        }
 
         /// <summary>
         /// Apply this tag to the given text.

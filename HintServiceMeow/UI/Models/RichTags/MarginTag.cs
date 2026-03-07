@@ -40,5 +40,10 @@ namespace HintServiceMeow.UI.Models.RichTags
         {
             return new MarginTag(value);
         }
+
+        public static MarginTag Get(int pixels)
+        {
+            return new MarginTag(pixels.ToString());
+        }
     }
 }

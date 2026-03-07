@@ -40,5 +40,10 @@ namespace HintServiceMeow.UI.Models.RichTags
         {
             return new CSpaceTag(value);
         }
+
+        public static CSpaceTag Get(int pixel)
+        {
+            return new CSpaceTag(pixel.ToString());
+        }
     }
 }

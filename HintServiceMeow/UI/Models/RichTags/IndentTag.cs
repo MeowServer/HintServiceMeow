@@ -40,5 +40,10 @@ namespace HintServiceMeow.UI.Models.RichTags
         {
             return new IndentTag(value);
         }
+
+        public static IndentTag Get(int pixels)
+        {
+            return new IndentTag(pixels.ToString());
+        }
     }
 }

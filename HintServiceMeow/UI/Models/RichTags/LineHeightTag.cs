@@ -40,5 +40,10 @@ namespace HintServiceMeow.UI.Models.RichTags
         {
             return new LineHeightTag(value);
         }
+
+        public static LineHeightTag Get(int pixels)
+        {
+            return new LineHeightTag(pixels.ToString());
+        }
     }
 }

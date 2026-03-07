@@ -39,5 +39,10 @@ namespace HintServiceMeow.UI.Models.RichTags
         {
             return new SizeTag(value);
         }
+
+        public static SizeTag Get(int pixel)
+        {
+            return new SizeTag(pixel.ToString());
+        }
     }
 }

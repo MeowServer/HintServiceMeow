@@ -12,8 +12,6 @@ namespace HintServiceMeow.UI.Models.RichTags
     /// </remarks>
     public sealed class AlignTag : RichTag
     {
-        private readonly string value;
-
         /// <summary>
         /// Aligns text to the left margin. Syntax: <c>&lt;align="left"&gt;text&lt;/align&gt;</c>.
         /// </summary>
@@ -40,6 +38,8 @@ namespace HintServiceMeow.UI.Models.RichTags
         /// Syntax: <c>&lt;align="flush"&gt;text&lt;/align&gt;</c>.
         /// </summary>
         public static readonly AlignTag Flush = new AlignTag("flush");
+
+        private readonly string value;
 
         private AlignTag(string value)
         {

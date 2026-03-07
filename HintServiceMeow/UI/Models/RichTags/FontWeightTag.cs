@@ -8,8 +8,6 @@ namespace HintServiceMeow.UI.Models.RichTags
     /// </summary>
     public sealed class FontWeightTag : RichTag
     {
-        private readonly string weight;
-
         // ── Predefined weights ────────────────────────────────────────────────
 
         /// <summary>
@@ -21,6 +19,8 @@ namespace HintServiceMeow.UI.Models.RichTags
         /// Bold weight (700). Syntax: <c>&lt;font-weight="700"&gt;text&lt;/font-weight&gt;</c>.
         /// </summary>
         public static readonly FontWeightTag Bold = new FontWeightTag("700");
+
+        private readonly string weight;
 
         private FontWeightTag(string weight)
         {
@@ -50,6 +50,11 @@ namespace HintServiceMeow.UI.Models.RichTags
         public static FontWeightTag Get(string weight)
         {
             return new FontWeightTag(weight);
+        }
+
+        public static FontWeightTag Get(int weight)
+        {
+            return new FontWeightTag(weight.ToString());
         }
     }
 }

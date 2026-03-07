@@ -40,5 +40,10 @@ namespace HintServiceMeow.UI.Models.RichTags
         {
             return new RotateTag(degrees);
         }
+
+        public static RotateTag Get(int degrees)
+        {
+            return new RotateTag(degrees.ToString());
+        }
     }
 }

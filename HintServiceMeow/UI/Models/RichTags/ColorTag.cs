@@ -8,8 +8,6 @@ namespace HintServiceMeow.UI.Models.RichTags
     /// </summary>
     public sealed class ColorTag : RichTag
     {
-        private readonly string value;
-
         // ── Predefined common colors ──────────────────────────────────────────
 
         /// <summary>Red. Syntax: <c>&lt;color=#FF0000&gt;text&lt;/color&gt;</c>.</summary>
@@ -44,6 +42,8 @@ namespace HintServiceMeow.UI.Models.RichTags
 
         /// <summary>Grey. Syntax: <c>&lt;color=#808080&gt;text&lt;/color&gt;</c>.</summary>
         public static readonly ColorTag Grey = new ColorTag("#808080");
+
+        private readonly string value;
 
         private ColorTag(string value)
         {

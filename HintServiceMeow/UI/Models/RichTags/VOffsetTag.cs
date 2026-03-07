@@ -40,5 +40,10 @@ namespace HintServiceMeow.UI.Models.RichTags
         {
             return new VOffsetTag(value);
         }
+
+        public static VOffsetTag Get(int pixels)
+        {
+            return new VOffsetTag(pixels.ToString());
+        }
     }
 }

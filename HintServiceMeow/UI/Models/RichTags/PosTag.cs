@@ -40,5 +40,10 @@ namespace HintServiceMeow.UI.Models.RichTags
         {
             return new PosTag(value);
         }
+
+        public static PosTag Get(int pixels)
+        {
+            return new PosTag(pixels.ToString());
+        }
     }
 }

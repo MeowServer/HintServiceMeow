@@ -7,8 +7,6 @@ namespace HintServiceMeow.UI.Models.RichTags
     /// </summary>
     public sealed class MarkTag : RichTag
     {
-        private readonly string value;
-
         // ── Predefined highlight colors ───────────────────────────────────────
 
         /// <summary>
@@ -30,6 +28,8 @@ namespace HintServiceMeow.UI.Models.RichTags
         /// Semi-transparent green highlight. Syntax: <c>&lt;mark=#00FF00AA&gt;text&lt;/mark&gt;</c>.
         /// </summary>
         public static readonly MarkTag Green = new MarkTag("#00FF00AA");
+
+        private readonly string value;
 
         private MarkTag(string value)
         {
@@ -60,6 +60,12 @@ namespace HintServiceMeow.UI.Models.RichTags
         public static MarkTag Get(string hexWithAlpha)
         {
             return new MarkTag(hexWithAlpha);
+        }
+
+        public static MarkTag Get(ushort red, ushort green, ushort blue, byte alpha)
+        {
+            string hex = $"#{red:X2}{green:X2}{blue:X2}{alpha:X2}";
+            return new MarkTag(hex);
         }
     }
 }

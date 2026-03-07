@@ -40,5 +40,10 @@ namespace HintServiceMeow.UI.Models.RichTags
         {
             return new MSpaceTag(value);
         }
+
+        public static MSpaceTag Get(int pixels)
+        {
+            return new MSpaceTag(pixels.ToString());
+        }
     }
 }

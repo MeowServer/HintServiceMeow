@@ -7,8 +7,6 @@ namespace HintServiceMeow.UI.Models.RichTags
     /// </summary>
     public sealed class AlphaTag : RichTag
     {
-        private readonly string hex;
-
         // ── Predefined opacity levels ─────────────────────────────────────────
 
         /// <summary>
@@ -25,6 +23,8 @@ namespace HintServiceMeow.UI.Models.RichTags
         /// Fully opaque (100% opacity). Syntax: <c>&lt;alpha=#FF&gt;text&lt;/alpha&gt;</c>.
         /// </summary>
         public static readonly AlphaTag Opaque = new AlphaTag("FF");
+
+        private readonly string hex;
 
         private AlphaTag(string hex)
         {
@@ -53,6 +53,17 @@ namespace HintServiceMeow.UI.Models.RichTags
         /// <returns>A new <see cref="AlphaTag"/> with the specified alpha level.</returns>
         public static AlphaTag Get(string hex)
         {
+            return new AlphaTag(hex);
+        }
+
+        /// <summary>
+        /// Creates an <see cref="AlphaTag"/> with a custom alpha value.
+        /// </summary>
+        /// <param name="alpha">A byte representing the alpha level.</param>
+        /// <returns>An AlphaTag instance with specified alpha value.</returns>
+        public static AlphaTag Get(byte alpha)
+        {
+            string hex = alpha.ToString("X2");
             return new AlphaTag(hex);
         }
     }
