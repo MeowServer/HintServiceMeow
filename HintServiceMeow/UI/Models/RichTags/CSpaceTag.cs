@@ -7,11 +7,11 @@ namespace HintServiceMeow.UI.Models.RichTags
     /// Example: <c>&lt;cspace=2&gt;text&lt;/cspace&gt;</c>
     /// Example (font units): <c>&lt;cspace=0.5em&gt;text&lt;/cspace&gt;</c>
     /// </summary>
-    public sealed class CSapceTag : RichTag
+    public sealed class CSpaceTag : RichTag
     {
         private readonly string _value;
 
-        private CSapceTag(string value)
+        private CSpaceTag(string value)
         {
             _value = value;
         }
@@ -28,16 +28,16 @@ namespace HintServiceMeow.UI.Models.RichTags
         // ── Factory ───────────────────────────────────────────────────────────
 
         /// <summary>
-        /// Creates a <see cref="CSapceTag"/> with a custom character-spacing value.
+        /// Creates a <see cref="CSpaceTag"/> with a custom character-spacing value.
         /// </summary>
         /// <param name="value">
         /// The spacing value in pixels (e.g., <c>2</c>) or font units (e.g., <c>0.5em</c>).
         /// Use negative values to tighten character spacing.
         /// Syntax result: <c>&lt;cspace=value&gt;</c>
         /// </param>
-        public static CSapceTag Get(string value)
+        public static CSpaceTag Get(string value)
         {
-            return new CSapceTag(value);
+            return new CSpaceTag(value);
         }
     }
 }
