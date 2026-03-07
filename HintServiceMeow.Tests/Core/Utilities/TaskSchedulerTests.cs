@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using HintServiceMeow.Core.Enum;
-using HintServiceMeow.Core.Interface;
 using HintServiceMeow.Tests.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TaskScheduler = HintServiceMeow.Core.Utilities.TaskScheduler;
@@ -25,7 +24,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
         [TestCleanup]
         public void TearDown()
         {
-            ((IDestructible)_scheduler).Destruct();
+            ((HintServiceMeow.Core.Interface.IDestructible)_scheduler).Destruct();
         }
 
         [TestMethod]

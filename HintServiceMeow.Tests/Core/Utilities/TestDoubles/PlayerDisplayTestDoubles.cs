@@ -25,7 +25,7 @@ namespace HintServiceMeow.Tests.Core.Utilities.TestDoubles
     /// <summary>
     /// Scheduler test double that records invoke requests for assertions.
     /// </summary>
-    internal sealed class TestTaskScheduler : ITaskScheduler, IDestructible
+    internal sealed class TestTaskScheduler : ITaskScheduler, HintServiceMeow.Core.Interface.IDestructible
     {
         private Func<bool> callback = null!;
 
@@ -157,7 +157,7 @@ namespace HintServiceMeow.Tests.Core.Utilities.TestDoubles
     /// <summary>
     /// Compatibility adaptor test double that records forwarding calls.
     /// </summary>
-    internal sealed class TestCompatibilityAdaptor : ICompatibilityAdaptor, IDestructible
+    internal sealed class TestCompatibilityAdaptor : ICompatibilityAdaptor, HintServiceMeow.Core.Interface.IDestructible
     {
         public List<CompatibilityAdaptorArg> Calls { get; } = [];
 

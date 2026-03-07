@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using HintServiceMeow.Core.Enum;
-using HintServiceMeow.Core.Interface;
 using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.Tests.Core.Utilities.TestDoubles;
@@ -37,7 +36,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
         [TestCleanup]
         public void TearDown()
         {
-            ((IDestructible)display).Destruct();
+            ((HintServiceMeow.Core.Interface.IDestructible)display).Destruct();
         }
 
         [TestMethod]
@@ -64,7 +63,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
             // Arrange - display already created in SetUp
 
             // Act
-            ((IDestructible)display).Destruct();
+            ((HintServiceMeow.Core.Interface.IDestructible)display).Destruct();
 
             // Assert
             Assert.IsTrue(coroutineRunner.LastCoroutine.IsKilled);
@@ -77,7 +76,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
             // Arrange - display already created in SetUp
 
             // Act
-            ((IDestructible)display).Destruct();
+            ((HintServiceMeow.Core.Interface.IDestructible)display).Destruct();
 
             // Assert
             Assert.IsTrue(scheduler.IsDestructed);
@@ -340,7 +339,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
             Hint hint = new() { Id = "destruct", SyncSpeed = HintSyncSpeed.Normal };
             display.AddHint(hint);
             scheduler.Invokes.Clear();
-            ((IDestructible)display).Destruct();
+            ((HintServiceMeow.Core.Interface.IDestructible)display).Destruct();
 
             // Act
             hint.FontSize++;
@@ -416,7 +415,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
             }
             finally
             {
-                ((IDestructible)localDisplay).Destruct();
+                ((HintServiceMeow.Core.Interface.IDestructible)localDisplay).Destruct();
             }
         }
 
@@ -453,7 +452,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
             }
             finally
             {
-                ((IDestructible)localDisplay).Destruct();
+                ((HintServiceMeow.Core.Interface.IDestructible)localDisplay).Destruct();
             }
         }
 
@@ -497,7 +496,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
             }
             finally
             {
-                ((IDestructible)localDisplay).Destruct();
+                ((HintServiceMeow.Core.Interface.IDestructible)localDisplay).Destruct();
             }
         }
 

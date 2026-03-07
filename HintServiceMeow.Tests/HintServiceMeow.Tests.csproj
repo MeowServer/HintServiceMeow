@@ -31,4 +31,10 @@
   <ItemGroup>
     <ProjectReference Include="..\HintServiceMeow\HintServiceMeow.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>..\Dependencies\Assembly-CSharp.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>
