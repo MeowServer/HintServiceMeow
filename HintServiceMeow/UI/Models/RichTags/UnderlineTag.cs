@@ -1,6 +1,26 @@
-﻿namespace HintServiceMeow.UI.Models.RichTags
+namespace HintServiceMeow.UI.Models.RichTags
 {
-    internal class UnderlineTag : RichTag
+    /// <summary>
+    /// Represents the underline rich text tag <c>&lt;u&gt;</c>.
+    /// Renders a line beneath the enclosed text.
+    /// Example: <c>&lt;u&gt;text&lt;/u&gt;</c>
+    /// </summary>
+    public sealed class UnderlineTag : RichTag
     {
+        private UnderlineTag() { }
+
+        /// <inheritdoc/>
+        public override string OpenTag => "<u>";
+
+        /// <inheritdoc/>
+        public override string CloseTag => "</u>";
+
+        /// <inheritdoc/>
+        internal override int Priority => 100;
+
+        /// <summary>
+        /// Underline text formatting. Syntax: <c>&lt;u&gt;text&lt;/u&gt;</c>
+        /// </summary>
+        public static readonly UnderlineTag Underline = new UnderlineTag();
     }
 }

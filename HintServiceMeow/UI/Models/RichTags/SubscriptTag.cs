@@ -1,6 +1,26 @@
-﻿namespace HintServiceMeow.UI.Models.RichTags
+namespace HintServiceMeow.UI.Models.RichTags
 {
-    internal class SubscriptTag : RichTag
+    /// <summary>
+    /// Represents the subscript rich text tag <c>&lt;sub&gt;</c>.
+    /// Renders the enclosed text as subscript (smaller, lowered below the baseline).
+    /// Example: <c>&lt;sub&gt;text&lt;/sub&gt;</c>
+    /// </summary>
+    public sealed class SubscriptTag : RichTag
     {
+        private SubscriptTag() { }
+
+        /// <inheritdoc/>
+        public override string OpenTag => "<sub>";
+
+        /// <inheritdoc/>
+        public override string CloseTag => "</sub>";
+
+        /// <inheritdoc/>
+        internal override int Priority => 100;
+
+        /// <summary>
+        /// Subscript text formatting. Syntax: <c>&lt;sub&gt;text&lt;/sub&gt;</c>
+        /// </summary>
+        public static readonly SubscriptTag Subscript = new SubscriptTag();
     }
 }
