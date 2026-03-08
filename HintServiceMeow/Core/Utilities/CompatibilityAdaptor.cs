@@ -67,7 +67,7 @@
             // Record the assembly that is using the compatibility adaptor
             RegisteredAssemblies.Add(assemblyName);
 
-            if (PluginConfig.Instance.DisabledCompatAdapter.Contains(assemblyName) // Config limitation
+            if (Plugin.Instance.Config.DisabledCompatAssemblies.Any(x => assemblyName.Contains(x)) // Config limitation
                 || content.Length > ushort.MaxValue) // Length limitation
                 return;
 

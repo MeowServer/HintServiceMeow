@@ -18,7 +18,7 @@
         {
             try
             {
-                if (!PluginConfig.Instance.UseHintCompatibilityAdapter)
+                if (!Plugin.Instance.Config.UseHintCompatibilityAdapter)
                     return false;
 
                 if (hint is TextHint textHint && ReferenceHub.TryGetHubNetID(__instance.connectionToClient.identity.netId, out ReferenceHub referenceHub))
@@ -41,7 +41,7 @@
         {
             try
             {
-                if (!PluginConfig.Instance.UseHintCompatibilityAdapter)
+                if (!Plugin.Instance.Config.UseHintCompatibilityAdapter)
                     return false;
 
                 string assemblyName = Assembly.GetCallingAssembly().FullName;
@@ -60,7 +60,7 @@
         {
             try
             {
-                if (!PluginConfig.Instance.UseHintCompatibilityAdapter)
+                if (!Plugin.Instance.Config.UseHintCompatibilityAdapter)
                     return false;
 
                 string assemblyName = Assembly.GetCallingAssembly().FullName;

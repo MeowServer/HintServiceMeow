@@ -106,7 +106,7 @@ namespace HintServiceMeow.UI.Utilities
         #endregion
 
         #region Properties
-        private static PluginConfig Config => PluginConfig.Instance;
+        private static PluginConfig Config => Plugin.Instance.Config;
 
         private ReferenceHub ReferenceHub { get; }
 
