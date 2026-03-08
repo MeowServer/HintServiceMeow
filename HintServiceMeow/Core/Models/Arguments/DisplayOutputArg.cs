@@ -1,5 +1,6 @@
 namespace HintServiceMeow.Core.Models.Arguments
 {
+    using HintServiceMeow.Core.Interface;
     using HintServiceMeow.Core.Utilities;
 
     /// <summary>
@@ -7,10 +8,13 @@ namespace HintServiceMeow.Core.Models.Arguments
     /// </summary>
     public class DisplayOutputArg
     {
-        internal DisplayOutputArg(PlayerDisplay playerDisplay, string content)
+        internal DisplayOutputArg(PlayerDisplay playerDisplay, string content, IHintParameter[] parameters, IHintEffect[] effects, float duration)
         {
             PlayerDisplay = playerDisplay;
             Content = content;
+            Parameters = parameters;
+            Effects = effects;
+            Duration = duration;
         }
 
         /// <summary>
@@ -22,5 +26,11 @@ namespace HintServiceMeow.Core.Models.Arguments
         /// Gets the formatted hint content string to be rendered.
         /// </summary>
         public string Content { get; }
+
+        public IHintParameter[] Parameters { get; }
+
+        public IHintEffect[] Effects { get; }
+
+        public float Duration { get; }
     }
 }

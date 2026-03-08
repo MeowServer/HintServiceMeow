@@ -76,6 +76,60 @@
             return rawYCoordinate + offset;
         }
 
+        public float GetCurrentYCoordinate(Hint hint, HintVerticalAlign to)
+        {
+            if (hint == null)
+                throw new ArgumentNullException(nameof(hint), "Hint cannot be null.");
+
+            return GetCurrentYCoordinate(hint, hint.YCoordinateAlign, to);
+        }
+
+        public float GetCurrentYCoordinate(Hint hint, HintVerticalAlign from, HintVerticalAlign to)
+        {
+            if (hint == null)
+                throw new ArgumentNullException(nameof(hint), "Hint cannot be null.");
+
+            return GetCurrentYCoordinate(hint.CurrentYCoordinate, GetTextHeight(hint), from, to);
+        }
+
+        public float GetCurrentYCoordinate(float rawCurrentYCoordinate, float textHeight, HintVerticalAlign from, HintVerticalAlign to)
+        {
+            if (from == to)
+                return rawCurrentYCoordinate;
+
+            float offset = 0;
+
+            switch (from)
+            {
+                case HintVerticalAlign.Top:
+                    offset += textHeight;
+                    break;
+                case HintVerticalAlign.Middle:
+                    offset += textHeight / 2;
+                    break;
+                case HintVerticalAlign.Bottom:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(from), from, null);
+            }
+
+            switch (to)
+            {
+                case HintVerticalAlign.Top:
+                    offset -= textHeight;
+                    break;
+                case HintVerticalAlign.Middle:
+                    offset -= textHeight / 2;
+                    break;
+                case HintVerticalAlign.Bottom:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(to), to, null);
+            }
+
+            return rawCurrentYCoordinate + offset;
+        }
+
         public float GetXCoordinateWithAlignment(Hint hint)
         {
             if (hint == null)

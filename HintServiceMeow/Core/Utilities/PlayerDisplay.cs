@@ -7,6 +7,7 @@ namespace HintServiceMeow.Core.Utilities
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
+    using HintServiceMeow.Core.Effects;
     using HintServiceMeow.Core.Enum;
     using HintServiceMeow.Core.Extension;
     using HintServiceMeow.Core.Interface;
@@ -850,11 +851,11 @@ namespace HintServiceMeow.Core.Utilities
                 currentParserTask =
                     ConcurrentTaskDispatcher.Instance.Enqueue(async () =>
                     {
-                        string richText;
+                        HintParserResult result;
 
                         try
                         {
-                            richText = hintParser.ParseToMessage(hintCollection);
+                            result = hintParser.ParseToMessage(hintCollection);
 
                             mainThreadDispatcher.Dispatch(() =>
                             {
@@ -864,7 +865,7 @@ namespace HintServiceMeow.Core.Utilities
                                     if (this.isDestructed)
                                         return;
 
-                                    SendHint(richText);
+                                    SendHint(new DisplayOutputArg(this, result.Content, result.Parameters, [new AlphaEffect(1)], 999999f));
                                 }
                                 catch (Exception ex)
                                 {
@@ -900,7 +901,7 @@ namespace HintServiceMeow.Core.Utilities
             }
         }
 
-        private void SendHint(string text)
+        private void SendHint(DisplayOutputArg content)
         {
             IDisplayOutput[] outputsSnapshot;
 
@@ -909,12 +910,11 @@ namespace HintServiceMeow.Core.Utilities
                 outputsSnapshot = displayOutputs.ToArray();
             }
 
-            var arg = new DisplayOutputArg(this, text);
             foreach (IDisplayOutput output in outputsSnapshot)
             {
                 try
                 {
-                    output.ShowHint(arg);
+                    output.ShowHint(content);
                 }
                 catch (Exception ex)
                 {

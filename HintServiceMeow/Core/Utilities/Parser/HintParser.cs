@@ -6,10 +6,15 @@
     using HintServiceMeow.Core.Enum;
     using HintServiceMeow.Core.Interface;
     using HintServiceMeow.Core.Models;
+    using HintServiceMeow.Core.Models.Arguments;
     using HintServiceMeow.Core.Models.Hints;
     using HintServiceMeow.Core.Models.Parser;
+    using HintServiceMeow.Core.Models.Transition;
+    using HintServiceMeow.Core.Parameters;
     using HintServiceMeow.Core.Utilities.Pools;
     using HintServiceMeow.Core.Utilities.Tools;
+    using HintServiceMeow.Core.Utilities.UnityAdaptors;
+    using UnityEngine;
 
     /// <summary>
     /// Used to parse AbstractHint to rich text message.
@@ -37,6 +42,14 @@
         private readonly Queue<ValueTuple<float, float>> queue = new();
         private readonly HashSet<ValueTuple<float, float>> visited = new();
 
+        // For hint parameter handling
+        private int tagCout = 0;
+        private readonly List<IHintParameter> hintParameters = new(128);
+
+        // For animation
+        private string formatString = "F1"; // 1 decimal place
+        private bool useIntegral = false; // Use float or int for animated value
+
         public HintParser(
             ICache<Guid, ValueTuple<float, float>>? dynamicHintPositionCache = null,
             ICoordinateTools? coordinateTool = null,
@@ -51,7 +64,7 @@
             this.hintPool = hintPool ?? HintPool.Instance;
         }
 
-        public string ParseToMessage(HintCollection collection)
+        public HintParserResult ParseToMessage(HintCollection collection)
         {
             IReadOnlyList<IReadOnlyList<AbstractHint>> allGroups = collection.AllGroups;
 
@@ -137,21 +150,22 @@
 
             messageBuilder.AppendLine(PlaceholderBottom); // Place Holder
 
+            // Create result
+            HintParserResult result = new HintParserResult(messageBuilder.ToString(), hintParameters.ToArray());
+
             // Clear buffer
             orderedHintGroups.Clear();
             dynamicHintColliders.Clear();
-
-            // Return rented hints to pool
-            for (int i = 0; i < rentedHints.Count; i++)
+            for (int i = 0; i < rentedHints.Count; i++)// Return rented hints to pool
             {
                 hintPool.Return(rentedHints[i]);
             }
 
             rentedHints.Clear();
-
-            string message = messageBuilder.ToString();
             stringBuilderPool.Return(messageBuilder);
-            return message;
+            Clear();
+
+            return result;
         }
 
         private Hint? ParseToHint(DynamicHint dynamicHint, IList<TextArea> colliders)
@@ -291,10 +305,24 @@
             };
         }
 
+        private float GetVOffset(Hint hint, HintVerticalAlign align)
+        {
+            return 700
+                - coordinateTool.GetYCoordinate(hint, align)// Start at the top of the first line
+                + hint.LineHeight;// Add extra line height on top of the first line so that the line height will not be calculated for the first line
+        }
+
+        private float GetCurrentVOffset(Hint hint, HintVerticalAlign align)
+        {
+            return 700
+                - coordinateTool.GetCurrentYCoordinate(hint, align)// Start at the top of the first line
+                + hint.LineHeight;// Add extra line height on top of the first line so that the line height will not be calculated for the first line
+        }
+
         private void ParseToRichText(Hint hint, StringBuilder messageBuilder)
         {
             // Remove illegal tags
-            string text = RemoveIllegalTags(hint.Content.GetText() ?? string.Empty);
+            string text = HandleTags(hint.Content.GetText() ?? string.Empty, hint.Parameters);
 
             // Parse into line infos
             RichTextParser parser = richTextParserPool.Rent();
@@ -304,14 +332,20 @@
             if (lineList.Count == 0)
                 return;
 
-            // Get the bottom y coordinate of first line
-            float vOffset =
-                700
-                - coordinateTool.GetYCoordinate(hint, HintVerticalAlign.Top)// Start at the top of the first line
-                + hint.LineHeight;// Add extra line height on top of the first line so that the line height will not be calculated for the first line
-
             // Add default size/alignment
-            messageBuilder.AppendFormat("<size={0}>", hint.FontSize);
+            if (hint.FontSizeTransition is not null)
+            {
+                AnimationCurve curve = hint.FontSizeTransition.GetCurve(hint.CurrentFontSize, hint.FontSize);
+                messageBuilder.Append("<size=");
+                AddTag(messageBuilder, new AnimationCurveHintParameter(NetworkTimeCache.Time, curve, formatString, useIntegral));
+                messageBuilder.Append('>');
+                hint.FontSizeTransitionState = new TransitionState(hint.FontSizeTransition, hint.CurrentFontSize, hint.FontSize);
+            }
+            else
+            {
+                messageBuilder.AppendFormat("<size={0}>", hint.FontSize);
+            }
+
             if (hint.Alignment != HintAlignment.Center)
             {
                 switch (hint.Alignment)
@@ -321,23 +355,58 @@
                 }
             }
 
+            // Get the bottom y coordinate of first line
+            float vOffset = GetVOffset(hint, HintVerticalAlign.Top);
+
+            // Get the delta of y coordinate from the original position to the target position.
+            float yDelta = hint.YCoordinate - hint.CurrentYCoordinate;
+            float fromVOffset = vOffset + yDelta;
+
             for (int i = 0; i < lineList.Count; i++)
             {
                 vOffset -= lineList[i].Height + hint.LineHeight; // Move y coordinate to the bottom of the line
+                fromVOffset -= lineList[i].Height + hint.LineHeight; // Move from coordinate to the bottom of the line
 
                 if (string.IsNullOrEmpty(lineList[i].RawText))
                     continue;
 
-                if (hint.XCoordinate != 0)
-                    messageBuilder.AppendFormat("<pos={0:0.#}>", hint.XCoordinate); // X coordinate
+                // X coordinate
+                if (hint.XCoordinateTransition is not null)
+                {
+                    AnimationCurve curve = hint.XCoordinateTransition.GetCurve(hint.CurrentXCoordinate, hint.XCoordinate);
+                    messageBuilder.Append("<pos=");
+                    AddTag(messageBuilder, new AnimationCurveHintParameter(NetworkTimeCache.Time, curve, formatString, useIntegral));
+                    messageBuilder.Append('>');
+                    hint.XCoordinateTransitionState = new TransitionState(hint.XCoordinateTransition, hint.CurrentXCoordinate, hint.XCoordinate);
+                }
+                else
+                {
+                    if (hint.XCoordinate != 0)
+                        messageBuilder.AppendFormat("<pos={0:0.#}>", hint.XCoordinate);
+                }
+
                 messageBuilder.Append("<line-height=0>"); // Make sure each line will not affect each other's position
-                if (vOffset != 0)
-                    messageBuilder.AppendFormat("<voffset={0:0.#}>", vOffset); // Y coordinate
+
+                // Y coordinate
+                if (hint.YCoordinateTransition is not null)
+                {
+                    AnimationCurve curve = hint.YCoordinateTransition.GetCurve(fromVOffset, vOffset);
+                    messageBuilder.Append("<voffset=");
+                    AddTag(messageBuilder, new AnimationCurveHintParameter(NetworkTimeCache.Time, curve, formatString, useIntegral));
+                    messageBuilder.Append('>');
+                    hint.YCoordinateTransitionState = new TransitionState(hint.YCoordinateTransition, hint.CurrentYCoordinate, hint.YCoordinate);
+                }
+                else
+                {
+                    if (vOffset != 0)
+                        messageBuilder.AppendFormat("<voffset={0:0.#}>", vOffset); // Y coordinate
+                }
 
                 messageBuilder.Append(lineList[i].RawText); // Content
 
                 if (vOffset != 0)
                     messageBuilder.Append("</voffset>"); // End Y coordinate
+
                 messageBuilder.AppendLine(); // Break line
             }
 
@@ -347,7 +416,12 @@
             messageBuilder.Append("</size>");
         }
 
-        private string RemoveIllegalTags(string raw)
+        /// <summary>
+        /// Remove illegal tags and handle hint parameters.
+        /// </summary>
+        /// <param name="raw">Unhandled text.</param>
+        /// <returns>Handled text.</returns>
+        private string HandleTags(string raw, Tuple<string, IHintParameter>[] reigsteredTags)
         {
             if (string.IsNullOrEmpty(raw))
                 return string.Empty;
@@ -358,12 +432,13 @@
             for (; i < raw.Length; i++)
             {
                 char c = raw[i];
-                if (c == '{' || c == '}')
+                if (c == '{')
                 {
                     needsModification = true;
                     break;
                 }
 
+                // Remove illegal tags
                 if (c == '<' &&
                     (StartsWithIgnoreCase(raw, i, "<line-height=") ||
                      StartsWithIgnoreCase(raw, i, "<voffset=") ||
@@ -388,10 +463,9 @@
                 char c = raw[i];
 
                 // Remove all { and } since {} are somehow not displayable
-                if (c == '{' || c == '}')
+                if (c == '{')
                 {
-                    i++;
-                    continue;
+                    i = HandleTag(raw, i, sb, reigsteredTags);
                 }
 
                 // Remove all illegal tags
@@ -446,6 +520,57 @@
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Processes a tag within the specified string. Append processecd tag, and return the end index of the tag.
+        /// If no tag is found, remove {}
+        /// If no } is found, do nothing.
+        /// </summary>
+        /// <remarks>If no closing brace is found, the method skips the opening brace and continues
+        /// processing from the next character.</remarks>
+        /// <param name="str">The input string containing the tag to be processed.</param>
+        /// <param name="start">The zero-based index in the input string at which to begin searching for the closing brace of the tag.</param>
+        /// <param name="sb">A StringBuilder instance used to accumulate the processed output.</param>
+        /// <param name="reigsteredTags">A list of registered tags, where each tuple contains the tag name and its associated parameter information.</param>
+        /// <returns>The index of the character following the closing brace of the tag, or the next index if no closing brace is
+        /// found.</returns>
+        private int HandleTag(string str, int start, StringBuilder sb, Tuple<string, IHintParameter>[] reigsteredTags)
+        {
+            int end = str.IndexOf('}', start);
+
+            // If no closing }, skip '{'
+            if (end == -1)
+                return start;
+
+            string tagContent = str.Substring(start + 1, end - start - 1);
+
+            // Handle tag if it is a tag
+            for (int i = 0; i < reigsteredTags.Length; i++)
+            {
+                if (string.Equals(tagContent, reigsteredTags[i].Item1, StringComparison.OrdinalIgnoreCase))
+                {
+                    AddTag(sb, reigsteredTags[i].Item2);
+                    return end + 1;
+                }
+            }
+
+            // Use the content in the braces directly. Use string parameter so that the content will not be treated as a tag in client.
+            AddTag(sb, new StringHintParameter(tagContent));
+            return end + 1;
+        }
+
+        private void AddTag(StringBuilder sb, IHintParameter hintParameter)
+        {
+            sb.Append('{').Append(tagCout).Append('}');
+            tagCout++;
+            hintParameters.Add(hintParameter);
+        }
+
+        private void Clear()
+        {
+            tagCout = 0;
+            hintParameters.Clear();
         }
     }
 }

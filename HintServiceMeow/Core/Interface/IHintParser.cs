@@ -1,6 +1,7 @@
 namespace HintServiceMeow.Core.Interface
 {
     using HintServiceMeow.Core.Models;
+    using HintServiceMeow.Core.Models.Arguments;
 
     /// <summary>
     /// Defines a parser that converts a <see cref="HintCollection"/> into a displayable message string.
@@ -12,6 +13,6 @@ namespace HintServiceMeow.Core.Interface
         /// </summary>
         /// <param name="collection">The collection of hints to parse.</param>
         /// <returns>A formatted string representing the hints for display.</returns>
-        string ParseToMessage(HintCollection collection);
+        HintParserResult ParseToMessage(HintCollection collection);
     }
 }
