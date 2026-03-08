@@ -15,8 +15,8 @@ namespace HintServiceMeow.Core.Models
         private readonly object collectionLock = new();
         private readonly Dictionary<string, List<AbstractHint>> hintGroups = new();
 
-        private IReadOnlyList<IReadOnlyList<AbstractHint>>? allGroupsCache;
-        private IReadOnlyList<AbstractHint>? allHintsCache;
+        private AbstractHint[][]? allGroupsCache;
+        private AbstractHint[]? allHintsCache;
 
         /// <summary>
         /// Occurs when the hint collection is modified (hints added, removed, or cleared).
@@ -26,14 +26,14 @@ namespace HintServiceMeow.Core.Models
         /// <summary>
         /// Gets a read-only list of all hint groups, where each group corresponds to a registered assembly.
         /// </summary>
-        public IReadOnlyList<IReadOnlyList<AbstractHint>> AllGroups
+        public AbstractHint[][] AllGroups
         {
             get
             {
                 lock (collectionLock)
                 {
                     if (allGroupsCache == null)
-                        allGroupsCache = hintGroups.Values.Select(x => x.ToList().AsReadOnly()).ToList().AsReadOnly();
+                        allGroupsCache = hintGroups.Values.Select(x => x.ToArray()).ToArray();
 
                     return allGroupsCache;
                 }
@@ -43,14 +43,14 @@ namespace HintServiceMeow.Core.Models
         /// <summary>
         /// Gets a read-only flat list of all hints across all groups.
         /// </summary>
-        public IReadOnlyList<AbstractHint> AllHints
+        public AbstractHint[] AllHints
         {
             get
             {
                 lock (collectionLock)
                 {
                     if (allHintsCache == null)
-                        allHintsCache = hintGroups.Values.SelectMany(x => x).ToList().AsReadOnly();
+                        allHintsCache = hintGroups.Values.SelectMany(x => x).ToArray();
 
                     return allHintsCache;
                 }

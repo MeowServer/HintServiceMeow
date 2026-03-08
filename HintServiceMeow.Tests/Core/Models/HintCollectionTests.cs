@@ -63,7 +63,7 @@ public class HintCollectionTests
 
         // Assert
         Assert.AreEqual(1, snapshot.Count);
-        Assert.AreEqual(2, collection.AllHints.Count);
+        Assert.AreEqual(2, collection.AllHints.Length);
     }
 
     [TestMethod]
@@ -79,7 +79,7 @@ public class HintCollectionTests
         // Assert
         Assert.AreEqual(1, removed.Count);
         Assert.AreEqual(0, collection.GetHints("asm").Count);
-        Assert.AreEqual(0, collection.AllGroups.Count);
+        Assert.AreEqual(0, collection.AllGroups.Length);
     }
 
     [TestMethod]
@@ -100,8 +100,8 @@ public class HintCollectionTests
                 {
                     int idx = i * 40 + j;
                     collection.AddHint(idx % 2 == 0 ? "a" : "b", new Hint { Id = idx.ToString() });
-                    _ = collection.AllHints.Count;
-                    _ = collection.AllGroups.Count;
+                    _ = collection.AllHints.Length;
+                    _ = collection.AllGroups.Length;
                     Interlocked.Increment(ref addCount);
                 }
             }
@@ -114,6 +114,6 @@ public class HintCollectionTests
 
         // Assert
         Assert.AreEqual(0, errors.Count);
-        Assert.AreEqual(2000, collection.AllHints.Count);
+        Assert.AreEqual(2000, collection.AllHints.Length);
     }
 }
