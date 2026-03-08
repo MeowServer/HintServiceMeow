@@ -9,6 +9,8 @@
     /// </summary>
     internal class TransitionState
     {
+        private readonly object @lock = new object();
+
         /// <summary>Initializes a new transition state.</summary>
         /// <param name="transition">The transition configuration.</param>
         /// <param name="fromValue">Value before the change.</param>
@@ -37,17 +39,29 @@
         public float Duration => Transition.Duration;
 
         /// <summary> Gets a value indicating whether this transition has finished. </summary>
-        public bool IsExpired => (NetworkTimeCache.Time - StartTime) >= Duration;
+        public bool IsExpired
+        {
+            get
+            {
+                lock (@lock)
+                {
+                    return (NetworkTimeCache.Time - StartTime) >= Duration;
+                }
+            }
+        }
 
         public float CurrentValue
         {
             get
             {
-                if (IsExpired)
-                    return ToValue;
+                lock (@lock)
+                {
+                    if (IsExpired)
+                        return ToValue;
 
-                float elapsed = (float)(NetworkTimeCache.Time - StartTime);
-                return Transition.Evluate(elapsed, FromValue, ToValue);
+                    float elapsed = (float)(NetworkTimeCache.Time - StartTime);
+                    return Transition.Evluate(elapsed, FromValue, ToValue);
+                }
             }
         }
     }

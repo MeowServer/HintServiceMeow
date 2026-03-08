@@ -5,6 +5,8 @@
 
     public class Transition
     {
+        private readonly object @lock = new object();
+        private float duration;
         private AnimationCurve? customCurve;
         private EasingType easing;
 
@@ -13,20 +15,27 @@
         }
 
         /// <summary> Gets or sets the duration of the transition in seconds. </summary>
-        public float Duration { get; set; }
+        public float Duration
+        {
+            get { lock (@lock) { return duration; } }
+            set { lock (@lock) { duration = value; } }
+        }
 
         /// <summary> Gets or sets the easing type. Custom if a custom curve was provided. </summary>
         public EasingType Easing
         {
             get
             {
-                return easing;
+                lock (@lock) { return easing; }
             }
 
             set
             {
-                customCurve = GetNormalizedCurve(value);
-                easing = value;
+                lock (@lock)
+                {
+                    customCurve = GetNormalizedCurve(value);
+                    easing = value;
+                }
             }
         }
 
@@ -34,20 +43,29 @@
         {
             get
             {
-                if (customCurve != null)
-                    return customCurve;
+                lock (@lock)
+                {
+                    if (customCurve != null)
+                        return customCurve;
 
-                return GetNormalizedCurve(Easing);
+                    return GetNormalizedCurve(easing);
+                }
             }
 
             set
             {
-                customCurve = value;
-                easing = EasingType.Custom;
+                lock (@lock)
+                {
+                    customCurve = value;
+                    easing = EasingType.Custom;
+                }
             }
         }
 
-        public AnimationCurve? CustomCurve => customCurve;
+        public AnimationCurve? CustomCurve
+        {
+            get { lock (@lock) { return customCurve; } }
+        }
 
         public static Transition Get(AnimationCurve normalizedCurve)
         {
@@ -69,60 +87,66 @@
 
         internal AnimationCurve GetCurve(float from, float to)
         {
-            // If has a custom normalized curve, scale and return it.
-            if (customCurve != null)
+            lock (@lock)
             {
-                float range = to - from;
-                Keyframe[] keys = customCurve.keys;
-                Keyframe[] scaled = new Keyframe[keys.Length];
-
-                for (int i = 0; i < keys.Length; i++)
+                // If has a custom normalized curve, scale and return it.
+                if (customCurve != null)
                 {
-                    scaled[i] = new Keyframe(
-                        time: keys[i].time * Duration,
-                        value: from + (keys[i].value * range),
-                        inTangent: keys[i].inTangent * range / Duration,
-                        outTangent: keys[i].outTangent * range / Duration);
+                    float range = to - from;
+                    Keyframe[] keys = customCurve.keys;
+                    Keyframe[] scaled = new Keyframe[keys.Length];
+
+                    for (int i = 0; i < keys.Length; i++)
+                    {
+                        scaled[i] = new Keyframe(
+                            time: keys[i].time * duration,
+                            value: from + (keys[i].value * range),
+                            inTangent: keys[i].inTangent * range / duration,
+                            outTangent: keys[i].outTangent * range / duration);
+                    }
+
+                    return new AnimationCurve(scaled);
                 }
 
-                return new AnimationCurve(scaled);
-            }
+                // If no custom curve, generate curve based on easing type.
+                switch (easing)
+                {
+                    case EasingType.Linear:
+                        return AnimationCurve.Linear(0f, from, duration, to);
 
-            // If no custom curve, generate curve based on easing type.
-            switch (Easing)
-            {
-                case EasingType.Linear:
-                    return AnimationCurve.Linear(0f, from, Duration, to);
+                    case EasingType.EaseIn:
+                        return new AnimationCurve(
+                            new Keyframe(0f, from) { outTangent = 0f },
+                            new Keyframe(duration, to) { inTangent = (to - from) * 2f / duration });
 
-                case EasingType.EaseIn:
-                    return new AnimationCurve(
-                        new Keyframe(0f, from) { outTangent = 0f },
-                        new Keyframe(Duration, to) { inTangent = (to - from) * 2f / Duration });
+                    case EasingType.EaseOut:
+                        return new AnimationCurve(
+                            new Keyframe(0f, from) { outTangent = (to - from) * 2f / duration },
+                            new Keyframe(duration, to) { inTangent = 0f });
 
-                case EasingType.EaseOut:
-                    return new AnimationCurve(
-                        new Keyframe(0f, from) { outTangent = (to - from) * 2f / Duration },
-                        new Keyframe(Duration, to) { inTangent = 0f });
-
-                case EasingType.EaseInOut:
-                default:
-                    return AnimationCurve.EaseInOut(0f, from, Duration, to);
+                    case EasingType.EaseInOut:
+                    default:
+                        return AnimationCurve.EaseInOut(0f, from, duration, to);
+                }
             }
         }
 
         internal float Evluate(float time, float start, float end)
         {
-            if (customCurve is null)
-                return end;
+            lock (@lock)
+            {
+                if (customCurve is null)
+                    return end;
 
-            if (time > Duration)
-                return end;
-            if (time < 0)
-                return start;
+                if (time > duration)
+                    return end;
+                if (time < 0)
+                    return start;
 
-            float dif = end - start;
+                float dif = end - start;
 
-            return start + (dif * customCurve.Evaluate(time / Duration));
+                return start + (dif * customCurve.Evaluate(time / duration));
+            }
         }
 
         private static AnimationCurve GetNormalizedCurve(EasingType type)
