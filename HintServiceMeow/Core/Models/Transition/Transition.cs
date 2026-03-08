@@ -67,21 +67,23 @@
             get { lock (@lock) { return customCurve; } }
         }
 
-        public static Transition Get(AnimationCurve normalizedCurve)
+        public static Transition Get(AnimationCurve normalizedCurve, float duration = 3f)
         {
             return new Transition()
             {
                 customCurve = normalizedCurve,
                 Easing = EasingType.Custom,
+                Duration = duration,
             };
         }
 
-        public static Transition Get(EasingType type = EasingType.EaseInOut)
+        public static Transition Get(EasingType type = EasingType.EaseInOut, float duration = 3f)
         {
             return new Transition()
             {
                 customCurve = GetNormalizedCurve(type),
                 Easing = type,
+                Duration = duration,
             };
         }
 
