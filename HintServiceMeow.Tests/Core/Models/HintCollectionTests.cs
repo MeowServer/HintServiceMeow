@@ -78,7 +78,7 @@ public class HintCollectionTests
 
         // Assert
         Assert.AreEqual(1, removed.Count);
-        Assert.AreEqual(0, collection.GetHints("asm").Count);
+        Assert.AreEqual(0, collection.GetHints("asm").Length);
         Assert.AreEqual(0, collection.AllGroups.Length);
     }
 

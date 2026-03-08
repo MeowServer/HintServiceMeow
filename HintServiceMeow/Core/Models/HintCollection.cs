@@ -3,7 +3,6 @@ namespace HintServiceMeow.Core.Models
     using System;
     using System.Collections.Generic;
     using System.Collections.Specialized;
-    using System.Linq;
     using HintServiceMeow.Core.Models.Hints;
 
     /// <summary>
@@ -33,7 +32,16 @@ namespace HintServiceMeow.Core.Models
                 lock (collectionLock)
                 {
                     if (allGroupsCache == null)
-                        allGroupsCache = hintGroups.Values.Select(x => x.ToArray()).ToArray();
+                    {
+                        allGroupsCache = new AbstractHint[hintGroups.Count][];
+
+                        int index = 0;
+
+                        foreach (List<AbstractHint> group in hintGroups.Values)
+                        {
+                            allGroupsCache[index++] = group.ToArray();
+                        }
+                    }
 
                     return allGroupsCache;
                 }
@@ -50,7 +58,22 @@ namespace HintServiceMeow.Core.Models
                 lock (collectionLock)
                 {
                     if (allHintsCache == null)
-                        allHintsCache = hintGroups.Values.SelectMany(x => x).ToArray();
+                    {
+                        int total = 0;
+                        foreach (List<AbstractHint> group in hintGroups.Values)
+                        {
+                            total += group.Count;
+                        }
+
+                        allHintsCache = new AbstractHint[total];
+
+                        int index = 0;
+                        foreach (List<AbstractHint> group in hintGroups.Values)
+                        {
+                            group.CopyTo(allHintsCache, index);
+                            index += group.Count;
+                        }
+                    }
 
                     return allHintsCache;
                 }
@@ -62,17 +85,17 @@ namespace HintServiceMeow.Core.Models
         /// </summary>
         /// <param name="assemblyName">The assembly name used to filter hints, or <see langword="null"/> to retrieve all hints.</param>
         /// <returns>A read-only list of matching hints.</returns>
-        public IReadOnlyList<AbstractHint> GetHints(string? assemblyName)
+        public AbstractHint[] GetHints(string? assemblyName)
         {
+            if (assemblyName is null)
+                return AllHints;
+
             lock (collectionLock)
             {
-                if (assemblyName is null)
-                    return hintGroups.Values.SelectMany(x => x).ToList().AsReadOnly();
-
                 if (!hintGroups.TryGetValue(assemblyName, out List<AbstractHint> collection))
-                    return new List<AbstractHint>().AsReadOnly();
+                    return Array.Empty<AbstractHint>();
 
-                return collection.ToList().AsReadOnly();
+                return collection.ToArray();
             }
         }
 
@@ -82,9 +105,26 @@ namespace HintServiceMeow.Core.Models
         /// <param name="assemblyName">The assembly name used to filter hints.</param>
         /// <param name="predicate">A function to further filter hints within the assembly group.</param>
         /// <returns>A read-only list of hints that match both the assembly name and the predicate.</returns>
-        public IReadOnlyList<AbstractHint> GetHints(string assemblyName, Func<AbstractHint, bool> predicate)
+        public AbstractHint[] GetHints(string assemblyName, Func<AbstractHint, bool> predicate)
         {
-            return GetHints(assemblyName).Where(predicate).ToList().AsReadOnly();
+            lock (collectionLock)
+            {
+                if (!hintGroups.TryGetValue(assemblyName, out List<AbstractHint>? collection))
+                    return Array.Empty<AbstractHint>();
+
+                List<AbstractHint> resultList = new List<AbstractHint>(collection.Count);
+
+                for (int i = 0; i < collection.Count; i++)
+                {
+                    AbstractHint hint = collection[i];
+                    if (predicate(hint))
+                    {
+                        resultList.Add(hint);
+                    }
+                }
+
+                return resultList.ToArray();
+            }
         }
 
         internal void AddHint(string assemblyName, AbstractHint hint)
@@ -107,23 +147,34 @@ namespace HintServiceMeow.Core.Models
         {
             bool success = false;
 
+            List<string>? keysToRemove = null;
+
             lock (collectionLock)
             {
                 // If assemblyName is null, remove the hint from all groups.
                 if (assemblyName is null)
                 {
-                    foreach (List<AbstractHint>? collection in hintGroups.Values)
+                    foreach (KeyValuePair<string, List<AbstractHint>> group in hintGroups)
                     {
-                        if (collection.Remove(hint))
+                        if (group.Value.Remove(hint))
                         {
                             success = true;
+                        }
+
+                        if (group.Value.Count == 0)
+                        {
+                            keysToRemove ??= new List<string>();
+                            keysToRemove.Add(group.Key);
                         }
                     }
 
                     // Remove all empty groups.
-                    foreach (string? key in hintGroups.Where(x => !x.Value.Any()).Select(x => x.Key).ToList())
+                    if (keysToRemove is not null)
                     {
-                        hintGroups.Remove(key);
+                        foreach (string key in keysToRemove)
+                        {
+                            hintGroups.Remove(key);
+                        }
                     }
                 }
                 else
@@ -137,7 +188,7 @@ namespace HintServiceMeow.Core.Models
                         success = true;
                     }
 
-                    if (!assemblyCollection.Any())
+                    if (assemblyCollection.Count == 0)
                     {
                         hintGroups.Remove(assemblyName);
                     }
@@ -155,32 +206,40 @@ namespace HintServiceMeow.Core.Models
         internal List<AbstractHint> RemoveHint(string? assemblyName, Func<AbstractHint, bool> predicate)
         {
             List<AbstractHint> updatedHints = [];
+            List<string>? keysToRemove = null;
 
             lock (collectionLock)
             {
                 // If assemblyName is null, remove all hints that satisfy the predicate from all groups.
                 if (assemblyName is null)
                 {
-                    foreach (List<AbstractHint>? collection in hintGroups.Values)
+                    foreach (KeyValuePair<string, List<AbstractHint>> group in hintGroups)
                     {
-                        for (int i = 0; i < collection.Count; i++)
+                        group.Value.RemoveAll(h =>
                         {
-                            AbstractHint hint = collection[i];
+                            if (predicate(h))
+                            {
+                                updatedHints.Add(h);
+                                return true;
+                            }
 
-                            if (!predicate(hint))
-                                continue;
+                            return false;
+                        });
 
-                            // If the hint satisfies the predicate, remove it from the collection.
-                            collection.RemoveAt(i);
-                            updatedHints.Add(hint);
-                            i--;
+                        if (group.Value.Count == 0)
+                        {
+                            keysToRemove ??= new List<string>();
+                            keysToRemove.Add(group.Key);
                         }
                     }
 
                     // Remove all empty groups.
-                    foreach (string? key in hintGroups.Where(x => !x.Value.Any()).Select(x => x.Key).ToList())
+                    if (keysToRemove is not null)
                     {
-                        hintGroups.Remove(key);
+                        foreach (string key in keysToRemove)
+                        {
+                            hintGroups.Remove(key);
+                        }
                     }
                 }
                 else
@@ -189,28 +248,25 @@ namespace HintServiceMeow.Core.Models
                     if (!hintGroups.TryGetValue(assemblyName, out List<AbstractHint> assemblyCollection))
                         return updatedHints;
 
-                    for (int i = 0; i < assemblyCollection.Count; i++)
+                    assemblyCollection.RemoveAll(h =>
                     {
-                        AbstractHint hint = assemblyCollection[i];
-
-                        if (!predicate(hint))
-                            continue;
-
-                        if (assemblyCollection.Remove(hint))
+                        if (predicate(h))
                         {
-                            updatedHints.Add(hint);
-                            i--;
+                            updatedHints.Add(h);
+                            return true;
                         }
-                    }
 
-                    if (!assemblyCollection.Any())
+                        return false;
+                    });
+
+                    if (assemblyCollection.Count == 0)
                     {
                         hintGroups.Remove(assemblyName);
                     }
                 }
             }
 
-            if (updatedHints.Any())
+            if (updatedHints.Count > 0)
             {
                 foreach (AbstractHint hint in updatedHints)
                 {
