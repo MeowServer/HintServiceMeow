@@ -7,6 +7,7 @@ namespace HintServiceMeow.Core.Utilities
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
+    using HintServiceMeow.Core.Effects;
     using HintServiceMeow.Core.Enum;
     using HintServiceMeow.Core.Extension;
     using HintServiceMeow.Core.Interface;
@@ -864,7 +865,7 @@ namespace HintServiceMeow.Core.Utilities
                                     if (this.isDestructed)
                                         return;
 
-                                    SendHint(new DisplayOutputArg(this, result.Content, result.Parameters, null, 999999f));
+                                    SendHint(new DisplayOutputArg(this, result.Content, result.Parameters, [new AlphaEffect(1)], 999999f));
                                 }
                                 catch (Exception ex)
                                 {
