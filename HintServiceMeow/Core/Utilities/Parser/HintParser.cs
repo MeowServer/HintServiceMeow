@@ -305,6 +305,20 @@
             };
         }
 
+        private float GetVOffset(Hint hint, HintVerticalAlign align)
+        {
+            return 700
+                - coordinateTool.GetYCoordinate(hint, align)// Start at the top of the first line
+                + hint.LineHeight;// Add extra line height on top of the first line so that the line height will not be calculated for the first line
+        }
+
+        private float GetCurrentVOffset(Hint hint, HintVerticalAlign align)
+        {
+            return 700
+                - coordinateTool.GetCurrentYCoordinate(hint, align)// Start at the top of the first line
+                + hint.LineHeight;// Add extra line height on top of the first line so that the line height will not be calculated for the first line
+        }
+
         private void ParseToRichText(Hint hint, StringBuilder messageBuilder)
         {
             // Remove illegal tags
@@ -317,12 +331,6 @@
 
             if (lineList.Count == 0)
                 return;
-
-            // Get the bottom y coordinate of first line
-            float vOffset =
-                700
-                - coordinateTool.GetYCoordinate(hint, HintVerticalAlign.Top)// Start at the top of the first line
-                + hint.LineHeight;// Add extra line height on top of the first line so that the line height will not be calculated for the first line
 
             // Add default size/alignment
             if (hint.FontSizeTransition is not null)
@@ -347,9 +355,17 @@
                 }
             }
 
+            // Get the bottom y coordinate of first line
+            float vOffset = GetVOffset(hint, HintVerticalAlign.Top);
+
+            // Get the delta of y coordinate from the original position to the target position.
+            float yDelta = hint.YCoordinate - hint.CurrentYCoordinate;
+            float fromVOffset = vOffset + yDelta;
+
             for (int i = 0; i < lineList.Count; i++)
             {
                 vOffset -= lineList[i].Height + hint.LineHeight; // Move y coordinate to the bottom of the line
+                fromVOffset -= lineList[i].Height + hint.LineHeight; // Move from coordinate to the bottom of the line
 
                 if (string.IsNullOrEmpty(lineList[i].RawText))
                     continue;
@@ -374,7 +390,7 @@
                 // Y coordinate
                 if (hint.YCoordinateTransition is not null)
                 {
-                    AnimationCurve curve = hint.YCoordinateTransition.GetCurve(hint.CurrentYCoordinate, hint.YCoordinate);
+                    AnimationCurve curve = hint.YCoordinateTransition.GetCurve(fromVOffset, vOffset);
                     messageBuilder.Append("<voffset=");
                     AddTag(messageBuilder, new AnimationCurveHintParameter(NetworkTimeCache.Time, curve, formatString, useIntegral));
                     messageBuilder.Append('>');
@@ -546,7 +562,8 @@
 
         private void AddTag(StringBuilder sb, IHintParameter hintParameter)
         {
-            sb.AppendFormat("{{0}}", tagCout);
+            sb.Append('{').Append(tagCout).Append('}');
+            tagCout++;
             hintParameters.Add(hintParameter);
         }
 
