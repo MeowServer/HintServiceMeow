@@ -1,6 +1,7 @@
 namespace HintServiceMeow.Core.Models.Hints
 {
     using HintServiceMeow.Core.Enum;
+    using HintServiceMeow.Core.Models.Transition;
 
     /// <summary>
     /// Represents a hint that dynamically positions itself within defined boundaries on the player's screen,
@@ -21,6 +22,11 @@ namespace HintServiceMeow.Core.Models.Hints
         private float bottomMargin = 5;
         private float leftMargin = 100;
         private float rightMargin = 100;
+
+        private Transition? xCoordinateTransition = null;
+        private Transition? yCoordinateTransition = null;
+        private TransitionState? xTransitionState = null;
+        private TransitionState? yTransitionState = null;
 
         private HintPriority priority = HintPriority.Medium;
         private DynamicHintStrategy strategy = DynamicHintStrategy.Hide;
@@ -439,6 +445,74 @@ namespace HintServiceMeow.Core.Models.Hints
             }
         }
 
+        public Transition XCoordinateTransition
+        {
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return xCoordinateTransition;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
+
+            set
+            {
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (xCoordinateTransition == value)
+                        return;
+
+                    xCoordinateTransition = value;
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
+
+                OnHintUpdated(nameof(XCoordinateTransition));
+            }
+        }
+
+        public Transition? YCoordinateTransition
+        {
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return yCoordinateTransition;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
+
+            set
+            {
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (yCoordinateTransition == value)
+                        return;
+
+                    yCoordinateTransition = value;
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
+
+                OnHintUpdated(nameof(YCoordinateTransition));
+            }
+        }
+
         /// <summary>
         /// Gets or sets the priority of the hint, higher priority means the hint is less likely to be covered by other hint.
         /// </summary>
@@ -510,6 +584,64 @@ namespace HintServiceMeow.Core.Models.Hints
                 }
 
                 OnHintUpdated(nameof(Strategy));
+            }
+        }
+
+        internal TransitionState? XTransitionState
+        {
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return xTransitionState;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
+
+            set
+            {
+                Lock.EnterWriteLock();
+                try
+                {
+                    xTransitionState = value;
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
+            }
+        }
+
+        internal TransitionState? YTransitionState
+        {
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return yTransitionState;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
+
+            set
+            {
+                Lock.EnterWriteLock();
+                try
+                {
+                    yTransitionState = value;
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
             }
         }
     }

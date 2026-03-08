@@ -7,6 +7,7 @@ namespace HintServiceMeow.Core.Models.Hints
     using HintServiceMeow.Core.Interface;
     using HintServiceMeow.Core.Models.Arguments;
     using HintServiceMeow.Core.Models.HintContent;
+    using HintServiceMeow.Core.Models.Transition;
     using HintServiceMeow.Core.Utilities;
     using HintServiceMeow.Core.Utilities.Tools;
 
@@ -25,6 +26,8 @@ namespace HintServiceMeow.Core.Models.Hints
         private HintSyncSpeed syncSpeed = HintSyncSpeed.Normal;
 
         private int fontSize = 20;
+        private Transition? fontSizeTransition = null;
+        private TransitionState? fontSizeTransitionState = null;
 
         private float lineHeight;
 
@@ -229,6 +232,43 @@ namespace HintServiceMeow.Core.Models.Hints
                 }
 
                 OnHintUpdated(nameof(FontSize));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the transition effect applied when the font size changes.
+        /// </summary>
+        public Transition? FontSizeTransition
+        {
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return fontSizeTransition;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
+
+            set
+            {
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (fontSizeTransition == value)
+                        return;
+
+                    fontSizeTransition = value;
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
+
+                OnHintUpdated(nameof(FontSizeTransition));
             }
         }
 
@@ -442,6 +482,35 @@ namespace HintServiceMeow.Core.Models.Hints
             }
         }
 
+        internal TransitionState? FontSizeTransitionState
+        {
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return fontSizeTransitionState;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
+
+            set
+            {
+                Lock.EnterWriteLock();
+                try
+                {
+                    fontSizeTransitionState = value;
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
+            }
+        }
+
         /// <summary>
         /// Gets the reader/writer lock used to synchronize access to this hint's fields.
         /// </summary>
@@ -465,12 +534,14 @@ namespace HintServiceMeow.Core.Models.Hints
         /// <param name="copyFrom">Copy parameter from.</param>
         internal void CopyFieldsFrom(AbstractHint copyFrom)
         {
-            this.id = copyFrom.id;
-            this.syncSpeed = copyFrom.syncSpeed;
-            this.fontSize = copyFrom.fontSize;
-            this.lineHeight = copyFrom.lineHeight;
-            this.content = copyFrom.content;
-            this.hide = copyFrom.hide;
+            this.id = copyFrom.Id;
+            this.syncSpeed = copyFrom.SyncSpeed;
+            this.fontSize = copyFrom.FontSize;
+            this.lineHeight = copyFrom.LineHeight;
+            this.content = copyFrom.Content;
+            this.hide = copyFrom.Hide;
+            this.fontSizeTransition = copyFrom.FontSizeTransition;
+            this.fontSizeTransitionState = copyFrom.FontSizeTransitionState;
         }
 
         /// <summary>
