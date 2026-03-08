@@ -1,6 +1,7 @@
 namespace HintServiceMeow.Core.Models.Hints
 {
     using System;
+    using System.Collections.Generic;
     using System.ComponentModel;
     using System.Threading;
     using HintServiceMeow.Core.Enum;
@@ -25,6 +26,7 @@ namespace HintServiceMeow.Core.Models.Hints
 
         private HintSyncSpeed syncSpeed = HintSyncSpeed.Normal;
 
+        private int previousFontSize = 20;
         private int fontSize = 20;
         private Transition? fontSizeTransition = null;
         private TransitionState? fontSizeTransitionState = null;
@@ -34,6 +36,8 @@ namespace HintServiceMeow.Core.Models.Hints
         private AbstractHintContent content = new StringContent(string.Empty);
 
         private bool hide;
+
+        private List<Tuple<string, IHintParameter>> parameters = new();
 
         #region Constructors
 
@@ -224,6 +228,7 @@ namespace HintServiceMeow.Core.Models.Hints
                     if (fontSize == value)
                         return;
 
+                    previousFontSize = value;
                     fontSize = value;
                 }
                 finally
@@ -531,6 +536,38 @@ namespace HintServiceMeow.Core.Models.Hints
             }
         }
 
+        internal Tuple<string, IHintParameter>[] Parameters
+        {
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return parameters.ToArray();
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
+        }
+
+        internal int PreviousFontSize
+        {
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return previousFontSize;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
+        }
+
         /// <summary>
         /// Gets the reader/writer lock used to synchronize access to this hint's fields.
         /// </summary>
@@ -548,6 +585,46 @@ namespace HintServiceMeow.Core.Models.Hints
             Content.TryUpdate(new ContentUpdateArg(this, ev.PlayerDisplay));
         }
 
+        public void AddParameter(string tagName, IHintParameter parameter)
+        {
+            Lock.EnterWriteLock();
+            try
+            {
+                parameters.RemoveAll(x => x.Item1 == tagName);
+                parameters.Add(Tuple.Create(tagName, parameter));
+            }
+            finally
+            {
+                Lock.ExitWriteLock();
+            }
+        }
+
+        public void RemoveParameter(string tagName)
+        {
+            Lock.EnterWriteLock();
+            try
+            {
+                parameters.RemoveAll(x => x.Item1 == tagName);
+            }
+            finally
+            {
+                Lock.ExitWriteLock();
+            }
+        }
+
+        public void RemoveParameters<T>() where T : IHintParameter
+        {
+            Lock.EnterWriteLock();
+            try
+            {
+                parameters.RemoveAll(p => p.Item2 is T);
+            }
+            finally
+            {
+                Lock.ExitWriteLock();
+            }
+        }
+
         /// <summary>
         /// Not thread friendly, should only be used in pool.
         /// </summary>
@@ -556,6 +633,7 @@ namespace HintServiceMeow.Core.Models.Hints
         {
             this.id = copyFrom.Id;
             this.syncSpeed = copyFrom.SyncSpeed;
+            this.previousFontSize = copyFrom.PreviousFontSize;
             this.fontSize = copyFrom.FontSize;
             this.lineHeight = copyFrom.LineHeight;
             this.content = copyFrom.Content;
