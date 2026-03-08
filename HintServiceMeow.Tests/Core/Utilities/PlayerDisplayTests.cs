@@ -4,6 +4,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using HintServiceMeow.Core.Enum;
+using HintServiceMeow.Core.Interface;
+using HintServiceMeow.Core.Models.Arguments;
 using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.Tests.Core.Utilities.TestDoubles;
@@ -359,7 +361,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
 
             // Act
             display.RemoveDisplayOutput<TestDisplayOutput>();
-            InvokeSendHint(display, "after-remove-type");
+            InvokeSendHint(display, new DisplayOutputArg(display, "after-remove-type", Array.Empty<IHintParameter>(), Array.Empty<IHintEffect>(), 99999f));
 
             // Assert
             Assert.AreEqual(0, first.Calls.Count);
@@ -379,7 +381,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
             display.RemoveDisplayOutput(removeOutput);
 
             // Act
-            InvokeSendHint(display, "hello");
+            InvokeSendHint(display, new DisplayOutputArg(display, "hello", Array.Empty<IHintParameter>(), Array.Empty<IHintEffect>(), 99999f));
 
             // Assert
             Assert.AreEqual(1, keepOutput.Calls.Count);
@@ -398,7 +400,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
                 new TestPlayerContext { IsStillValid = false },
                 updateScheduler: localScheduler,
                 adaptor: new TestCompatibilityAdaptor(),
-                hintParser: new DelegateHintParser(_ => "pipeline-success"),
+                hintParser: new DelegateHintParser(_ => new HintParserResult("pipeline-success", Array.Empty<IHintParameter>())),
                 coroutineRunner: new TestCoroutineRunner(),
                 dispatcher: dispatcher,
                 displayOutputs: new[] { output });
@@ -467,7 +469,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
             {
                 entered.Set();
                 release.Wait(1000);
-                return "done";
+                return new HintParserResult("done", Array.Empty<IHintParameter>());
             });
 
             PlayerDisplay localDisplay = new(
@@ -640,10 +642,10 @@ namespace HintServiceMeow.Tests.Core.Utilities
             Assert.Fail(message);
         }
 
-        private static void InvokeSendHint(PlayerDisplay pd, string text)
+        private static void InvokeSendHint(PlayerDisplay pd, DisplayOutputArg arg)
         {
             MethodInfo method = typeof(PlayerDisplay).GetMethod("SendHint", BindingFlags.NonPublic | BindingFlags.Instance)!;
-            method.Invoke(pd, [text]);
+            method.Invoke(pd, [arg]);
         }
     }
 }

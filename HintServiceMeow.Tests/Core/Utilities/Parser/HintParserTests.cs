@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Models;
+using HintServiceMeow.Core.Models.Arguments;
 using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities.Parser;
 using HintServiceMeow.Tests.Core.Utilities.TestDoubles;
@@ -24,11 +25,11 @@ public class HintParserTests
         HintParser parser = new();
 
         // Act
-        string message = parser.ParseToMessage(collection);
+        HintParserResult result = parser.ParseToMessage(collection);
 
         // Assert
-        StringAssert.Contains(message, "visible");
-        Assert.IsFalse(message.Contains("hidden"));
+        StringAssert.Contains(result.Content, "visible");
+        Assert.IsFalse(result.Content.Contains("hidden"));
     }
 
     [TestMethod]
@@ -41,12 +42,12 @@ public class HintParserTests
         HintParser parser = new();
 
         // Act
-        string message = parser.ParseToMessage(collection);
+        HintParserResult result = parser.ParseToMessage(collection);
 
         // Assert
-        Assert.IsFalse(message.Contains("{X}"));
-        Assert.IsFalse(message.Contains("<line-height=10>"));
-        StringAssert.Contains(message, "Y");
+        Assert.IsFalse(result.Content.Contains("{X}"));
+        Assert.IsFalse(result.Content.Contains("<line-height=10>"));
+        StringAssert.Contains(result.Content, "Y");
     }
 
     [TestMethod]
@@ -62,10 +63,10 @@ public class HintParserTests
         HintParser parser = new(coordinateTool: new StubCoordinateTools { YConverter = (h, _) => h.YCoordinate });
 
         // Act
-        string message = parser.ParseToMessage(collection);
+        HintParserResult result = parser.ParseToMessage(collection);
 
         // Assert
-        Assert.IsTrue(message.IndexOf("low", StringComparison.Ordinal) < message.IndexOf("high", StringComparison.Ordinal));
+        Assert.IsTrue(result.Content.IndexOf("low", StringComparison.Ordinal) < result.Content.IndexOf("high", StringComparison.Ordinal));
     }
 
     [TestMethod]
@@ -90,10 +91,10 @@ public class HintParserTests
         HintParser parser = new(coordinateTool: tools);
 
         // Act
-        string message = parser.ParseToMessage(collection);
+        HintParserResult result = parser.ParseToMessage(collection);
 
         // Assert
-        Assert.IsFalse(message.Contains("dynamic"));
+        Assert.IsFalse(result.Content.Contains("dynamic"));
     }
 
     [TestMethod]
@@ -107,10 +108,10 @@ public class HintParserTests
         HintParser parser = new();
 
         // Act
-        string message = parser.ParseToMessage(collection);
+        HintParserResult result = parser.ParseToMessage(collection);
 
         // Assert
-        StringAssert.Contains(message, "</align></size></b></i>");
+        StringAssert.Contains(result.Content, "</align></size></b></i>");
     }
 
     [TestMethod]

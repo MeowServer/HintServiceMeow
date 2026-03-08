@@ -45,8 +45,8 @@ public class CompatibilityAdaptorTests
     public void ShowHint_WhenAssemblyIsDisabled_IgnoresHint()
     {
         // Arrange
-        PluginConfig.Instance.DisabledCompatAdapter.Clear();
-        PluginConfig.Instance.DisabledCompatAdapter.Add("blocked");
+        Plugin.Plugin.Instance.Config.DisabledCompatAssemblies.Clear();
+        Plugin.Plugin.Instance.Config.DisabledCompatAssemblies.Add("blocked");
         CompatibilityAdaptor adaptor = CreateAdaptor(out PlayerDisplay display);
 
         // Act
@@ -93,7 +93,7 @@ public class CompatibilityAdaptorTests
             return;
 
         Plugin.Plugin fakePlugin = (Plugin.Plugin)FormatterServices.GetUninitializedObject(typeof(Plugin.Plugin));
-        ReflectionHelper.SetFieldValue(fakePlugin, "<Config>k__BackingField", new PluginConfig { DisabledCompatAdapter = [] });
+        ReflectionHelper.SetFieldValue(fakePlugin, "<Config>k__BackingField", new PluginConfig { DisabledCompatAssemblies = [] });
         ReflectionHelper.SetStaticFieldValue(typeof(Plugin.Plugin), "<Instance>k__BackingField", fakePlugin);
     }
 }

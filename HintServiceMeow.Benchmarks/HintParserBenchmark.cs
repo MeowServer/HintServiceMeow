@@ -4,6 +4,7 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
 using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Models;
+using HintServiceMeow.Core.Models.Arguments;
 using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities.Parser;
 
@@ -116,11 +117,11 @@ namespace HintServiceMeow.Benchmarks
             // and use the populated 'hintCollection' instead to ensure actual load testing.
             HintParser parser = new HintParser();
 
-            string resultMessage = parser.ParseToMessage(hintCollection);
+            HintParserResult result = parser.ParseToMessage(hintCollection);
 
             // Ensure the result is not optimized away by the compiler 
             // (If the framework requires assertions, a rough check on resultMessage.Length can be done here).
-            if (string.IsNullOrEmpty(resultMessage))
+            if (string.IsNullOrEmpty(result.Content))
             {
                 throw new Exception("Parsed message should not be empty in this complex scenario.");
             }
@@ -131,9 +132,9 @@ namespace HintServiceMeow.Benchmarks
         {
             HintParser parser = new HintParser();
 
-            string resultMessage = parser.ParseToMessage(hintOnlyCollection);
+            HintParserResult result = parser.ParseToMessage(hintOnlyCollection);
 
-            if (string.IsNullOrEmpty(resultMessage))
+            if (string.IsNullOrEmpty(result.Content))
             {
                 throw new Exception("Parsed message should not be empty in this complex scenario.");
             }
@@ -144,9 +145,9 @@ namespace HintServiceMeow.Benchmarks
         {
             HintParser parser = new HintParser();
 
-            string resultMessage = parser.ParseToMessage(dynamicHintOnlyCollection);
+            HintParserResult result = parser.ParseToMessage(dynamicHintOnlyCollection);
 
-            if (string.IsNullOrEmpty(resultMessage))
+            if (string.IsNullOrEmpty(result.Content))
             {
                 throw new Exception("Parsed message should not be empty in this complex scenario.");
             }

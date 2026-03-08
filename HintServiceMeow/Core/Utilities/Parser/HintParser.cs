@@ -312,13 +312,6 @@
                 + hint.LineHeight;// Add extra line height on top of the first line so that the line height will not be calculated for the first line
         }
 
-        private float GetCurrentVOffset(Hint hint, HintVerticalAlign align)
-        {
-            return 700
-                - coordinateTool.GetCurrentYCoordinate(hint, align)// Start at the top of the first line
-                + hint.LineHeight;// Add extra line height on top of the first line so that the line height will not be calculated for the first line
-        }
-
         private void ParseToRichText(Hint hint, StringBuilder messageBuilder)
         {
             // Remove illegal tags
