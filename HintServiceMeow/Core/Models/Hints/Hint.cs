@@ -343,6 +343,46 @@ namespace HintServiceMeow.Core.Models.Hints
             }
         }
 
+        internal float CurrentXCoordinate
+        {
+            get
+            {
+                Lock.EnterReadLock();
+
+                try
+                {
+                    if (xCoordinateTransitionState is null)
+                        return xCoordinate;
+
+                    return xCoordinateTransitionState.CurrentValue;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
+        }
+
+        internal float CurrentYCoordinate
+        {
+            get
+            {
+                Lock.EnterReadLock();
+
+                try
+                {
+                    if (yCoordinateTransitionState is null)
+                        return yCoordinate;
+
+                    return yCoordinateTransitionState.CurrentValue;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
+        }
+
         /// <summary>
         /// Not thread safe. Should only be used when there's no other thread using it.
         /// </summary>

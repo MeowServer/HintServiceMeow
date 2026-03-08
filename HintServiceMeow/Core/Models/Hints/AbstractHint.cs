@@ -511,6 +511,26 @@ namespace HintServiceMeow.Core.Models.Hints
             }
         }
 
+        internal float CurrentFontSize
+        {
+            get
+            {
+                Lock.EnterReadLock();
+
+                try
+                {
+                    if (fontSizeTransitionState is null)
+                        return fontSize;
+
+                    return fontSizeTransitionState.CurrentValue;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
+        }
+
         /// <summary>
         /// Gets the reader/writer lock used to synchronize access to this hint's fields.
         /// </summary>
