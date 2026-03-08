@@ -420,7 +420,7 @@ namespace HintServiceMeow.Core.Utilities
         }
 
         /// <summary>
-        /// Removes the specified hint from the given group.
+        /// Only use this if you know what you are doing. Removes the specified hint from the given group.
         /// </summary>
         /// <param name="hint">The hint to remove. Ignored if <see langword="null"/>.</param>
         /// <param name="groupName">The group name to remove the hint from.</param>
