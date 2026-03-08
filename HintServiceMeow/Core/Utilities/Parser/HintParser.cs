@@ -14,7 +14,6 @@
     using HintServiceMeow.Core.Utilities.Pools;
     using HintServiceMeow.Core.Utilities.Tools;
     using HintServiceMeow.Core.Utilities.UnityAdaptors;
-    using UnityEngine;
 
     /// <summary>
     /// Used to parse AbstractHint to rich text message.
@@ -328,7 +327,7 @@
             // Add default size/alignment
             if (hint.FontSizeTransition is not null)
             {
-                AnimationCurve curve = hint.FontSizeTransition.GetCurve(hint.CurrentFontSize, hint.FontSize);
+                IAnimationCurve curve = hint.FontSizeTransition.GetCurve(hint.CurrentFontSize, hint.FontSize);
                 messageBuilder.Append("<size=");
                 AddTag(messageBuilder, new AnimationCurveHintParameter(NetworkTimeCache.Time, curve, formatString, useIntegral));
                 messageBuilder.Append('>');
@@ -366,7 +365,7 @@
                 // X coordinate
                 if (hint.XCoordinateTransition is not null)
                 {
-                    AnimationCurve curve = hint.XCoordinateTransition.GetCurve(hint.CurrentXCoordinate, hint.XCoordinate);
+                    IAnimationCurve curve = hint.XCoordinateTransition.GetCurve(hint.CurrentXCoordinate, hint.XCoordinate);
                     messageBuilder.Append("<pos=");
                     AddTag(messageBuilder, new AnimationCurveHintParameter(NetworkTimeCache.Time, curve, formatString, useIntegral));
                     messageBuilder.Append('>');
@@ -383,7 +382,7 @@
                 // Y coordinate
                 if (hint.YCoordinateTransition is not null)
                 {
-                    AnimationCurve curve = hint.YCoordinateTransition.GetCurve(fromVOffset, vOffset);
+                    IAnimationCurve curve = hint.YCoordinateTransition.GetCurve(fromVOffset, vOffset);
                     messageBuilder.Append("<voffset=");
                     AddTag(messageBuilder, new AnimationCurveHintParameter(NetworkTimeCache.Time, curve, formatString, useIntegral));
                     messageBuilder.Append('>');

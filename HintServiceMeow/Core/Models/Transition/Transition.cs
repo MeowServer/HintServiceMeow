@@ -1,18 +1,22 @@
 ﻿namespace HintServiceMeow.Core.Models.Transition
 {
     using HintServiceMeow.Core.Enum;
-    using UnityEngine;
+    using HintServiceMeow.Core.Interface;
+    using HintServiceMeow.Core.Models.UniryAdaptors;
+    using HintServiceMeow.Core.Utilities.UnityAdaptors;
 
     public class Transition
     {
         private readonly object @lock = new object();
         private float duration;
-        private AnimationCurve? customCurve;
+        private IAnimationCurve? customCurve;
         private EasingType easing;
 
         private Transition()
         {
         }
+
+        internal static IAnimationCurveFactory CurveFactory { get; set; } = new UnityAnimationCurveFactory();
 
         /// <summary> Gets or sets the duration of the transition in seconds. </summary>
         public float Duration
@@ -33,13 +37,13 @@
             {
                 lock (@lock)
                 {
-                    customCurve = GetNormalizedCurve(value);
+                    customCurve = CurveFactory.BuildNormalized(value);
                     easing = value;
                 }
             }
         }
 
-        public AnimationCurve? NormalizedCurve
+        public IAnimationCurve? NormalizedCurve
         {
             get
             {
@@ -48,7 +52,7 @@
                     if (customCurve != null)
                         return customCurve;
 
-                    return GetNormalizedCurve(easing);
+                    return CurveFactory.BuildNormalized(easing);
                 }
             }
 
@@ -62,12 +66,12 @@
             }
         }
 
-        public AnimationCurve? CustomCurve
+        public IAnimationCurve? CustomCurve
         {
             get { lock (@lock) { return customCurve; } }
         }
 
-        public static Transition Get(AnimationCurve normalizedCurve, float duration = 3f)
+        public static Transition Get(IAnimationCurve normalizedCurve, float duration = 3f)
         {
             return new Transition()
             {
@@ -81,13 +85,13 @@
         {
             return new Transition()
             {
-                customCurve = GetNormalizedCurve(type),
+                customCurve = CurveFactory.BuildNormalized(type),
                 Easing = type,
                 Duration = duration,
             };
         }
 
-        internal AnimationCurve GetCurve(float from, float to)
+        internal IAnimationCurve GetCurve(float from, float to)
         {
             lock (@lock)
             {
@@ -95,41 +99,23 @@
                 if (customCurve != null)
                 {
                     float range = to - from;
-                    Keyframe[] keys = customCurve.keys;
-                    Keyframe[] scaled = new Keyframe[keys.Length];
+                    KeyFrame[] keys = customCurve.KeyFrames;
+                    KeyFrame[] scaled = new KeyFrame[keys.Length];
 
                     for (int i = 0; i < keys.Length; i++)
                     {
-                        scaled[i] = new Keyframe(
-                            time: keys[i].time * duration,
-                            value: from + (keys[i].value * range),
-                            inTangent: keys[i].inTangent * range / duration,
-                            outTangent: keys[i].outTangent * range / duration);
+                        scaled[i] = new KeyFrame(
+                            time: keys[i].Time * duration,
+                            value: from + (keys[i].Value * range),
+                            inTangent: keys[i].InTangent * range / duration,
+                            outTangent: keys[i].OutTangent * range / duration);
                     }
 
-                    return new AnimationCurve(scaled);
+                    return CurveFactory.Build(scaled);
                 }
 
                 // If no custom curve, generate curve based on easing type.
-                switch (easing)
-                {
-                    case EasingType.Linear:
-                        return AnimationCurve.Linear(0f, from, duration, to);
-
-                    case EasingType.EaseIn:
-                        return new AnimationCurve(
-                            new Keyframe(0f, from) { outTangent = 0f },
-                            new Keyframe(duration, to) { inTangent = (to - from) * 2f / duration });
-
-                    case EasingType.EaseOut:
-                        return new AnimationCurve(
-                            new Keyframe(0f, from) { outTangent = (to - from) * 2f / duration },
-                            new Keyframe(duration, to) { inTangent = 0f });
-
-                    case EasingType.EaseInOut:
-                    default:
-                        return AnimationCurve.EaseInOut(0f, from, duration, to);
-                }
+                return CurveFactory.BuildNormalized(easing);
             }
         }
 
@@ -148,29 +134,6 @@
                 float dif = end - start;
 
                 return start + (dif * customCurve.Evaluate(time / duration));
-            }
-        }
-
-        private static AnimationCurve GetNormalizedCurve(EasingType type)
-        {
-            switch (type)
-            {
-                case EasingType.Linear:
-                    return AnimationCurve.Linear(0f, 0f, 1f, 1f);
-
-                case EasingType.EaseIn:
-                    return new AnimationCurve(
-                        new Keyframe(0f, 0f) { outTangent = 0f },
-                        new Keyframe(1f, 1f) { inTangent = 2f });
-
-                case EasingType.EaseOut:
-                    return new AnimationCurve(
-                        new Keyframe(0f, 0f) { outTangent = 2f },
-                        new Keyframe(1f, 1f) { inTangent = 0f });
-
-                case EasingType.EaseInOut:
-                default:
-                    return AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
             }
         }
     }
