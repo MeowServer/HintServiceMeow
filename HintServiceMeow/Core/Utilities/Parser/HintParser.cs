@@ -328,7 +328,9 @@
             if (hint.FontSizeTransition is not null)
             {
                 AnimationCurve curve = hint.FontSizeTransition.GetCurve(hint.CurrentFontSize, hint.FontSize);
+                messageBuilder.Append("<size=");
                 AddTag(messageBuilder, new AnimationCurveHintParameter(NetworkTimeCache.Time, curve, formatString, useIntegral));
+                messageBuilder.Append('>');
                 hint.FontSizeTransitionState = new TransitionState(hint.FontSizeTransition, hint.CurrentFontSize, hint.FontSize);
             }
             else
@@ -356,7 +358,9 @@
                 if (hint.XCoordinateTransition is not null)
                 {
                     AnimationCurve curve = hint.XCoordinateTransition.GetCurve(hint.CurrentXCoordinate, hint.XCoordinate);
+                    messageBuilder.Append("<pos=");
                     AddTag(messageBuilder, new AnimationCurveHintParameter(NetworkTimeCache.Time, curve, formatString, useIntegral));
+                    messageBuilder.Append('>');
                     hint.XCoordinateTransitionState = new TransitionState(hint.XCoordinateTransition, hint.CurrentXCoordinate, hint.XCoordinate);
                 }
                 else
@@ -371,7 +375,9 @@
                 if (hint.YCoordinateTransition is not null)
                 {
                     AnimationCurve curve = hint.YCoordinateTransition.GetCurve(hint.CurrentYCoordinate, hint.YCoordinate);
+                    messageBuilder.Append("<voffset=");
                     AddTag(messageBuilder, new AnimationCurveHintParameter(NetworkTimeCache.Time, curve, formatString, useIntegral));
+                    messageBuilder.Append('>');
                     hint.YCoordinateTransitionState = new TransitionState(hint.YCoordinateTransition, hint.CurrentYCoordinate, hint.YCoordinate);
                 }
                 else
