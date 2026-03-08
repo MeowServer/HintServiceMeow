@@ -8,7 +8,7 @@ using HintServiceMeow.Core.Models.Arguments;
 using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities.Parser;
 
-namespace HintServiceMeow.Benchmarks
+namespace HintServiceMeow.Benchmarks.Benchmarks
 {
     // Struct to bind the specific parameter pairs together.
     public struct HintParams
