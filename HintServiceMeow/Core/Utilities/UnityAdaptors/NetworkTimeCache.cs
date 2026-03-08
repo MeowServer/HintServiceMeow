@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Threading;
-using HintServiceMeow.Core.Interface;
-using Mirror;
-
-namespace HintServiceMeow.Core.Utilities.UnityAdaptors
+﻿namespace HintServiceMeow.Core.Utilities.UnityAdaptors
 {
+    using System.Collections.Generic;
+    using System.Threading;
+    using HintServiceMeow.Core.Interface;
+    using Mirror;
+
     /// <summary>
     /// Thread-safe cache for NetworkTime.time.
     /// Must call Update() from the main thread every frame.

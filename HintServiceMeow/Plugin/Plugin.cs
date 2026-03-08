@@ -4,6 +4,7 @@
     using HintServiceMeow.Core.Utilities;
     using HintServiceMeow.Core.Utilities.Patch;
     using HintServiceMeow.Core.Utilities.Tools;
+    using HintServiceMeow.Core.Utilities.UnityAdaptors;
     using HintServiceMeow.UI.Utilities;
 
 #if !EXILED
@@ -75,6 +76,7 @@
             _ = FontTool.Instance;
             _ = ConcurrentTaskDispatcher.Instance;
 
+            NetworkTimeCache.Initialize(new UnityCoroutineRunner());
 #if EXILED
             base.OnEnabled();
 #endif
