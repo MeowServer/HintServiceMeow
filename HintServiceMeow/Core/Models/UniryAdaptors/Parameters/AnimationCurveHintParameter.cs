@@ -2,6 +2,7 @@ namespace HintServiceMeow.Core.Parameters
 {
     using global::Hints;
     using HintServiceMeow.Core.Interface;
+    using HintServiceMeow.Core.Utilities.UnityAdaptors;
     using UnityEngine;
 
     public class AnimationCurveHintParameter : IHintParameter
@@ -20,6 +21,10 @@ namespace HintServiceMeow.Core.Parameters
             this.Curve = curve;
             this.Format = format;
             this.Integral = integral;
+        }
+
+        public AnimationCurveHintParameter(AnimationCurve curve, string format = "F1") : this(NetworkTimeCache.Time, curve, format, false)
+        {
         }
 
         public HintParameter GetScpslHintParameter()
