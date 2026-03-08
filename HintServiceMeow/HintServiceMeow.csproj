@@ -10,7 +10,7 @@
     <AssemblyName>HintServiceMeow</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
-    <Configurations>Debug;Exiled;Release</Configurations>
+    <Configurations>Debug;ExiledPublish;Release;Publish</Configurations>
     <EnforceCodeStyleInBuild>False</EnforceCodeStyleInBuild>
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
     <AnalysisLevel>latest</AnalysisLevel>
@@ -22,6 +22,7 @@
     <FileVersion>5.5.0.0</FileVersion>
     <Title>Hint Service Meow</Title>
     <Version>5.5.0.0</Version>
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
@@ -31,15 +32,21 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Publish|AnyCPU'">
     <Optimize>true</Optimize>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Exiled|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ExiledPublish|AnyCPU'">
     <AssemblyName>HintServiceMeow-Exiled</AssemblyName>
     <Optimize>true</Optimize>
     <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <Optimize>true</Optimize>
+    <ErrorReport>prompt</ErrorReport>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>

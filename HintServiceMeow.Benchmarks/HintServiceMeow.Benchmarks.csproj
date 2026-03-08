@@ -5,8 +5,35 @@
 		<TargetFramework>net48</TargetFramework>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-   		 <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+   		<GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+		<LangVersion>latest</LangVersion>
+		<Configurations>Debug;ExiledPublish;Release;Publish</Configurations>
+		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <ErrorReport>prompt</ErrorReport>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Publish|AnyCPU'">
+    <Optimize>true</Optimize>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ExiledPublish|AnyCPU'">
+    <AssemblyName>HintServiceMeow-Exiled</AssemblyName>
+    <Optimize>true</Optimize>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <Optimize>true</Optimize>
+    <ErrorReport>prompt</ErrorReport>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="BenchmarkDotNet" Version="0.13.12" />
