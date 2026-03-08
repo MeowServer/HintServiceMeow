@@ -25,8 +25,8 @@ namespace HintServiceMeow.Core.Models.Hints
 
         private Transition? xCoordinateTransition = null;
         private Transition? yCoordinateTransition = null;
-        private TransitionState? xTransitionState = null;
-        private TransitionState? yTransitionState = null;
+        private TransitionState? xCoordinateTransitionState = null;
+        private TransitionState? yCoordinateTransitionState = null;
 
         private HintPriority priority = HintPriority.Medium;
         private DynamicHintStrategy strategy = DynamicHintStrategy.Hide;
@@ -594,7 +594,7 @@ namespace HintServiceMeow.Core.Models.Hints
                 Lock.EnterReadLock();
                 try
                 {
-                    return xTransitionState;
+                    return xCoordinateTransitionState;
                 }
                 finally
                 {
@@ -607,7 +607,7 @@ namespace HintServiceMeow.Core.Models.Hints
                 Lock.EnterWriteLock();
                 try
                 {
-                    xTransitionState = value;
+                    xCoordinateTransitionState = value;
                 }
                 finally
                 {
@@ -623,7 +623,7 @@ namespace HintServiceMeow.Core.Models.Hints
                 Lock.EnterReadLock();
                 try
                 {
-                    return yTransitionState;
+                    return yCoordinateTransitionState;
                 }
                 finally
                 {
@@ -636,7 +636,7 @@ namespace HintServiceMeow.Core.Models.Hints
                 Lock.EnterWriteLock();
                 try
                 {
-                    yTransitionState = value;
+                    yCoordinateTransitionState = value;
                 }
                 finally
                 {
