@@ -32,7 +32,7 @@ namespace HintServiceMeow.UI.Models.Template
         public int? FontSize { get; set; }
 
         /// <summary>
-        /// Gets or sets the line-height multiplier for the hint text.
+        /// Gets or sets the line-height offset for the hint text.
         /// Maps to <see cref="AbstractHint.LineHeight"/>.
         /// </summary>
         public float? LineHeight { get; set; }

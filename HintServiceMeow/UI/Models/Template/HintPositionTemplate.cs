@@ -14,8 +14,8 @@ namespace HintServiceMeow.UI.Models.Template
     /// to keep the surface area minimal.
     /// </para>
     /// <para>
-    /// All properties are nullable. Only non-null values are applied by
-    /// <see cref="ApplyTemplate"/>.
+    /// Designed for serialization (JSON/YAML). All properties are nullable so only
+    /// explicitly set values are applied by <see cref="ApplyTemplate"/>.
     /// </para>
     /// </summary>
     public class HintPositionTemplate
