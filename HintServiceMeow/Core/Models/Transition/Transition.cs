@@ -2,7 +2,7 @@
 {
     using HintServiceMeow.Core.Enum;
     using HintServiceMeow.Core.Interface;
-    using HintServiceMeow.Core.Models.UniryAdaptors;
+    using HintServiceMeow.Core.Models.UnityAdaptors;
     using HintServiceMeow.Core.Utilities.UnityAdaptors;
 
     public class Transition
@@ -16,13 +16,24 @@
         {
         }
 
-        internal static IAnimationCurveFactory CurveFactory { get; set; } = new UnityAnimationCurveFactory();
-
         /// <summary> Gets or sets the duration of the transition in seconds. </summary>
         public float Duration
         {
-            get { lock (@lock) { return duration; } }
-            set { lock (@lock) { duration = value; } }
+            get
+            {
+                lock (@lock)
+                {
+                    return duration;
+                }
+            }
+
+            set
+            {
+                lock (@lock)
+                {
+                    duration = value;
+                }
+            }
         }
 
         /// <summary> Gets or sets the easing type. Custom if a custom curve was provided. </summary>
@@ -30,7 +41,10 @@
         {
             get
             {
-                lock (@lock) { return easing; }
+                lock (@lock)
+                {
+                    return easing;
+                }
             }
 
             set
@@ -65,6 +79,8 @@
                 }
             }
         }
+
+        internal static IAnimationCurveFactory CurveFactory { get; set; } = new UnityAnimationCurveFactory();
 
         public static Transition Get(IAnimationCurve normalizedCurve, float duration = 3f)
         {
