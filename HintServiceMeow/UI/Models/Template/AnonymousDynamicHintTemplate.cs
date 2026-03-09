@@ -1,22 +1,25 @@
-namespace HintServiceMeow.UI.Models.Config
+namespace HintServiceMeow.UI.Models.Template
 {
+    using HintServiceMeow.Core.Enum;
     using HintServiceMeow.Core.Models.Hints;
 
     /// <summary>
-    /// A lightweight, position-only configuration class for a <see cref="DynamicHint"/>.
-    /// Contains only the boundary, target, and margin properties that control where a dynamic
-    /// hint is placed on screen, without any content or display properties.
+    /// A visual/structural blueprint for a <see cref="DynamicHint"/> that carries no
+    /// identity or visibility state. Contains all configurable layout and behavioural
+    /// properties — boundaries, target coordinates, margins, priority and strategy —
+    /// plus the inherited base properties (font, text, sync speed) from
+    /// <see cref="AbstractHintTemplate"/>, but intentionally excludes <c>Id</c> and <c>Hide</c>.
     /// <para>
-    /// Use this class when you only need to adjust the layout region of an existing
-    /// <see cref="DynamicHint"/> without touching its text, font, priority, or strategy.
-    /// Intentionally does <b>not</b> inherit from <see cref="AbstractHintConfig"/> to keep
-    /// the surface area small.
+    /// Use this template when you want to describe <em>how and where a dynamic hint
+    /// positions itself</em> without binding it to a specific identity or forcing a
+    /// particular visibility state.
     /// </para>
     /// <para>
-    /// All properties are nullable. Only non-null values are applied by <see cref="ApplyTo"/>.
+    /// <see cref="DynamicHintTemplate"/> inherits from this class and extends it with
+    /// <c>Id</c> and <c>Hide</c> for scenarios where full control is needed.
     /// </para>
     /// </summary>
-    public class DynamicHintPositionConfig
+    public class AnonymousDynamicHintTemplate : AbstractHintTemplate
     {
         // ── Boundaries ────────────────────────────────────────────────────────────
 
@@ -86,16 +89,35 @@ namespace HintServiceMeow.UI.Models.Config
         /// </summary>
         public float? RightMargin { get; set; }
 
+        // ── Behaviour ─────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Gets or sets the display priority of the hint. Higher-priority hints are less
+        /// likely to be displaced by other hints.
+        /// Maps to <see cref="DynamicHint.Priority"/>.
+        /// </summary>
+        public HintPriority? Priority { get; set; }
+
+        /// <summary>
+        /// Gets or sets the fallback strategy applied when no valid display position is
+        /// available within the hint's boundaries.
+        /// Maps to <see cref="DynamicHint.Strategy"/>.
+        /// </summary>
+        public DynamicHintStrategy? Strategy { get; set; }
+
         // ── Methods ───────────────────────────────────────────────────────────────
 
         /// <summary>
-        /// Applies the non-null positional and layout properties of this config to the given
-        /// <paramref name="hint"/>. Existing hint values are preserved for any property
-        /// that remains null.
+        /// Applies all non-null properties from this template to <paramref name="hint"/>.
+        /// Only explicitly set (non-null) values are written; the hint's existing values are
+        /// preserved for any property that remains null.
         /// </summary>
-        /// <param name="hint">The target <see cref="DynamicHint"/> to reposition.</param>
-        public void ApplyTo(DynamicHint hint)
+        /// <param name="hint">The target <see cref="DynamicHint"/> to update.</param>
+        public virtual void ApplyTemplate(DynamicHint hint)
         {
+            // Apply common base properties: SyncSpeed, FontSize, LineHeight, Text.
+            ApplyBaseTemplate(hint);
+
             if (TopBoundary.HasValue)
                 hint.TopBoundary = TopBoundary.Value;
 
@@ -125,6 +147,24 @@ namespace HintServiceMeow.UI.Models.Config
 
             if (RightMargin.HasValue)
                 hint.RightMargin = RightMargin.Value;
+
+            if (Priority.HasValue)
+                hint.Priority = Priority.Value;
+
+            if (Strategy.HasValue)
+                hint.Strategy = Strategy.Value;
+        }
+
+        /// <summary>
+        /// Instantiates a new <see cref="DynamicHint"/> with default values, then applies
+        /// all non-null properties from this template to it via <see cref="ApplyTemplate"/>.
+        /// </summary>
+        /// <returns>A new <see cref="DynamicHint"/> configured from this template.</returns>
+        public DynamicHint GetDynamicHint()
+        {
+            var hint = new DynamicHint();
+            ApplyTemplate(hint);
+            return hint;
         }
     }
 }

@@ -1,22 +1,23 @@
-namespace HintServiceMeow.UI.Models.Config
+namespace HintServiceMeow.UI.Models.Template
 {
     using HintServiceMeow.Core.Enum;
     using HintServiceMeow.Core.Models.Hints;
 
     /// <summary>
-    /// A lightweight, position-only configuration class for a <see cref="Hint"/>.
-    /// Contains only the positional and alignment properties of a fixed-position hint,
-    /// without any content or display properties.
+    /// A visual/structural blueprint for a fixed-position <see cref="Hint"/> that carries no
+    /// identity or visibility state. Contains all configurable display and positional
+    /// properties except <c>Id</c> and <c>Hide</c>.
     /// <para>
-    /// Use this class when you only need to reposition an existing hint without touching
-    /// its text, font, or other settings. Intentionally does <b>not</b> inherit from
-    /// <see cref="AbstractHintConfig"/> to keep the surface area small.
+    /// Use this template when you want to describe <em>how a hint looks and where it sits</em>
+    /// without binding it to a specific identity or forcing it into a particular visibility
+    /// state — for example, when applying a shared style to multiple hints.
     /// </para>
     /// <para>
-    /// All properties are nullable. Only non-null values are applied by <see cref="ApplyTo"/>.
+    /// <see cref="HintTemplate"/> inherits from this class and extends it with <c>Id</c> and
+    /// <c>Hide</c> for scenarios where full control is needed.
     /// </para>
     /// </summary>
-    public class HintPositionConfig
+    public class AnonymousHintTemplate : AbstractHintTemplate
     {
         /// <summary>
         /// Gets or sets the X (horizontal) coordinate of the hint.
@@ -46,13 +47,16 @@ namespace HintServiceMeow.UI.Models.Config
         public HintVerticalAlign? YCoordinateAlign { get; set; }
 
         /// <summary>
-        /// Applies the non-null positional properties of this config to the given
-        /// <paramref name="hint"/>. Existing hint values are preserved for any property
-        /// that remains null.
+        /// Applies all non-null properties from this template to <paramref name="hint"/>.
+        /// Only explicitly set (non-null) values are written; the hint's existing values are
+        /// preserved for any property that remains null.
         /// </summary>
-        /// <param name="hint">The target <see cref="Hint"/> to reposition.</param>
-        public void ApplyTo(Hint hint)
+        /// <param name="hint">The target <see cref="Hint"/> to update.</param>
+        public virtual void ApplyTemplate(Hint hint)
         {
+            // Apply common base properties: SyncSpeed, FontSize, LineHeight, Text.
+            ApplyBaseTemplate(hint);
+
             if (XCoordinate.HasValue)
                 hint.XCoordinate = XCoordinate.Value;
 
@@ -64,6 +68,18 @@ namespace HintServiceMeow.UI.Models.Config
 
             if (YCoordinateAlign.HasValue)
                 hint.YCoordinateAlign = YCoordinateAlign.Value;
+        }
+
+        /// <summary>
+        /// Instantiates a new <see cref="Hint"/> with default values, then applies all
+        /// non-null properties from this template to it via <see cref="ApplyTemplate"/>.
+        /// </summary>
+        /// <returns>A new <see cref="Hint"/> configured from this template.</returns>
+        public Hint GetHint()
+        {
+            var hint = new Hint();
+            ApplyTemplate(hint);
+            return hint;
         }
     }
 }
