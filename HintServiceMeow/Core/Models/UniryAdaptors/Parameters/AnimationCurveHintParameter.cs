@@ -23,7 +23,7 @@ namespace HintServiceMeow.Core.Parameters
             this.Integral = integral;
         }
 
-        public AnimationCurveHintParameter(AnimationCurve curve, string format = "F1") : this(NetworkTimeCache.Time, curve, format, false)
+        public AnimationCurveHintParameter(IAnimationCurve curve, string format = "F1") : this(NetworkTimeCache.Time, curve, format, false)
         {
         }
 
