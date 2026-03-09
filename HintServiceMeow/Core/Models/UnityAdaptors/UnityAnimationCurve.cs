@@ -56,13 +56,13 @@
         HsmWrapMode IAnimationCurve.PreWrapMode
         {
             get => curve.preWrapMode.ToHsmWrapMode();
-            set => curve.preWrapMode = value.ToUnityWarpMode();
+            set => curve.preWrapMode = value.ToUnityWrapMode();
         }
 
         HsmWrapMode IAnimationCurve.PostWrapMode
         {
             get => curve.postWrapMode.ToHsmWrapMode();
-            set => curve.postWrapMode = value.ToUnityWarpMode();
+            set => curve.postWrapMode = value.ToUnityWrapMode();
         }
 
         public UnityEngine.Keyframe[] Keys
@@ -110,11 +110,6 @@
         public static UnityAnimationCurve EaseInOut(float timeStart, float valueStart, float timeEnd, float valueEnd)
         {
             return new UnityAnimationCurve(UnityEngine.AnimationCurve.EaseInOut(timeStart, valueStart, timeEnd, valueEnd));
-        }
-
-        float IAnimationCurve.Evaluate(float time)
-        {
-            return curve.Evaluate(time);
         }
 
         public float Evaluate(float time)
@@ -166,11 +161,17 @@
 
         public bool Equals(UnityEngine.AnimationCurve other)
         {
+            if (other is null)
+                return false;
+
             return curve.Equals(other);
         }
 
         public bool Equals(UnityAnimationCurve other)
         {
+            if (other is null)
+                return false;
+
             return curve.Equals(other.curve);
         }
 

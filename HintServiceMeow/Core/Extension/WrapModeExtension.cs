@@ -17,7 +17,7 @@ namespace HintServiceMeow.Core.Extension
             };
         }
 
-        public static WrapMode ToUnityWarpMode(this HsmWrapMode rm)
+        public static WrapMode ToUnityWrapMode(this HsmWrapMode rm)
         {
             return rm switch
             {
