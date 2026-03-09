@@ -1,4 +1,4 @@
-﻿namespace HintServiceMeow.Core.Models.UniryAdaptors
+﻿namespace HintServiceMeow.Core.Models.UnityAdaptors
 {
     using System;
     using HintServiceMeow.Core.Enum.UnityAdaptor;
@@ -14,7 +14,7 @@
     /// moving, and removing keyframes. Changes to the curve automatically update the internal cache of keyframes. This
     /// class is intended for scenarios where Unity's AnimationCurve functionality needs to be accessed or extended in a
     /// type-safe and convenient manner.</remarks>
-    public class UnityAnimationCurve : IAnimationCurve, IEquatable<UnityEngine.AnimationCurve>
+    public class UnityAnimationCurve : IAnimationCurve, IEquatable<UnityEngine.AnimationCurve>, IEquatable<UnityAnimationCurve>
     {
         private UnityEngine.AnimationCurve curve;
         private HsmKeyFrame[]? keyFramesCache;
@@ -55,13 +55,13 @@
 
         HsmWrapMode IAnimationCurve.PreWrapMode
         {
-            get => curve.preWrapMode.ToHsmWarpMode();
+            get => curve.preWrapMode.ToHsmWrapMode();
             set => curve.preWrapMode = value.ToUnityWarpMode();
         }
 
         HsmWrapMode IAnimationCurve.PostWrapMode
         {
-            get => curve.postWrapMode.ToHsmWarpMode();
+            get => curve.postWrapMode.ToHsmWrapMode();
             set => curve.postWrapMode = value.ToUnityWarpMode();
         }
 
@@ -164,14 +164,14 @@
             keyFramesCache = null; // Clear Cache
         }
 
-        public override bool Equals(object o)
-        {
-            return curve.Equals(o);
-        }
-
         public bool Equals(UnityEngine.AnimationCurve other)
         {
             return curve.Equals(other);
+        }
+
+        public bool Equals(UnityAnimationCurve other)
+        {
+            return curve.Equals(other.curve);
         }
 
         public override int GetHashCode()

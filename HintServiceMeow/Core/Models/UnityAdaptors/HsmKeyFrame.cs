@@ -1,4 +1,4 @@
-﻿namespace HintServiceMeow.Core.Models.UniryAdaptors
+﻿namespace HintServiceMeow.Core.Models.UnityAdaptors
 {
     public struct HsmKeyFrame
     {

@@ -1,6 +1,6 @@
 ﻿using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Interface;
-using HintServiceMeow.Core.Models.UniryAdaptors;
+using HintServiceMeow.Core.Models.UnityAdaptors;
 
 namespace HintServiceMeow.Core.Utilities.UnityAdaptors
 {

@@ -1,7 +1,7 @@
 ﻿namespace HintServiceMeow.Core.Interface
 {
     using HintServiceMeow.Core.Enum.UnityAdaptor;
-    using HintServiceMeow.Core.Models.UniryAdaptors;
+    using HintServiceMeow.Core.Models.UnityAdaptors;
 
     public interface IAnimationCurve
     {

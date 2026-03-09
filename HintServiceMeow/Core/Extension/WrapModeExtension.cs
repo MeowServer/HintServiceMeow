@@ -5,7 +5,7 @@ namespace HintServiceMeow.Core.Extension
 {
     public static class WrapModeExtension
     {
-        public static HsmWrapMode ToHsmWarpMode(this WrapMode rm)
+        public static HsmWrapMode ToHsmWrapMode(this WrapMode rm)
         {
             return rm switch
             {
