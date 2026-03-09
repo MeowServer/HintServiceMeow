@@ -15,7 +15,7 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
         [Params(5, 20)]
         public int AssemblyCount { get; set; }
 
-        [Params(100, 1000)]
+        [Params(10, 100)]
         public int HintsPerAssembly { get; set; }
 
         [GlobalSetup]
