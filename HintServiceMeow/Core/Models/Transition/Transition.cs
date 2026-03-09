@@ -66,11 +66,6 @@
             }
         }
 
-        public IAnimationCurve? CustomCurve
-        {
-            get { lock (@lock) { return customCurve; } }
-        }
-
         public static Transition Get(IAnimationCurve normalizedCurve, float duration = 3f)
         {
             return new Transition()
