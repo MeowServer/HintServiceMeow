@@ -94,12 +94,12 @@
                 if (customCurve != null)
                 {
                     float range = to - from;
-                    KeyFrame[] keys = customCurve.KeyFrames;
-                    KeyFrame[] scaled = new KeyFrame[keys.Length];
+                    HsmKeyFrame[] keys = customCurve.Keys;
+                    HsmKeyFrame[] scaled = new HsmKeyFrame[keys.Length];
 
                     for (int i = 0; i < keys.Length; i++)
                     {
-                        scaled[i] = new KeyFrame(
+                        scaled[i] = new HsmKeyFrame(
                             time: keys[i].Time * duration,
                             value: from + (keys[i].Value * range),
                             inTangent: keys[i].InTangent * range / duration,

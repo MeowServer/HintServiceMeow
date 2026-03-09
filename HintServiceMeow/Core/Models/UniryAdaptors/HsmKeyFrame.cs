@@ -1,8 +1,8 @@
 ﻿namespace HintServiceMeow.Core.Models.UniryAdaptors
 {
-    public struct KeyFrame
+    public struct HsmKeyFrame
     {
-        public KeyFrame(float time, float value, float inTangent = 0, float outTangent = 0)
+        public HsmKeyFrame(float time, float value, float inTangent = 0, float outTangent = 0)
         {
             this.Time = time;
             this.Value = value;

@@ -6,7 +6,7 @@ namespace HintServiceMeow.Core.Utilities.UnityAdaptors
 {
     internal class UnityAnimationCurveFactory : IAnimationCurveFactory
     {
-        public IAnimationCurve Build(KeyFrame[] keyframes)
+        public IAnimationCurve Build(HsmKeyFrame[] keyframes)
         {
             UnityEngine.Keyframe[] unityFrames = new UnityEngine.Keyframe[keyframes.Length];
 

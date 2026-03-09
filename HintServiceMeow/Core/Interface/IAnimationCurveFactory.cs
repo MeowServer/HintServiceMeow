@@ -7,6 +7,6 @@
     {
         IAnimationCurve BuildNormalized(EasingType type);
 
-        IAnimationCurve Build(KeyFrame[] keyframes);
+        IAnimationCurve Build(HsmKeyFrame[] keyframes);
     }
 }

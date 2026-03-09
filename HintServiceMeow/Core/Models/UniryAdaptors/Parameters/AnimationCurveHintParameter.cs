@@ -29,10 +29,10 @@ namespace HintServiceMeow.Core.Parameters
 
         public HintParameter GetScpslHintParameter()
         {
-            Keyframe[] keyframes = new Keyframe[Curve.KeyFrames.Length];
-            for (int i = 0; i < Curve.KeyFrames.Length; i++)
+            Keyframe[] keyframes = new Keyframe[Curve.Keys.Length];
+            for (int i = 0; i < Curve.Keys.Length; i++)
             {
-                var kf = Curve.KeyFrames[i];
+                var kf = Curve.Keys[i];
                 keyframes[i] = new Keyframe(kf.Time, kf.Value, kf.InTangent, kf.OutTangent);
             }
 
