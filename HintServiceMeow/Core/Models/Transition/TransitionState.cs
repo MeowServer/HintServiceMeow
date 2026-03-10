@@ -60,7 +60,7 @@
                         return ToValue;
 
                     float elapsed = (float)(NetworkTimeCache.Time - StartTime);
-                    return Transition.Evluate(elapsed, FromValue, ToValue);
+                    return Transition.Evaluate(elapsed, FromValue, ToValue);
                 }
             }
         }

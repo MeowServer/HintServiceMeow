@@ -9,7 +9,7 @@
     {
         private readonly object @lock = new object();
         private float duration;
-        private IAnimationCurve? customCurve;
+        private IAnimationCurve curve;
         private EasingType easing;
 
         private Transition()
@@ -36,7 +36,12 @@
             }
         }
 
-        /// <summary> Gets or sets the easing type. Custom if a custom curve was provided. </summary>
+        /// <summary>
+        /// Gets or sets the easing type used. The curve use by transition will be generated based on this easing type.
+        /// If set to <see cref="EasingType.Custom"/>, the curve will be defaultly set to an EaseInOut curve.
+        /// </summary>
+        /// <remarks>The easing function determines the rate of change of a value over time, allowing for
+        /// smooth transitions.</remarks>
         public EasingType Easing
         {
             get
@@ -51,7 +56,7 @@
             {
                 lock (@lock)
                 {
-                    customCurve = CurveFactory.BuildNormalized(value);
+                    curve = CurveFactory.BuildNormalized(value);
                     easing = value;
                 }
             }
@@ -63,10 +68,7 @@
             {
                 lock (@lock)
                 {
-                    if (customCurve != null)
-                        return customCurve;
-
-                    return CurveFactory.BuildNormalized(easing);
+                    return curve;
                 }
             }
 
@@ -74,7 +76,7 @@
             {
                 lock (@lock)
                 {
-                    customCurve = value;
+                    curve = value;
                     easing = EasingType.Custom;
                 }
             }
@@ -86,9 +88,9 @@
         {
             return new Transition()
             {
-                customCurve = normalizedCurve,
-                Easing = EasingType.Custom,
-                Duration = duration,
+                curve = normalizedCurve,
+                easing = EasingType.Custom,
+                duration = duration,
             };
         }
 
@@ -96,9 +98,9 @@
         {
             return new Transition()
             {
-                customCurve = CurveFactory.BuildNormalized(type),
-                Easing = type,
-                Duration = duration,
+                curve = CurveFactory.BuildNormalized(type),
+                easing = type,
+                duration = duration,
             };
         }
 
@@ -107,10 +109,10 @@
             lock (@lock)
             {
                 // If has a custom normalized curve, scale and return it.
-                if (customCurve != null)
+                if (curve != null)
                 {
                     float range = to - from;
-                    HsmKeyFrame[] keys = customCurve.Keys;
+                    HsmKeyFrame[] keys = curve.Keys;
                     HsmKeyFrame[] scaled = new HsmKeyFrame[keys.Length];
 
                     for (int i = 0; i < keys.Length; i++)
@@ -130,11 +132,11 @@
             }
         }
 
-        internal float Evluate(float time, float start, float end)
+        internal float Evaluate(float time, float start, float end)
         {
             lock (@lock)
             {
-                if (customCurve is null)
+                if (curve is null)
                     return end;
 
                 if (time > duration)
@@ -144,7 +146,7 @@
 
                 float dif = end - start;
 
-                return start + (dif * customCurve.Evaluate(time / duration));
+                return start + (dif * curve.Evaluate(time / duration));
             }
         }
     }
