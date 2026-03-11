@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <PackageReference Include="MSTest" Version="3.10.0" />
-    <PackageReference Include="Northwood.LabAPI" Version="1.1.5" IncludeAssets="compile" PrivateAssets="all" />
+    <PackageReference Include="Northwood.LabAPI" Version="1.1.5" />
   </ItemGroup>
 
   <ItemGroup>
