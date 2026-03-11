@@ -16,6 +16,7 @@
     /// type-safe and convenient manner.</remarks>
     public class UnityAnimationCurve : IAnimationCurve, IEquatable<UnityEngine.AnimationCurve>, IEquatable<UnityAnimationCurve>
     {
+        private readonly object cacheLock = new object(); // Since curve is thread safe, only used for cache
         private UnityEngine.AnimationCurve curve;
         private HsmKeyFrame[]? keyFramesCache;
 
@@ -38,18 +39,21 @@
         {
             get
             {
-                if (keyFramesCache == null || keyFramesCache.Length != curve.length)
+                lock (cacheLock)
                 {
-                    keyFramesCache = new HsmKeyFrame[curve.length];
-                    var unityKeys = curve.keys;
-                    for (int i = 0; i < unityKeys.Length; i++)
+                    if (keyFramesCache == null || keyFramesCache.Length != curve.length)
                     {
-                        UnityEngine.Keyframe keyFrame = unityKeys[i];
-                        keyFramesCache[i] = new HsmKeyFrame(keyFrame.time, keyFrame.value, keyFrame.inTangent, keyFrame.outTangent);
+                        keyFramesCache = new HsmKeyFrame[curve.length];
+                        var unityKeys = curve.keys;
+                        for (int i = 0; i < unityKeys.Length; i++)
+                        {
+                            UnityEngine.Keyframe keyFrame = unityKeys[i];
+                            keyFramesCache[i] = new HsmKeyFrame(keyFrame.time, keyFrame.value, keyFrame.inTangent, keyFrame.outTangent);
+                        }
                     }
-                }
 
-                return keyFramesCache;
+                    return keyFramesCache;
+                }
             }
         }
 
@@ -70,8 +74,11 @@
             get => curve.keys;
             set
             {
-                curve.keys = value;
-                keyFramesCache = null; // Clear Cache
+                lock (cacheLock)
+                {
+                    curve.keys = value;
+                    keyFramesCache = null; // Clear Cache
+                }
             }
         }
 
@@ -119,44 +126,75 @@
 
         public int AddKey(float time, float value)
         {
-            keyFramesCache = null; // Clear Cache
-            return curve.AddKey(time, value);
+            lock (cacheLock)
+            {
+                keyFramesCache = null; // Clear Cache
+                return curve.AddKey(time, value);
+            }
         }
 
         public int AddKey(UnityEngine.Keyframe key)
         {
-            keyFramesCache = null; // Clear Cache
-            return curve.AddKey(key);
+            lock (cacheLock)
+            {
+                keyFramesCache = null; // Clear Cache
+                return curve.AddKey(key);
+            }
         }
 
         public int MoveKey(int index, UnityEngine.Keyframe key)
         {
-            keyFramesCache = null; // Clear Cache
-            return curve.MoveKey(index, key);
+            lock (cacheLock)
+            {
+                keyFramesCache = null; // Clear Cache
+                return curve.MoveKey(index, key);
+            }
         }
 
         public void RemoveKey(int index)
         {
-            keyFramesCache = null; // Clear Cache
-            curve.RemoveKey(index);
+            lock (cacheLock)
+            {
+                keyFramesCache = null; // Clear Cache
+                curve.RemoveKey(index);
+            }
         }
 
         public void ClearKeys()
         {
-            keyFramesCache = null; // Clear Cache
-            curve.ClearKeys();
+            lock (cacheLock)
+            {
+                keyFramesCache = null; // Clear Cache
+                curve.ClearKeys();
+            }
         }
 
         public void SmoothTangents(int index, float weight)
         {
-            curve.SmoothTangents(index, weight);
-            keyFramesCache = null; // Clear Cache
+            lock (cacheLock)
+            {
+                curve.SmoothTangents(index, weight);
+                keyFramesCache = null; // Clear Cache
+            }
         }
 
         public void CopyFrom(UnityEngine.AnimationCurve other)
         {
-            curve.CopyFrom(other);
-            keyFramesCache = null; // Clear Cache
+            lock (cacheLock)
+            {
+                curve.CopyFrom(other);
+                keyFramesCache = null; // Clear Cache
+            }
+        }
+
+        public override bool Equals(object other)
+        {
+            if (other is UnityEngine.AnimationCurve unityCurve)
+                return curve.Equals(unityCurve);
+            if (other is UnityAnimationCurve hsmCurve)
+                return curve.Equals(hsmCurve.curve);
+
+            return false;
         }
 
         public bool Equals(UnityEngine.AnimationCurve other)
