@@ -16,6 +16,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [5.5.1]
+
+### Fixed
+- Exiled config loading error caused by Instance property.
+
+---
 ## [5.5.0]
 
 ### Fixed

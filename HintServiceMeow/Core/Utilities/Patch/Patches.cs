@@ -80,7 +80,7 @@
         {
             try
             {
-                if (!PluginConfig.Instance.UseHintCompatibilityAdapter)
+                if (!Plugin.Instance.Config.UseHintCompatibilityAdapter)
                     return false;
 
                 string assemblyName = Assembly.GetCallingAssembly().FullName;
@@ -99,7 +99,7 @@
         {
             try
             {
-                if (!PluginConfig.Instance.UseHintCompatibilityAdapter)
+                if (!Plugin.Instance.Config.UseHintCompatibilityAdapter)
                     return false;
 
                 if (!hint.Show)

@@ -28,7 +28,7 @@
 
         public override string Author => "MeowServer";
 
-        public override Version Version => new(5, 5, 0);
+        public override Version Version => new(5, 5, 1);
 
         public override Version RequiredExiledVersion => new(9, 6, 0);
 
