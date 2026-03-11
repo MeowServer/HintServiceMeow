@@ -16,7 +16,7 @@
         {
         }
 
-        /// <summary> Gets or sets the duration of the transition in seconds. </summary>
+        /// <summary> Gets or sets the duration of the transition in seconds. If value is below or equal to zero, it will be set to 0.001f to avoid issues.</summary>
         public float Duration
         {
             get
@@ -31,6 +31,9 @@
             {
                 lock (@lock)
                 {
+                    if (value <= 0)
+                        value = 0.001f;
+
                     duration = value;
                 }
             }
