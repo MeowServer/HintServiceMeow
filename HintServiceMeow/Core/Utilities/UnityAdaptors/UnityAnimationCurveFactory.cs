@@ -1,12 +1,12 @@
 ﻿using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Interface;
-using HintServiceMeow.Core.Models.UniryAdaptors;
+using HintServiceMeow.Core.Models.UnityAdaptors;
 
 namespace HintServiceMeow.Core.Utilities.UnityAdaptors
 {
     internal class UnityAnimationCurveFactory : IAnimationCurveFactory
     {
-        public IAnimationCurve Build(KeyFrame[] keyframes)
+        public IAnimationCurve Build(HsmKeyFrame[] keyframes)
         {
             UnityEngine.Keyframe[] unityFrames = new UnityEngine.Keyframe[keyframes.Length];
 
