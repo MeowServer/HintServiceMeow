@@ -108,27 +108,24 @@
         {
             lock (@lock)
             {
-                // If has a custom normalized curve, scale and return it.
-                if (curve != null)
+                // If no curve presented, initialize it.
+                if (curve is null)
+                    curve = CurveFactory.BuildNormalized(easing);
+
+                float range = to - from;
+                HsmKeyFrame[] keys = curve.Keys;
+                HsmKeyFrame[] scaled = new HsmKeyFrame[keys.Length];
+
+                for (int i = 0; i < keys.Length; i++)
                 {
-                    float range = to - from;
-                    HsmKeyFrame[] keys = curve.Keys;
-                    HsmKeyFrame[] scaled = new HsmKeyFrame[keys.Length];
-
-                    for (int i = 0; i < keys.Length; i++)
-                    {
-                        scaled[i] = new HsmKeyFrame(
-                            time: keys[i].Time * duration,
-                            value: from + (keys[i].Value * range),
-                            inTangent: keys[i].InTangent * range / duration,
-                            outTangent: keys[i].OutTangent * range / duration);
-                    }
-
-                    return CurveFactory.Build(scaled);
+                    scaled[i] = new HsmKeyFrame(
+                        time: keys[i].Time * duration,
+                        value: from + (keys[i].Value * range),
+                        inTangent: keys[i].InTangent * range / duration,
+                        outTangent: keys[i].OutTangent * range / duration);
                 }
 
-                // If no custom curve, generate curve based on easing type.
-                return CurveFactory.BuildNormalized(easing);
+                return CurveFactory.Build(scaled);
             }
         }
 
