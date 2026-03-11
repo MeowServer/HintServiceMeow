@@ -56,7 +56,7 @@
             {
                 lock (@lock)
                 {
-                    if (IsExpired)
+                    if ((NetworkTimeCache.Time - StartTime) >= Duration) // If is expired
                         return ToValue;
 
                     float elapsed = (float)(NetworkTimeCache.Time - StartTime);
