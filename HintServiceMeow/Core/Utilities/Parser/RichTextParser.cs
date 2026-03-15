@@ -9,6 +9,7 @@
     using HintServiceMeow.Core.Models.Parser.Style;
     using HintServiceMeow.Core.Models.Parser.ValueObject;
     using HintServiceMeow.Core.Utilities.Pools;
+    using HintServiceMeow.Core.Utilities.Tools;
 
     /// <summary>
     /// Use to calculate the rich text's width.
@@ -106,7 +107,15 @@
                 charStyleCache = currentStyle.GetCharStyle(defaultStyle);
             }
 
-            currentLineChars.Add(new TextSegment(text, charStyleCache));
+            float totalWidthWithFontSize = 0f;
+            for (int i = 0; i < text.Length; i++)
+            {
+                totalWidthWithFontSize += FontTool.Instance.GetCharWidth(text[i], charStyleCache.FontSize);
+            }
+
+            float actualWidth = charStyleCache.GetWidth(totalWidthWithFontSize, text.Length);
+
+            currentLineChars.Add(new TextSegment(text, actualWidth, charStyleCache));
         }
 
         private void AddPlaceholder(float width)
@@ -116,8 +125,7 @@
                 charStyleCache = currentStyle.GetCharStyle(defaultStyle);
             }
 
-            TextSegment charInfo = new TextSegment(" ", charStyleCache);
-            charInfo.CustomWidth = width;
+            TextSegment charInfo = new TextSegment(" ", width, charStyleCache);
             currentLineChars.Add(charInfo);
         }
 

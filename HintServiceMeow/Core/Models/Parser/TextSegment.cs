@@ -1,21 +1,15 @@
 ﻿using HintServiceMeow.Core.Models.Parser.Style;
-using HintServiceMeow.Core.Utilities.Tools;
 
 namespace HintServiceMeow.Core.Models.Parser
 {
     internal struct TextSegment
     {
-        private float totalWidthWithFontSize;
         private string text;
+        private float width;
 
-        public TextSegment(string segment, TextSegmentStyle style)
+        public TextSegment(string segment, float width, TextSegmentStyle style)
         {
             this.text = segment;
-            totalWidthWithFontSize = 0f;
-            for (int i = 0; i < segment.Length; i++)
-            {
-                totalWidthWithFontSize += FontTool.Instance.GetCharWidth(segment[i], style.FontSize);
-            }
 
             Style = style;
         }
@@ -28,15 +22,15 @@ namespace HintServiceMeow.Core.Models.Parser
         {
             get
             {
-                if (CustomWidth.HasValue)
-                    return CustomWidth.Value;
+                //if (CustomWidth.HasValue)
+                //    return CustomWidth.Value;
 
-                return Style.GetWidth(totalWidthWithFontSize, text.Length);
+                return width;
             }
         }
 
         public float Height => Style.GetHeight();
 
-        public float? CustomWidth { get; set; } = null;
+        // public float? CustomWidth { get; set; } = null;
     }
 }
