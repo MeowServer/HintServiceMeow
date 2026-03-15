@@ -54,7 +54,7 @@
         // For ParseToRichText method
         private RichTextParserSetting settingTemplate = new RichTextParserSetting(TextMeshStyle.Default, Array.Empty<Tuple<string, IHintParameter>>(), ["line-height"],
             ["a", "allcaps", "alpha", "b", "color", "font", "font-weight", "gradient",
-            "i", "lowercase", "mark", "noparse", "s", "smallcaps", "style", "sub", "sup", "u", "uppercase", "link"]); // Tags that does not affect the size of the text are ignored.
+            "i", "lowercase", "mark", "noparse", "s", "smallcaps", "style", "u", "uppercase", "link"]); // Tags that does not affect the size of the text are ignored.
 
         public HintParser(
             ICache<Guid, ValueTuple<float, float>>? dynamicHintPositionCache = null,
