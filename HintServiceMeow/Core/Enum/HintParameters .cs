@@ -51,6 +51,11 @@
 
         /// <summary>Centers hint text horizontally.</summary>
         Center,
+
+        /// <summary>Justifies hint text to fill the entire width of the display area.</summary>
+        Justified,
+
+        Flush,
     }
 
     /// <summary>

@@ -8,7 +8,6 @@
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
-    using HintServiceMeow.Core.Enum;
     using HintServiceMeow.Core.Interface;
 
     /// <summary>
@@ -64,20 +63,15 @@
 
         public static IFontTool Instance { get; } = new FontTool();
 
-        public float GetCharWidth(char c, float fontSize, TextStyle style)
+        public float GetCharWidth(char c, float fontSize)
         {
             if (char.IsControl(c))
                 return 0f;
 
-            float ratio = fontSize / BaseFontSize * 1.25f; // 1.25 is estimated value
-
-            if ((style & TextStyle.Bold) == TextStyle.Bold)
-                ratio *= 1.15f;
-
             if (!ChWidth.TryGetValue(c, out float width))
                 width = DefaultFontWidth;
 
-            return width * ratio;
+            return width;
         }
     }
 }

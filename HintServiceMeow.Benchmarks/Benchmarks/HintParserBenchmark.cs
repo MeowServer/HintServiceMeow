@@ -96,18 +96,6 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
                 dynamicHintOnlyCollection.AddHint($"Assembly_Dynamic_{i % 3}", dynamicHint);
                 hintCollection.AddHint($"Assembly_Dynamic_{i % 3}", dynamicHint);
             }
-
-            // Use CurrentParams instead of the old RegularHints/DynamicHints fields.
-            testRichTexts = new List<string>();
-            for (int i = 0; i < CurrentParams.RegularHints; i++)
-            {
-                testRichTexts.Add($"<color=red>Static Block {i}</color> <pos={i}>Illegal</pos> <voffset=99>Tag</voffset>");
-            }
-
-            for (int i = 0; i < CurrentParams.DynamicHints; i++)
-            {
-                testRichTexts.Add($"<size=24>Dynamic Competitor {i}</size> {{IllegalBraces}} <line-height=0>");
-            }
         }
 
         [Benchmark()]
@@ -150,17 +138,6 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
             if (string.IsNullOrEmpty(result.Content))
             {
                 throw new Exception("Parsed message should not be empty in this complex scenario.");
-            }
-        }
-
-        [Benchmark()]
-        public void ParseRichText()
-        {
-            RichTextParser parser = new RichTextParser();
-
-            foreach (string str in testRichTexts)
-            {
-                parser.ParseText(str, 20, HintAlignment.Center);
             }
         }
     }
