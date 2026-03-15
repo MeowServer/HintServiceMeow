@@ -4,6 +4,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using HintServiceMeow.Core.Enum;
+using HintServiceMeow.Core.Interface;
+using HintServiceMeow.Core.Models.Arguments;
 using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities;
 using HintServiceMeow.Tests.Core.Utilities.TestDoubles;
@@ -398,7 +400,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
                 new TestPlayerContext { IsStillValid = false },
                 updateScheduler: localScheduler,
                 adaptor: new TestCompatibilityAdaptor(),
-                hintParser: new DelegateHintParser(_ => "pipeline-success"),
+                hintParser: new DelegateHintParser(_ => new HintParserResult("pipeline-success", Array.Empty<IHintParameter>())),
                 coroutineRunner: new TestCoroutineRunner(),
                 dispatcher: dispatcher,
                 displayOutputs: new[] { output });
@@ -467,7 +469,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
             {
                 entered.Set();
                 release.Wait(1000);
-                return "done";
+                return new HintParserResult("done", Array.Empty<IHintParameter>());
             });
 
             PlayerDisplay localDisplay = new(

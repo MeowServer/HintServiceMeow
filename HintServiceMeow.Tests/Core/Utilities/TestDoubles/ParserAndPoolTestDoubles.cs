@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Interface;
 using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Models.Parser;
+using HintServiceMeow.Core.Models.Parser.Style;
 
 namespace HintServiceMeow.Tests.Core.Utilities.TestDoubles;
 
@@ -69,6 +69,12 @@ internal sealed class StubCoordinateTools : ICoordinateTools
 
     public float GetYCoordinate(float rawYCoordinate, float textHeight, HintVerticalAlign from, HintVerticalAlign to) => rawYCoordinate;
 
+    public float GetCurrentYCoordinate(Hint hint, HintVerticalAlign to) => YConverter(hint, to);
+
+    public float GetCurrentYCoordinate(Hint hint, HintVerticalAlign from, HintVerticalAlign to) => YConverter(hint, to);
+
+    public float GetCurrentYCoordinate(float rawYCoordinate, float textHeight, HintVerticalAlign from, HintVerticalAlign to) => rawYCoordinate;
+
     public float GetXCoordinateWithAlignment(Hint hint) => hint.XCoordinate;
 
     public float GetXCoordinateWithAlignment(Hint hint, HintAlignment alignment) => hint.XCoordinate;
@@ -81,6 +87,6 @@ internal sealed class StubCoordinateTools : ICoordinateTools
 
     public float GetTextHeight(string text, int fontSize, float lineHeight) => 20f;
 
-    public IReadOnlyList<LineInfo> GetLineInfos(string text, int fontSize, HintAlignment align = HintAlignment.Center)
-        => [new LineInfo([], align, 20f, false, 0f, text)];
+    public LineInfo[] GetLineInfos(string text, int fontSize, HintAlignment align = HintAlignment.Center)
+        => [new LineInfo([], LineStyle.Default, string.Empty)];
 }
