@@ -9,6 +9,7 @@
     using HintServiceMeow.Core.Models.Arguments;
     using HintServiceMeow.Core.Models.Hints;
     using HintServiceMeow.Core.Models.Parser;
+    using HintServiceMeow.Core.Models.Parser.Style;
     using HintServiceMeow.Core.Utilities.Parser;
     using HintServiceMeow.Core.Utilities.Pools;
     using HintServiceMeow.Core.Utilities.Tools;
@@ -27,6 +28,10 @@
         private readonly PlayerDisplay playerDisplay; // Initialize in constructor
         private readonly IPool<RichTextParser> richTextParserPool; // Initialize in constructor
         private readonly ICoroutineRunner coroutineRunner; // Initialize in constructor
+
+        private readonly RichTextParserSetting settingTemplate = new RichTextParserSetting(TextMeshStyle.Default, [], [],
+            ["a", "allcaps", "alpha", "b", "color", "font", "font-weight", "gradient",
+            "i", "lowercase", "mark", "noparse", "s", "smallcaps", "style", "sub", "sup", "u", "uppercase", "link"]);// Tags that does not affect the position of the hint are ignored
 
         private bool destructed; // To prevent multiple destruct calls
 
@@ -148,7 +153,7 @@
         private IReadOnlyList<Hint> ParseRichTextToHints(string content)
         {
             RichTextParser parser = richTextParserPool.Rent();
-            IReadOnlyList<LineInfo> lineInfoList = parser.ParseText(content, 40);
+            LineInfo[] lineInfoList = parser.ParseText(content, settingTemplate).LineInfos;
             richTextParserPool.Return(parser);
 
             if (lineInfoList.IsEmpty())
@@ -158,21 +163,20 @@
 
             float totalHeight = lineInfoList.Sum(x => x.Height);
             float accumulatedHeight = 0f;
-            List<Hint> result = new(lineInfoList.Count);
+            List<Hint> result = new(lineInfoList.Length);
 
             foreach (LineInfo lineInfo in lineInfoList)
             {
                 // If not empty line, then add hint
-                if (!string.IsNullOrEmpty(lineInfo.RawText.Trim()) && !lineInfo.Characters.IsEmpty())
+                if (!string.IsNullOrEmpty(lineInfo.CleanText.Trim()) && !lineInfo.CharacterInfos.IsEmpty())
                 {
                     result.Add(new Hint
                     {
-                        Text = lineInfo.RawText,
-                        XCoordinate = lineInfo.Pos,
+                        Text = lineInfo.CleanText,
                         YCoordinate = 700 - (totalHeight / 2) + lineInfo.Height + accumulatedHeight,
                         YCoordinateAlign = HintVerticalAlign.Bottom,
-                        Alignment = lineInfo.Alignment,
-                        FontSize = (int)lineInfo.Characters.First().FontSize,
+                        Alignment = lineInfo.Style.Alignment,
+                        FontSize = (int)lineInfo.CharacterInfos.First().Style.FontSize,
                         SyncSpeed = HintSyncSpeed.UnSync, // To make sure that when the compatibility adaptor is clearing the previous hint, the player display will not be updated
                     });
                 }

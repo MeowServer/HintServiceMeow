@@ -11,12 +11,12 @@
     internal class RichTextTokenizer
     {
         private readonly object tokenizerLock = new object();
-        private readonly List<Token> tokenList = new();
+        private List<Token> tokenList = new();
         private int index = 0;
         private string? rawText = null;
         private StringBuilder? sb = null;
 
-        public Token[] Tokenize(string raw, Tuple<string, IHintParameter>[] registeredParameters)
+        public List<Token> Tokenize(string raw, Tuple<string, IHintParameter>[] registeredParameters)
         {
             lock (tokenizerLock)
             {
@@ -46,8 +46,8 @@
 
                     PackTextInSb();
 
-                    Token[] result = tokenList.ToArray();
-                    tokenList.Clear();
+                    List<Token> result = tokenList;
+                    tokenList = new List<Token>(result.Count);
                     return result;
                 }
                 finally
@@ -106,38 +106,35 @@
                 return false;
             }
 
-            int start = index + 1;
-
-            // Find the end of the tag
-            int endTagIndex = rawText.IndexOf('>', start);
-            if (endTagIndex == -1)
+            // Cut out the tag
+            int tagStart = index + 1;
+            int tagEnd = rawText.IndexOf('>', tagStart) - 1;
+            if (tagEnd < 0) // No closing >
             {
                 return false;
             }
 
             // Cut out the tag ( without < and > )
-            string tagContent = rawText.Substring(start, endTagIndex - start);
 
-            // Check if is close tag or open tag
-            bool isCloseTag = tagContent.StartsWith("/");
-            string? tagName, tagParameter = null;
+            bool isCloseTag = rawText[tagStart] == '/';// Check if is close tag or open tag
+            string tagName, tagParameter = null;
             if (isCloseTag) // Is close tag, remove the closing mark
             {
-                tagName = tagContent.Substring(1);
+                tagName = rawText.Substring(tagStart + 1, tagEnd - tagStart); // Skip first char(/) and cut out the tag name
             }
             else // Is open tag, get the parameter if there is parameter
             {
                 // Check if has value
-                int equalSignIndex = tagContent.IndexOf('=');
+                int equalSignIndex = rawText.IndexOf('=', tagStart); // Find 1 equal sign after the start
 
-                if (equalSignIndex == -1)
+                if (equalSignIndex == -1 || equalSignIndex > tagEnd) // Not equal sign within the tag
                 {
-                    tagName = tagContent;
+                    tagName = rawText.Substring(tagStart, tagEnd - tagStart + 1);
                 }
                 else
                 {
-                    tagName = tagContent.Substring(0, equalSignIndex);
-                    tagParameter = tagContent.Substring(equalSignIndex + 1);
+                    tagName = rawText.Substring(tagStart, equalSignIndex - tagStart);
+                    tagParameter = rawText.Substring(equalSignIndex + 1, tagEnd - equalSignIndex);
                 }
             }
 
@@ -154,13 +151,13 @@
             }
             else
             {
-                if (TagChecker.IsSelfClosingTag(tagName))
-                {
-                    PackTextInSbAndAdd(Token.GetTag(RichTextTokenType.SelfCloseTag, tagName, tagParameter));
-                }
-                else if (isCloseTag)
+                if (isCloseTag)
                 {
                     PackTextInSbAndAdd(Token.GetTag(RichTextTokenType.CloseTag, tagName, tagParameter));
+                }
+                else if (TagChecker.IsSelfClosingTag(tagName))
+                {
+                    PackTextInSbAndAdd(Token.GetTag(RichTextTokenType.SelfCloseTag, tagName, tagParameter));
                 }
                 else
                 {
@@ -168,7 +165,7 @@
                 }
             }
 
-            index = endTagIndex + 1; // Move to character after the tag
+            index = tagEnd + 2; // Move to character after the > of the tag
             return true;
         }
 

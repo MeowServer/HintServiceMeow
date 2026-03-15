@@ -4,8 +4,10 @@
     using System.Collections.Generic;
     using HintServiceMeow.Core.Enum;
     using HintServiceMeow.Core.Interface;
+    using HintServiceMeow.Core.Models.Arguments;
     using HintServiceMeow.Core.Models.Hints;
     using HintServiceMeow.Core.Models.Parser;
+    using HintServiceMeow.Core.Models.Parser.Style;
     using HintServiceMeow.Core.Utilities.Parser;
 
     /// <summary>
@@ -16,6 +18,10 @@
         private const float CanvasHalfWidth = 1200f;
 
         private readonly IPool<RichTextParser> richTextParserPool;
+
+        private readonly RichTextParserSetting settingTemplate = new RichTextParserSetting(TextMeshStyle.Default, [], [],
+            ["a", "allcaps", "alpha", "b", "color", "font", "font-weight", "gradient",
+            "i", "lowercase", "mark", "noparse", "s", "smallcaps", "style", "sub", "sup", "u", "uppercase", "link"]); // Tags that does not affect the size of the text, so they can be ignored when calculating text size.
 
         public CoordinateTools(IPool<RichTextParser>? richTextParserPool = null)
         {
@@ -200,13 +206,15 @@
             return height > 0 ? height - lineHeight : 0f; // Remove the line height of the last line
         }
 
-        public IReadOnlyList<LineInfo> GetLineInfos(string? text, int fontSize, HintAlignment align = HintAlignment.Center)
+        public LineInfo[] GetLineInfos(string? text, int fontSize, HintAlignment align = HintAlignment.Center)
         {
             RichTextParser parser = richTextParserPool.Rent();
-            IReadOnlyList<LineInfo> result = parser.ParseText(text, fontSize, align);
+            settingTemplate.DefaultStyle.CharStyle.FontSize = fontSize;
+            settingTemplate.DefaultStyle.LineStyle.Alignment = align;
+            RichTextParserResult result = parser.ParseText(text, settingTemplate);
             richTextParserPool.Return(parser);
 
-            return result;
+            return result.LineInfos;
         }
     }
 }

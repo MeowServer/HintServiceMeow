@@ -8,7 +8,8 @@
     using HintServiceMeow.Core.Models;
     using HintServiceMeow.Core.Models.Arguments;
     using HintServiceMeow.Core.Models.Hints;
-    using HintServiceMeow.Core.Models.Parser;
+    using HintServiceMeow.Core.Models.Parser.Style;
+    using HintServiceMeow.Core.Models.Parser.ValueObject;
     using HintServiceMeow.Core.Models.Transition;
     using HintServiceMeow.Core.Parameters;
     using HintServiceMeow.Core.Utilities.Pools;
@@ -43,12 +44,17 @@
         private readonly HashSet<ValueTuple<float, float>> visited = new();
 
         // For hint parameter handling
-        private int tagCout = 0;
+        private int parameterIndex = 0;
         private readonly List<IHintParameter> hintParameters = new(128);
 
         // For animation
         private string formatString = "F1"; // 1 decimal place
         private bool useIntegral = false; // Use float or int for animated value
+
+        // For ParseToRichText method
+        private RichTextParserSetting settingTemplate = new RichTextParserSetting(TextMeshStyle.Default, Array.Empty<Tuple<string, IHintParameter>>(), ["line-height"],
+            ["a", "allcaps", "alpha", "b", "color", "font", "font-weight", "gradient",
+            "i", "lowercase", "mark", "noparse", "s", "smallcaps", "style", "sub", "sup", "u", "uppercase", "link"]); // Tags that does not affect the size of the text are ignored.
 
         public HintParser(
             ICache<Guid, ValueTuple<float, float>>? dynamicHintPositionCache = null,
@@ -321,15 +327,16 @@
 
         private void ParseToRichText(Hint hint, StringBuilder messageBuilder)
         {
-            // Remove illegal tags
-            string text = HandleTags(hint.Content.GetText() ?? string.Empty, hint.Parameters);
-
             // Parse into line infos
             RichTextParser parser = richTextParserPool.Rent();
-            IReadOnlyList<LineInfo> lineList = parser.ParseText(text, hint.FontSize);
+            settingTemplate.Parameters = hint.Parameters;
+            RichTextParserResult result = parser.ParseText(hint.Content.GetText() ?? string.Empty, settingTemplate);
             richTextParserPool.Return(parser);
 
-            if (lineList.Count == 0)
+            // Offset parameter index
+            parameterIndex += result.ParameterIndex;
+
+            if (result.LineInfos.Length == 0)
                 return;
 
             // Add default size/alignment
@@ -362,12 +369,12 @@
             float yDelta = hint.YCoordinate - hint.CurrentYCoordinate;
             float fromVOffset = vOffset + yDelta;
 
-            for (int i = 0; i < lineList.Count; i++)
+            for (int i = 0; i < result.LineInfos.Length; i++)
             {
-                vOffset -= lineList[i].Height + hint.LineHeight; // Move y coordinate to the bottom of the line
-                fromVOffset -= lineList[i].Height + hint.LineHeight; // Move from coordinate to the bottom of the line
+                vOffset -= result.LineInfos[i].Height + hint.LineHeight; // Move y coordinate to the bottom of the line
+                fromVOffset -= result.LineInfos[i].Height + hint.LineHeight; // Move from coordinate to the bottom of the line
 
-                if (string.IsNullOrEmpty(lineList[i].RawText))
+                if (string.IsNullOrEmpty(result.LineInfos[i].CleanText))
                     continue;
 
                 // X coordinate
@@ -402,7 +409,7 @@
                         messageBuilder.AppendFormat("<voffset={0:0.#}>", vOffset); // Y coordinate
                 }
 
-                messageBuilder.Append(lineList[i].RawText); // Content
+                messageBuilder.Append(result.LineInfos[i].CleanText); // Content
 
                 if (vOffset != 0)
                     messageBuilder.Append("</voffset>"); // End Y coordinate
@@ -418,8 +425,15 @@
 
         private void Clear()
         {
-            tagCout = 0;
+            parameterIndex = 0;
             hintParameters.Clear();
+        }
+
+        private void AddTag(StringBuilder sb, IHintParameter hintParameter)
+        {
+            sb.Append('{').Append(parameterIndex).Append('}');
+            parameterIndex++;
+            hintParameters.Add(hintParameter);
         }
     }
 }
