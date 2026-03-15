@@ -73,7 +73,7 @@ public class RichTextParserTests
             {
                 TextSegment seg = line.CharacterInfos[si];
                 TextSegmentStyle s = seg.Style;
-                sb.AppendLine($"     Seg[{si}] Text=\"{seg.Text}\"  CustomWidth={NullableF(seg.CustomWidth)}  Width={seg.Width:F3}  Height={seg.Height:F3}");
+                sb.AppendLine($"     Seg[{si}] Text=\"{seg.Text}\"  Width={seg.Width:F3}  Height={seg.Height:F3}");
                 sb.AppendLine($"            FontSize={s.FontSize:F2}  Bold={s.Bold}  Italic={s.Italic}  Underline={s.Underline}  Strikethrough={s.Strikethrough}");
                 sb.AppendLine($"            Subscript={s.Subscript}  Superscript={s.Superscript}  Smallcaps(n/a on seg)");
                 sb.AppendLine($"            Color=({s.Color.Red},{s.Color.Green},{s.Color.Blue},{s.Color.Alpha})  Alpha={NullableF(s.Alpha)}");
@@ -1220,14 +1220,18 @@ public class RichTextParserTests
     }
 
     [TestMethod]
-    public void ParseText_SpaceTag_InsertsPlaceholderWithCustomWidth()
+    public void ParseText_SpaceTag_InsertsPlaceholderSegment()
     {
+        // <space=20> must insert a whitespace placeholder whose Width equals the tag value.
+        // TextSegment.CustomWidth has been removed; Width is now stored directly.
+        // We identify the placeholder as the segment with Text==" " and Width==20.
         const string input = "<space=20>text";
         var result = NewParser().ParseText(input, DefaultSetting());
-        bool hasPlaceholder = result.LineInfos[0].CharacterInfos.Any(s => s.CustomWidth.HasValue);
+        bool hasPlaceholder = result.LineInfos[0].CharacterInfos
+            .Any(s => s.Text == " " && Math.Abs(s.Width - 20f) < 0.001f);
 
         Assert.IsTrue(hasPlaceholder,
-            $"Input: \"{input}\"\n<space> must produce a segment with CustomWidth set." + Dump(result));
+            $"Input: \"{input}\"\n<space=20> must produce a placeholder segment with Text=\" \" and Width=20." + Dump(result));
     }
 
     [TestMethod]
@@ -1235,10 +1239,11 @@ public class RichTextParserTests
     {
         const string input = "<space=20>text";
         var result = NewParser().ParseText(input, DefaultSetting());
-        TextSegment ph = result.LineInfos[0].CharacterInfos.First(s => s.CustomWidth.HasValue);
+        TextSegment ph = result.LineInfos[0].CharacterInfos
+            .First(s => s.Text == " " && Math.Abs(s.Width - 20f) < 0.001f);
 
-        Assert.AreEqual(20f, ph.CustomWidth!.Value, 0.001f,
-            $"Input: \"{input}\"\nPlaceholder CustomWidth must be 20, got {ph.CustomWidth.Value}." + Dump(result));
+        Assert.AreEqual(20f, ph.Width, 0.001f,
+            $"Input: \"{input}\"\nPlaceholder Width must be 20, got {ph.Width}." + Dump(result));
     }
 
     [TestMethod]
@@ -1246,14 +1251,16 @@ public class RichTextParserTests
     {
         const string input = "<pos=50>text";
         var result = NewParser().ParseText(input, DefaultSetting());
-        bool hasPlaceholder = result.LineInfos[0].CharacterInfos.Any(s => s.CustomWidth.HasValue);
+        bool hasPlaceholder = result.LineInfos[0].CharacterInfos
+            .Any(s => s.Text == " " && Math.Abs(s.Width - 50f) < 0.001f);
 
         Assert.IsTrue(hasPlaceholder,
-            $"Input: \"{input}\"\n<pos> must produce a segment with CustomWidth." + Dump(result));
+            $"Input: \"{input}\"\n<pos=50> must produce a placeholder segment with Text=\" \" and Width=50." + Dump(result));
 
-        TextSegment ph = result.LineInfos[0].CharacterInfos.First(s => s.CustomWidth.HasValue);
-        Assert.AreEqual(50f, ph.CustomWidth!.Value, 0.001f,
-            $"Input: \"{input}\"\nPlaceholder CustomWidth must be 50, got {ph.CustomWidth.Value}." + Dump(result));
+        TextSegment ph = result.LineInfos[0].CharacterInfos
+            .First(s => s.Text == " " && Math.Abs(s.Width - 50f) < 0.001f);
+        Assert.AreEqual(50f, ph.Width, 0.001f,
+            $"Input: \"{input}\"\nPlaceholder Width must be 50, got {ph.Width}." + Dump(result));
     }
 
     // ═════════════════════════════════════════════════════════════════════════
