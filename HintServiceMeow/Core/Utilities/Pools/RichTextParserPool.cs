@@ -20,6 +20,9 @@
 
         public void Return(RichTextParser parser)
         {
+            if (parser == null)
+                return;
+
             richTextParserQueue.Enqueue(parser);
         }
     }
