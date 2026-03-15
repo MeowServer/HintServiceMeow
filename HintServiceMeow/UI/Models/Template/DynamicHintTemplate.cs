@@ -27,6 +27,10 @@ namespace HintServiceMeow.UI.Models.Template
         [YamlIgnore]
         public AutoContent.TextUpdateHandler? AutoText { get; set; }
 
+        /// <summary>Gets or sets the hint content. Maps to <see cref="AbstractHint.Content"/>.</summary>
+        [YamlIgnore]
+        public AbstractHintContent? Content { get; set; }
+
         /// <summary>Gets or sets the font-size transition. Maps to <see cref="AbstractHint.FontSizeTransition"/>.</summary>
         [YamlIgnore]
         public Transition? FontSizeTransition { get; set; }
