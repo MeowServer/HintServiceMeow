@@ -14,6 +14,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `AbstractHint::FontSizeTransition`, `Hint::XCoordianteTransition`, `Hint::YCoordianteTransition`, `DynamicHint::XCoordianteTransition`, `DynamicHint::YCoordianteTransition`
 - `Transition` and `TransitionState` classes
 
+### Changed
+- Rewrote RichTextParser to increase compatibility with tags.
+
 ---
 
 ## [5.5.0]
