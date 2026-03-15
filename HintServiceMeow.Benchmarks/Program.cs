@@ -22,7 +22,7 @@ namespace MyProject.Benchmarks
             Console.WriteLine("  6. IgnoreTagsBenchmark     - IgnoreTags overhead comparison");
             Console.WriteLine("  7. PoolEffectBenchmark     - Object pool vs new instance");
             Console.WriteLine("  8. HintParserBenchmark     - Hint Parser Performance");
-            Console.WriteLine("  9. HintCollectionBenchmark - Hint Collection Performance")
+            Console.WriteLine("  9. HintCollectionBenchmark - Hint Collection Performance");
             Console.WriteLine("  10. Run ALL (takes a while)");
             Console.WriteLine();
             Console.Write("Select (1-8): ");
@@ -57,6 +57,7 @@ namespace MyProject.Benchmarks
                     break;
                 case "9":
                     BenchmarkRunner.Run<HintCollectionBenchmark>();
+                    break;
                 case "10":
                     BenchmarkRunner.Run<PhaseBenchmark>();
                     BenchmarkRunner.Run<InputProfileBenchmark>();
