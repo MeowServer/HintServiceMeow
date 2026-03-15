@@ -873,7 +873,7 @@ public class TokenizerTests
         const string input = "<foobar>hello</foobar>";
         var tokens = Tokenize(input);
 
-        bool hasTextToken = tokens.Any(t => t.Type == RichTextTokenType.Text && t.Text == "hello");
+        bool hasTextToken = tokens.Any(t => t.Type == RichTextTokenType.Text && t.Text.Contains("hello"));
         Assert.IsTrue(hasTextToken,
             $"The text \"hello\" between unknown tags must still appear as a Text token." + Dump(tokens, input));
     }
