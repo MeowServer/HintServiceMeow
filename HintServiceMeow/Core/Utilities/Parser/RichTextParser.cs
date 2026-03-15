@@ -84,13 +84,16 @@
                 // Finish last line
                 FinishLine(defaultStyle, false);
 
+                LineInfo[] lineInfosArray = lineInfos.ToArray();
+                IHintParameter[] parametersArray = parameters.ToArray();
+
                 Reset();
 
                 // Return pool objects
                 StringBuilderPool.Instance.Return(sb);
                 sb = null;
 
-                return new RichTextParserResult(lineInfos.ToArray(), parameters.ToArray(), parameterIndex);
+                return new RichTextParserResult(lineInfosArray, parametersArray, parameterIndex);
             }
         }
 
@@ -338,7 +341,7 @@
             {
                 sb!.Append('<').Append(tagName);
 
-                if (!string.IsNullOrEmpty(tagName))
+                if (!string.IsNullOrEmpty(value))
                 {
                     sb.Append('=').Append(value);
                 }
