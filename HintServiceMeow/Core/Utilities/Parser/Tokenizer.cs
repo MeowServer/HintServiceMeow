@@ -141,7 +141,7 @@
                 else
                 {
                     tagName = TagChecker.TryMatchValidTag(rawText, tagStart, equalSignIndex - tagStart);
-                    tagParameter = TagChecker.TryMatchValidTag(rawText, equalSignIndex + 1, tagEnd - equalSignIndex);
+                    tagParameter = rawText.Substring(equalSignIndex + 1, tagEnd - equalSignIndex);
                 }
             }
 
