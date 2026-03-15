@@ -46,5 +46,12 @@ namespace HintServiceMeow.UI.Models.Template
             if (YCoordinateAlign.HasValue)
                 hint.YCoordinateAlign = YCoordinateAlign.Value;
         }
+
+        public virtual Hint GetHint()
+        {
+            var hint = new Hint();
+            Apply(hint);
+            return hint;
+        }
     }
 }

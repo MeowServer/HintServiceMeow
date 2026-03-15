@@ -54,6 +54,7 @@ namespace HintServiceMeow.UI.Models.Template
         // ── Methods ───────────────────────────────────────────────────────────────
 
         /// <summary>Applies all non-null layout properties to <paramref name="dynamicHint"/>.</summary>
+        /// <param name="dynamicHint">The hint to apply these properties to.</param>
         public virtual void Apply(DynamicHint dynamicHint)
         {
             if (TopBoundary.HasValue)
@@ -85,6 +86,13 @@ namespace HintServiceMeow.UI.Models.Template
 
             if (RightMargin.HasValue)
                 dynamicHint.RightMargin = RightMargin.Value;
+        }
+
+        public virtual DynamicHint GetHint()
+        {
+            DynamicHint dh = new DynamicHint();
+            Apply(dh);
+            return dh;
         }
     }
 }
