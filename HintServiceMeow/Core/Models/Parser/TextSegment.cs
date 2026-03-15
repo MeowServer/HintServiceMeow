@@ -10,7 +10,7 @@ namespace HintServiceMeow.Core.Models.Parser
         public TextSegment(string segment, float width, TextSegmentStyle style)
         {
             this.text = segment;
-
+            this.width = width;
             Style = style;
         }
 
