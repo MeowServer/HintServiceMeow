@@ -4,10 +4,11 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
 using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Models;
+using HintServiceMeow.Core.Models.Arguments;
 using HintServiceMeow.Core.Models.Hints;
 using HintServiceMeow.Core.Utilities.Parser;
 
-namespace HintServiceMeow.Benchmarks
+namespace HintServiceMeow.Benchmarks.Benchmarks
 {
     // Struct to bind the specific parameter pairs together.
     public struct HintParams
@@ -95,18 +96,6 @@ namespace HintServiceMeow.Benchmarks
                 dynamicHintOnlyCollection.AddHint($"Assembly_Dynamic_{i % 3}", dynamicHint);
                 hintCollection.AddHint($"Assembly_Dynamic_{i % 3}", dynamicHint);
             }
-
-            // Use CurrentParams instead of the old RegularHints/DynamicHints fields.
-            testRichTexts = new List<string>();
-            for (int i = 0; i < CurrentParams.RegularHints; i++)
-            {
-                testRichTexts.Add($"<color=red>Static Block {i}</color> <pos={i}>Illegal</pos> <voffset=99>Tag</voffset>");
-            }
-
-            for (int i = 0; i < CurrentParams.DynamicHints; i++)
-            {
-                testRichTexts.Add($"<size=24>Dynamic Competitor {i}</size> {{IllegalBraces}} <line-height=0>");
-            }
         }
 
         [Benchmark()]
@@ -116,11 +105,11 @@ namespace HintServiceMeow.Benchmarks
             // and use the populated 'hintCollection' instead to ensure actual load testing.
             HintParser parser = new HintParser();
 
-            string resultMessage = parser.ParseToMessage(hintCollection);
+            HintParserResult result = parser.ParseToMessage(hintCollection);
 
             // Ensure the result is not optimized away by the compiler 
             // (If the framework requires assertions, a rough check on resultMessage.Length can be done here).
-            if (string.IsNullOrEmpty(resultMessage))
+            if (string.IsNullOrEmpty(result.Content))
             {
                 throw new Exception("Parsed message should not be empty in this complex scenario.");
             }
@@ -131,9 +120,9 @@ namespace HintServiceMeow.Benchmarks
         {
             HintParser parser = new HintParser();
 
-            string resultMessage = parser.ParseToMessage(hintOnlyCollection);
+            HintParserResult result = parser.ParseToMessage(hintOnlyCollection);
 
-            if (string.IsNullOrEmpty(resultMessage))
+            if (string.IsNullOrEmpty(result.Content))
             {
                 throw new Exception("Parsed message should not be empty in this complex scenario.");
             }
@@ -144,22 +133,11 @@ namespace HintServiceMeow.Benchmarks
         {
             HintParser parser = new HintParser();
 
-            string resultMessage = parser.ParseToMessage(dynamicHintOnlyCollection);
+            HintParserResult result = parser.ParseToMessage(dynamicHintOnlyCollection);
 
-            if (string.IsNullOrEmpty(resultMessage))
+            if (string.IsNullOrEmpty(result.Content))
             {
                 throw new Exception("Parsed message should not be empty in this complex scenario.");
-            }
-        }
-
-        [Benchmark()]
-        public void ParseRichText()
-        {
-            RichTextParser parser = new RichTextParser();
-
-            foreach (string str in testRichTexts)
-            {
-                parser.ParseText(str, 20, HintAlignment.Center);
             }
         }
     }
