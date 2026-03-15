@@ -10,8 +10,8 @@ namespace HintServiceMeow.UI.Models.Template
     /// leaving the hint's existing values untouched for anything that remains null.
     /// </para>
     /// <para>
-    /// Runtime-only state (<c>Guid</c>, <c>UpdateAnalyser</c>, transition states,
-    /// <c>PreviousXCoordinate</c>, etc.) is excluded. Behaviour-only properties
+    /// Runtime-only state (<c>Guid</c>, <c>UpdateAnalyser</c>, 
+    /// transition states) is excluded. Behaviour-only properties
     /// (<c>AutoText</c>, <c>Transition</c>) are available on the full template subclasses
     /// and are marked <c>[YamlIgnore]</c>.
     /// </para>
@@ -28,7 +28,7 @@ namespace HintServiceMeow.UI.Models.Template
         public float? LineHeight { get; set; }
 
         /// <summary>
-        /// Gets or sets the plain-text content. Replaces the hint's content with a <c>StringContent</c> instance.
+        /// Gets or sets the plain-text content. Use a static text as hint's content.
         /// Maps to <see cref="AbstractHint.Text"/>.
         /// </summary>
         public string? Text { get; set; }
