@@ -10,9 +10,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 ### Added
-- Animation and hint parameter support in `Hint` and `DynamicHint`.
-- `AbstractHint::FontSizeTransition`, `Hint::XCoordianteTransition`, `Hint::YCoordianteTransition`, `DynamicHint::XCoordianteTransition`, `DynamicHint::YCoordianteTransition`
+#### Transition
+- Animation and hint parameter support in `Hint` and `DynamicHint`. 
+- `AbstractHint::FontSizeTransition`, `Hint::XCoordianteTransition`, `Hint::YCoordianteTransition`, `DynamicHint::XCoordianteTransition`, `DynamicHint::YCoordianteTransition`.
 - `Transition` and `TransitionState` classes
+#### Hint Config and Template
+- Config and templates for `Hint` and `DynamicHint`. Config can be used for YAML serialization, while template can be used to quickly replicate hints with same properties.
+- `AbstractHintTemplate`, `DynamicHintConfig`, `DynamicHintPositionConfig`, `DynamicHintTempalte`, `HintConfig`, `HintPositionConfig`, and `HintTemplate` Classes.
 
 ---
 
