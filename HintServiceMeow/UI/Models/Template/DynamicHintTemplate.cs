@@ -1,57 +1,68 @@
 namespace HintServiceMeow.UI.Models.Template
 {
+    using HintServiceMeow.Core.Models.HintContent;
     using HintServiceMeow.Core.Models.Hints;
+    using HintServiceMeow.Core.Models.Transition;
+    using YamlDotNet.Serialization;
 
     /// <summary>
-    /// Full template for a <see cref="DynamicHint"/>. Extends
-    /// <see cref="AnonymousDynamicHintTemplate"/> with identity and visibility control
-    /// by adding <c>Id</c> and <c>Hide</c>.
+    /// Full template for a <see cref="DynamicHint"/>. Extends <see cref="DynamicHintConfig"/>
+    /// with identity, visibility, and code-only animation/content properties.
     /// <para>
-    /// Use this template when you need complete control over a dynamic hint, including
-    /// its logical identifier and whether it is visible.
-    /// </para>
-    /// <para>
-    /// Designed for serialization (JSON/YAML). All properties are nullable so only
-    /// explicitly set values are applied by <see cref="ApplyTemplate"/>.
+    /// <c>[YamlIgnore]</c> properties are not serialized and must be configured in code
+    /// after calling <see cref="DynamicHintConfig.Apply"/> or <see cref="DynamicHintConfig.GetDynamicHint"/>.
     /// </para>
     /// </summary>
-    public class DynamicHintTemplate : AnonymousDynamicHintTemplate
+    public class DynamicHintTemplate : DynamicHintConfig
     {
-        /// <summary>
-        /// Gets or sets the logical identifier used to group or retrieve the hint.
-        /// Maps to <see cref="AbstractHint.Id"/>.
-        /// </summary>
+        /// <summary>Gets or sets the logical identifier. Maps to <see cref="AbstractHint.Id"/>.</summary>
         public string? Id { get; set; }
 
-        /// <summary>
-        /// Gets or sets whether the hint is hidden from the player's display.
-        /// Maps to <see cref="AbstractHint.Hide"/>.
-        /// </summary>
+        /// <summary>Gets or sets whether the hint is hidden. Maps to <see cref="AbstractHint.Hide"/>.</summary>
         public bool? Hide { get; set; }
 
-        /// <summary>
-        /// Applies all non-null properties from this template to <paramref name="hint"/>,
-        /// including the base visual/layout properties (via
-        /// <see cref="AnonymousDynamicHintTemplate.ApplyTemplate"/>) as well as
-        /// <see cref="Id"/> and <see cref="Hide"/>.
-        /// Only explicitly set (non-null) values are written; the hint's existing values are
-        /// preserved for any property that remains null.
-        /// </summary>
-        /// <param name="hint">The target <see cref="DynamicHint"/> to update.</param>
-        public override void ApplyTemplate(DynamicHint hint)
+        // ── Code-only (not serialized) ─────────────────────────────────────────
+
+        /// <summary>Gets or sets the auto-text callback. Maps to <see cref="AbstractHint.AutoText"/>.</summary>
+        [YamlIgnore]
+        public AutoContent.TextUpdateHandler? AutoText { get; set; }
+
+        /// <summary>Gets or sets the font-size transition. Maps to <see cref="AbstractHint.FontSizeTransition"/>.</summary>
+        [YamlIgnore]
+        public Transition? FontSizeTransition { get; set; }
+
+        /// <summary>Gets or sets the X-coordinate transition. Maps to <see cref="DynamicHint.XCoordinateTransition"/>.</summary>
+        [YamlIgnore]
+        public Transition? XCoordinateTransition { get; set; }
+
+        /// <summary>Gets or sets the Y-coordinate transition. Maps to <see cref="DynamicHint.YCoordinateTransition"/>.</summary>
+        [YamlIgnore]
+        public Transition? YCoordinateTransition { get; set; }
+
+        /// <inheritdoc/>
+        public override void Apply(DynamicHint hint)
         {
-            // Apply anonymous base properties:
-            // SyncSpeed, FontSize, LineHeight, Text, boundaries, targets, margins, Priority, Strategy.
-            base.ApplyTemplate(hint);
+            base.Apply(hint);
 
             if (Id != null)
                 hint.Id = Id;
 
             if (Hide.HasValue)
                 hint.Hide = Hide.Value;
+
+            if (AutoText != null)
+                hint.AutoText = AutoText;
+
+            if (FontSizeTransition != null)
+                hint.FontSizeTransition = FontSizeTransition;
+
+            if (XCoordinateTransition != null)
+                hint.XCoordinateTransition = XCoordinateTransition;
+
+            if (YCoordinateTransition != null)
+                hint.YCoordinateTransition = YCoordinateTransition;
         }
 
-        // GetDynamicHint() is inherited from AnonymousDynamicHintTemplate.
-        // It calls the virtual ApplyTemplate, so this override is picked up automatically.
+        // GetDynamicHint() is inherited from DynamicHintConfig and picks up this override automatically.
     }
 }
