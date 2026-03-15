@@ -3,9 +3,9 @@
     using System;
     using HintServiceMeow.Core.Models.Parser.ValueObject;
 
-    internal class CharStyle
+    internal class TextSegmentStyle
     {
-        public CharStyle(
+        public TextSegmentStyle(
             float fontSize,
             Color color,
             float? alpha,
@@ -41,7 +41,7 @@
             FontWeight = fontWeight;
         }
 
-        public static CharStyle Default { get; } = new CharStyle(
+        public static TextSegmentStyle Default { get; } = new TextSegmentStyle(
             fontSize: 16,
             color: new Color(255, 255, 255),
             alpha: null,
@@ -93,16 +93,15 @@
         public int? FontWeight { get; set; }
         #endregion
 
-        public float GetWidth(float scaledWidth)
+        public float GetWidth(float totalWidthWithFontSize, int count)
         {
             if (Monospace.HasValue)
-                return Monospace.Value + (CharSpace ?? 0);
+                return (Monospace.Value + (CharSpace ?? 0)) * count;
 
-            float width = scaledWidth;
-            width *= (float)Math.Pow(0.5, Superscript + Subscript);
-            width += CharSpace ?? 0;
+            totalWidthWithFontSize *= (float)Math.Pow(0.5, Superscript + Subscript);
+            totalWidthWithFontSize += CharSpace ?? 0;
 
-            return width;
+            return totalWidthWithFontSize;
         }
 
         public float GetHeight() // TODO: Verify the calculation of this height.
@@ -114,7 +113,7 @@
 
         public override bool Equals(object? obj)
         {
-            if (obj is not CharStyle other)
+            if (obj is not TextSegmentStyle other)
                 return false;
 
             return FontSize == other.FontSize

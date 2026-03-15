@@ -17,14 +17,14 @@
     {
         private object parserLock = new object();
 
-        private CharStyle? charStyleCache;
+        private TextSegmentStyle? charStyleCache;
         private LineStyle? lineStyleAutoWrappedCache;
         private LineStyle? lineStyleNonAutoWrappedCache;
 
         private List<IHintParameter> parameters = new List<IHintParameter>();
 
         private List<LineInfo> lineInfos = new(16);
-        private List<CharInfo> currentLineChars = new(256);
+        private List<TextSegment> currentLineChars = new(256);
 
         private Style currentStyle = new Style();
 
@@ -47,7 +47,7 @@
                 sb = StringBuilderPool.Instance.Rent();
 
                 // Tokenize the raw text.
-                RichTextTokenizer tokenizer = TokenizerPool.Instance.Rent();
+                Tokenizer tokenizer = TokenizerPool.Instance.Rent();
                 List<Token> tokens = tokenizer.Tokenize(rawText, setting.Parameters);
                 TokenizerPool.Instance.Return(tokenizer);
 
@@ -98,17 +98,12 @@
         {
             sb!.Append(text);
 
-            for (int i = 0; i < text?.Length; i++)
+            if (charStyleCache == null)
             {
-                char c = text[i];
-                if (charStyleCache == null)
-                {
-                    charStyleCache = currentStyle.GetCharStyle(defaultStyle);
-                }
-
-                CharInfo charInfo = new CharInfo(c, charStyleCache);
-                currentLineChars.Add(charInfo);
+                charStyleCache = currentStyle.GetCharStyle(defaultStyle);
             }
+
+            currentLineChars.Add(new TextSegment(text, charStyleCache));
         }
 
         private void AddPlaceholder(float width)
@@ -118,7 +113,7 @@
                 charStyleCache = currentStyle.GetCharStyle(defaultStyle);
             }
 
-            CharInfo charInfo = new CharInfo(' ', charStyleCache);
+            TextSegment charInfo = new TextSegment(" ", charStyleCache);
             charInfo.CustomWidth = width;
             currentLineChars.Add(charInfo);
         }
@@ -612,7 +607,7 @@
             if (string.IsNullOrEmpty(value))
                 return false;
 
-            switch (value.ToLowerInvariant())
+            switch (value)
             {
                 case "left":
                     alignment = HintAlignment.Left;
@@ -667,7 +662,7 @@
                 return false;
 
             // Try named colors first
-            switch (value.ToLowerInvariant())
+            switch (value)
             {
                 case "red": color = new Color(255, 0, 0, 255); return true;
                 case "green": color = new Color(0, 128, 0, 255); return true;
@@ -828,9 +823,9 @@
                 lineStyle = lineStyleNonAutoWrappedCache;
             }
 
-            lineInfos.Add(new LineInfo(currentLineChars, lineStyle, sb!.ToString()));
+            lineInfos.Add(new LineInfo(currentLineChars.ToArray(), lineStyle, sb!.ToString()));
 
-            currentLineChars = new(256);
+            currentLineChars.Clear();
             sb.Clear();
         }
 
@@ -1015,14 +1010,14 @@
                     return defaultSize;
             }
 
-            public CharStyle GetCharStyle(TextMeshStyle defaultStyle)
+            public TextSegmentStyle GetCharStyle(TextMeshStyle defaultStyle)
             {
                 float currentFontSize = FontSize.Count > 0 ? FontSize.Peek() : defaultStyle.CharStyle.FontSize;
                 Color currentColor = Color.Count > 0 ? Color.Peek() : defaultStyle.CharStyle.Color;
                 float? charSpace = CharSpace ?? defaultStyle.CharStyle.CharSpace;
                 float? monoSpace = Monospace ?? defaultStyle.CharStyle.Monospace;
 
-                return new CharStyle(
+                return new TextSegmentStyle(
                     fontSize: currentFontSize,
                     color: currentColor,
                     alpha: Alpha.HasValue ? (Alpha.Value / 255f) : 1f,

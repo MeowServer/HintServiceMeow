@@ -4,25 +4,25 @@ using HintServiceMeow.Core.Utilities.Parser;
 
 namespace HintServiceMeow.Core.Utilities.Pools
 {
-    internal class TokenizerPool : IPool<RichTextTokenizer>
+    internal class TokenizerPool : IPool<Tokenizer>
     {
         public static TokenizerPool Instance { get; } = new TokenizerPool();
 
-        private readonly ConcurrentBag<RichTextTokenizer> pool = new ConcurrentBag<RichTextTokenizer>();
+        private readonly ConcurrentBag<Tokenizer> pool = new ConcurrentBag<Tokenizer>();
 
-        public RichTextTokenizer Rent()
+        public Tokenizer Rent()
         {
-            if (pool.TryTake(out RichTextTokenizer? tokenizer))
+            if (pool.TryTake(out Tokenizer? tokenizer))
             {
                 return tokenizer;
             }
             else
             {
-                return new RichTextTokenizer();
+                return new Tokenizer();
             }
         }
 
-        public void Return(RichTextTokenizer tokenizer)
+        public void Return(Tokenizer tokenizer)
         {
             pool.Add(tokenizer);
         }

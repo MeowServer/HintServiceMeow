@@ -43,7 +43,7 @@ namespace HintServiceMeow.Core.Models.Parser
 
         public static Token GetTag(RichTextTokenType type, string tagName, string? tagValue)
         {
-            return new Token(type, tagName: tagName.ToLowerInvariant(), tagValue: tagValue?.ToLowerInvariant());
+            return new Token(type, tagName: tagName, tagValue: tagValue);
         }
 
         public static Token GetLineBreak()

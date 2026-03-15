@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
-using HintServiceMeow.Core.Models.Parser.Style;
+﻿using HintServiceMeow.Core.Models.Parser.Style;
 
 namespace HintServiceMeow.Core.Models.Parser
 {
     internal struct LineInfo
     {
-        public List<CharInfo> CharacterInfos { get; }
+        public TextSegment[] CharacterInfos { get; }
 
         public LineStyle Style { get; }
 
@@ -16,7 +15,7 @@ namespace HintServiceMeow.Core.Models.Parser
             get
             {
                 float totalWidth = 0;
-                for (int i = 0; i < CharacterInfos.Count; i++)
+                for (int i = 0; i < CharacterInfos.Length; i++)
                 {
                     totalWidth += CharacterInfos[i].Width;
                 }
@@ -35,7 +34,7 @@ namespace HintServiceMeow.Core.Models.Parser
                     return Style.LineHeight.Value;
 
                 float highestHeight = 0f;
-                for (int i = 0; i < CharacterInfos.Count; i++)
+                for (int i = 0; i < CharacterInfos.Length; i++)
                 {
                     if (CharacterInfos[i].Height > highestHeight)
                         highestHeight = CharacterInfos[i].Height;
@@ -45,7 +44,7 @@ namespace HintServiceMeow.Core.Models.Parser
             }
         }
 
-        public LineInfo(List<CharInfo> characterInfos, LineStyle style, string cleanText)
+        public LineInfo(TextSegment[] characterInfos, LineStyle style, string cleanText)
         {
             CharacterInfos = characterInfos;
             Style = style;

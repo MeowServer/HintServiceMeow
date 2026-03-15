@@ -2,7 +2,7 @@
 {
     internal class TextMeshStyle
     {
-        public TextMeshStyle(CharStyle charStyle, LineStyle lineStyle, float width, float height)
+        public TextMeshStyle(TextSegmentStyle charStyle, LineStyle lineStyle, float width, float height)
         {
             CharStyle = charStyle;
             LineStyle = lineStyle;
@@ -10,9 +10,9 @@
             Height = height;
         }
 
-        public static TextMeshStyle Default => new TextMeshStyle(CharStyle.Default, LineStyle.Default, 1440, 1080);
+        public static TextMeshStyle Default => new TextMeshStyle(TextSegmentStyle.Default, LineStyle.Default, 1440, 1080);
 
-        public CharStyle CharStyle { get; set; }
+        public TextSegmentStyle CharStyle { get; set; }
 
         public LineStyle LineStyle { get; set; }
 

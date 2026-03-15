@@ -8,7 +8,7 @@
     using HintServiceMeow.Core.Models.Parser;
     using HintServiceMeow.Core.Utilities.Pools;
 
-    internal class RichTextTokenizer
+    internal class Tokenizer
     {
         private readonly object tokenizerLock = new object();
         private List<Token> tokenList = new();
@@ -39,6 +39,13 @@
 
                         if (TryHandleParameter(registeredParameters))
                             continue;
+
+                        if (raw[index] == '\n')
+                        {
+                            PackTextInSbAndAdd(Token.GetLineBreak());
+                            index++;
+                            continue;
+                        }
 
                         sb.Append(raw[index]);
                         index++;
@@ -120,7 +127,7 @@
             string tagName, tagParameter = null;
             if (isCloseTag) // Is close tag, remove the closing mark
             {
-                tagName = rawText.Substring(tagStart + 1, tagEnd - tagStart); // Skip first char(/) and cut out the tag name
+                tagName = TagChecker.TryMatchValidTag(rawText, tagStart + 1, tagEnd - tagStart); // Skip first char(/) and cut out the tag name
             }
             else // Is open tag, get the parameter if there is parameter
             {
@@ -129,17 +136,17 @@
 
                 if (equalSignIndex == -1 || equalSignIndex > tagEnd) // Not equal sign within the tag
                 {
-                    tagName = rawText.Substring(tagStart, tagEnd - tagStart + 1);
+                    tagName = TagChecker.TryMatchValidTag(rawText, tagStart, tagEnd - tagStart + 1);
                 }
                 else
                 {
-                    tagName = rawText.Substring(tagStart, equalSignIndex - tagStart);
-                    tagParameter = rawText.Substring(equalSignIndex + 1, tagEnd - equalSignIndex);
+                    tagName = TagChecker.TryMatchValidTag(rawText, tagStart, equalSignIndex - tagStart);
+                    tagParameter = TagChecker.TryMatchValidTag(rawText, equalSignIndex + 1, tagEnd - equalSignIndex);
                 }
             }
 
             // Check if the tag is valid
-            if (!TagChecker.IsValidTag(tagName))
+            if (tagName == null)
             {
                 return false;
             }
