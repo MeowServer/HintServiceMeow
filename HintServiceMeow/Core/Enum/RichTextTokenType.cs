@@ -7,5 +7,6 @@
         CloseTag,
         SelfCloseTag,
         LineBreak,
+        Parameter,
     }
 }
