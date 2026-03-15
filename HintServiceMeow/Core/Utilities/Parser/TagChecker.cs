@@ -8,7 +8,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
         private static readonly HashSet<string> ValidTags = new(StringComparer.OrdinalIgnoreCase)
         {
             "a", "align", "allcaps", "alpha", "b", "br", "color", "cspace", "font", "font-weight",
-            "gradient", "i", "indent", "line-height", "line-indent", "lowercase", "margin", "mark",
+            "gradient", "i", "indent", "line-height", "line-indent", "lowercase", "margin", "margin-left", "margin-right", "mark",
             "mspace", "nobr", "noparse", "pos", "rotate", "s", "size", "smallcaps", "space", "sprite",
             "style", "sub", "sup", "u", "uppercase", "voffset", "width", "link",
         };
@@ -16,7 +16,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
         private static readonly string[] KnownTags =
         [
             "a", "align", "allcaps", "alpha", "b", "br", "color", "cspace", "font", "font-weight",
-            "gradient", "i", "indent", "line-height", "line-indent", "lowercase", "margin", "mark",
+            "gradient", "i", "indent", "line-height", "line-indent", "lowercase", "margin", "margin-left", "margin-right", "mark",
             "mspace", "nobr", "noparse", "pos", "rotate", "s", "size", "smallcaps", "space", "sprite",
             "style", "sub", "sup", "u", "uppercase", "voffset", "width", "link"
         ];
