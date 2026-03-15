@@ -2,7 +2,6 @@ namespace HintServiceMeow.Core.Parameters
 {
     using global::Hints;
     using HintServiceMeow.Core.Interface;
-    using InventorySystem.Items;
 
     public class ItemHintParameter : IHintParameter
     {
