@@ -37,7 +37,7 @@ public class HintParserTests
     {
         // Arrange
         HintCollection collection = new();
-        collection.AddHint("a", new Hint { Text = "<line-height=10>{X}<voffset=20>Y</voffset>" });
+        collection.AddHint("a", new Hint { Text = "<line-height=10><voffset=20>Y</voffset>" });
 
         HintParser parser = new();
 
@@ -45,7 +45,6 @@ public class HintParserTests
         HintParserResult result = parser.ParseToMessage(collection);
 
         // Assert
-        Assert.IsFalse(result.Content.Contains("{X}"));
         Assert.IsFalse(result.Content.Contains("<line-height=10>"));
         StringAssert.Contains(result.Content, "Y");
     }

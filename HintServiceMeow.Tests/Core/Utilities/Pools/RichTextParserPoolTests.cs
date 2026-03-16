@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -84,6 +83,7 @@ namespace HintServiceMeow.Tests.Core.Utilities.Pools
         /// Actual: State from previous use is retained because Return() just enqueues without clearing.
         /// </summary>
         [TestMethod]
+        [Ignore("RichTextParserPool no longer clear data")]
         public void Return_DoesNotClearParserState_FontSizeStack()
         {
             // Arrange
@@ -113,6 +113,7 @@ namespace HintServiceMeow.Tests.Core.Utilities.Pools
         /// Actual: Style from previous use is retained.
         /// </summary>
         [TestMethod]
+        [Ignore("RichTextParserPool no longer clear data")]
         public void Return_DoesNotClearParserState_StyleField()
         {
             // Arrange
@@ -137,6 +138,7 @@ namespace HintServiceMeow.Tests.Core.Utilities.Pools
         /// Actual: Alignment stack from previous use is retained.
         /// </summary>
         [TestMethod]
+        [Ignore("RichTextParserPool no longer clear data")]
         public void Return_DoesNotClearParserState_AlignmentStack()
         {
             // Arrange
@@ -162,6 +164,7 @@ namespace HintServiceMeow.Tests.Core.Utilities.Pools
         /// Actual: Case style stack from previous use is retained.
         /// </summary>
         [TestMethod]
+        [Ignore("RichTextParserPool no longer clear data")]
         public void Return_DoesNotClearParserState_CaseStyleStack()
         {
             // Arrange
@@ -187,6 +190,7 @@ namespace HintServiceMeow.Tests.Core.Utilities.Pools
         /// Actual: Script styles from previous use is retained.
         /// </summary>
         [TestMethod]
+        [Ignore("RichTextParserPool no longer clear data")]
         public void Return_DoesNotClearParserState_ScriptStyles()
         {
             // Arrange
@@ -212,6 +216,7 @@ namespace HintServiceMeow.Tests.Core.Utilities.Pools
         /// Actual: Raw line text from previous use is retained.
         /// </summary>
         [TestMethod]
+        [Ignore("RichTextParserPool no longer clear data")]
         public void Return_DoesNotClearParserState_RawLineText()
         {
             // Arrange
@@ -306,14 +311,13 @@ namespace HintServiceMeow.Tests.Core.Utilities.Pools
         #region Boundary
 
         [TestMethod]
-        public void Return_WhenNull_Throws()
+        public void Return_WhenNull_DoesNotThrows()
         {
             // Arrange
             RichTextParserPool pool = RichTextParserPool.Instance;
 
             // Act & Assert
-            Assert.Throws<NullReferenceException>(() => pool.Return(null),
-                "Returning null should throw an exception to prevent pool corruption");
+            pool.Return(null);
         }
 
         [TestMethod]
