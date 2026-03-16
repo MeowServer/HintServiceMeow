@@ -1,10 +1,9 @@
 ﻿using System;
 using BenchmarkDotNet.Running;
-using HintServiceMeow.Benchmarks;
 using HintServiceMeow.Benchmarks.Benchmarks;
 using HintServiceMeow.Core.Utilities.Tools;
 
-namespace MyProject.Benchmarks
+namespace HintServiceMeow.Benchmarks
 {
     class Program
     {
@@ -25,7 +24,7 @@ namespace MyProject.Benchmarks
             Console.WriteLine("  9. HintCollectionBenchmark - Hint Collection Performance");
             Console.WriteLine("  10. Run ALL (takes a while)");
             Console.WriteLine();
-            Console.Write("Select (1-8): ");
+            Console.Write("Select (1-10): ");
 
             string choice = Console.ReadLine()?.Trim() ?? "1";
 
@@ -71,6 +70,7 @@ namespace MyProject.Benchmarks
                     break;
                 default:
                     Console.WriteLine("Invalid choice, quitting.");
+                    Console.ReadKey();
                     Environment.Exit(0);
                     break;
             }
