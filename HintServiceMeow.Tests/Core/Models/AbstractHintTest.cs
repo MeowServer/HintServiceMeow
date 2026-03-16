@@ -14,7 +14,7 @@ namespace HintServiceMeow.Tests.Core.Models;
 /// The fix moved all OnHintUpdated calls outside the write lock.
 /// </summary>
 [TestClass]
-public class AbstractHintDeadlockTest
+public class AbstractHintTest
 {
     [TestMethod]
     [Timeout(15000)]
