@@ -66,10 +66,12 @@ namespace MyProject.Benchmarks
                     BenchmarkRunner.Run<ScalabilityBenchmark>();
                     BenchmarkRunner.Run<IgnoreTagsBenchmark>();
                     BenchmarkRunner.Run<PoolEffectBenchmark>();
+                    BenchmarkRunner.Run<HintParserBenchmark>();
+                    BenchmarkRunner.Run<HintCollectionBenchmark>();
                     break;
                 default:
-                    Console.WriteLine("Invalid choice, running PhaseBenchmark");
-                    BenchmarkRunner.Run<PhaseBenchmark>();
+                    Console.WriteLine("Invalid choice, quitting.");
+                    Environment.Exit(0);
                     break;
             }
 
