@@ -1,7 +1,6 @@
 namespace HintServiceMeow.Core.Models.Hints
 {
     using System;
-    using System.Collections.Generic;
     using System.ComponentModel;
     using System.Threading;
     using HintServiceMeow.Core.Enum;
@@ -37,7 +36,7 @@ namespace HintServiceMeow.Core.Models.Hints
 
         private bool hide;
 
-        private List<Tuple<string, IHintParameter>> parameters = new();
+        private HintParameterCollection parameters = new();
 
         #region Constructors
 
@@ -487,6 +486,22 @@ namespace HintServiceMeow.Core.Models.Hints
             }
         }
 
+        public HintParameterCollection Parameters
+        {
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return parameters;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
+        }
+
         internal TransitionState? FontSizeTransitionState
         {
             get
@@ -536,22 +551,6 @@ namespace HintServiceMeow.Core.Models.Hints
             }
         }
 
-        internal Tuple<string, IHintParameter>[] Parameters
-        {
-            get
-            {
-                Lock.EnterReadLock();
-                try
-                {
-                    return parameters.ToArray();
-                }
-                finally
-                {
-                    Lock.ExitReadLock();
-                }
-            }
-        }
-
         internal int PreviousFontSize
         {
             get
@@ -583,46 +582,6 @@ namespace HintServiceMeow.Core.Models.Hints
         public virtual void TryUpdateHint(UpdateAvailableEventArg ev)
         {
             Content.TryUpdate(new ContentUpdateArg(this, ev.PlayerDisplay));
-        }
-
-        public void AddParameter(string tagName, IHintParameter parameter)
-        {
-            Lock.EnterWriteLock();
-            try
-            {
-                parameters.RemoveAll(x => x.Item1 == tagName);
-                parameters.Add(Tuple.Create(tagName, parameter));
-            }
-            finally
-            {
-                Lock.ExitWriteLock();
-            }
-        }
-
-        public void RemoveParameter(string tagName)
-        {
-            Lock.EnterWriteLock();
-            try
-            {
-                parameters.RemoveAll(x => x.Item1 == tagName);
-            }
-            finally
-            {
-                Lock.ExitWriteLock();
-            }
-        }
-
-        public void RemoveParameters<T>() where T : IHintParameter
-        {
-            Lock.EnterWriteLock();
-            try
-            {
-                parameters.RemoveAll(p => p.Item2 is T);
-            }
-            finally
-            {
-                Lock.ExitWriteLock();
-            }
         }
 
         /// <summary>

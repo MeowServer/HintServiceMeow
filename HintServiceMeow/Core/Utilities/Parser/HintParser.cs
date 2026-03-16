@@ -321,7 +321,7 @@
         {
             // Parse into line infos
             RichTextParser parser = richTextParserPool.Rent();
-            settingTemplate.Parameters = hint.Parameters;
+            settingTemplate.Parameters = hint.Parameters.ToArray();
             RichTextParserResult result = parser.ParseText(hint.Content.GetText() ?? string.Empty, settingTemplate);
             richTextParserPool.Return(parser);
 
