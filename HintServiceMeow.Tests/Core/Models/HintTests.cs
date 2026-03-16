@@ -113,4 +113,19 @@ public class HintTests
         // Assert
         Assert.AreEqual(2, changed); // set + new content update only
     }
+
+    [TestMethod]
+    public void TransitionableProperties_WhenSet_RecordPreviousValues()
+    {
+        // Arrange
+        Hint hint = new();
+        // Act
+        hint.XCoordinate = 10;
+        hint.YCoordinate = 20;
+        hint.FontSize = 30;
+        // Assert
+        Assert.AreEqual(0f, hint.PreviousXCoordinate);
+        Assert.AreEqual(700f, hint.PreviousYCoordinate);
+        Assert.AreEqual(20, hint.PreviousFontSize);
+    }
 }
