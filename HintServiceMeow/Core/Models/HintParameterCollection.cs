@@ -43,7 +43,7 @@ namespace HintServiceMeow.Core.Models
         {
             lock (collectionLock)
             {
-                return list.GetEnumerator();
+                return list.ToArray().GetEnumerator();
             }
         }
 
@@ -51,7 +51,7 @@ namespace HintServiceMeow.Core.Models
         {
             lock (collectionLock)
             {
-                return list.GetEnumerator();
+                return ((IEnumerable<Tuple<string, IHintParameter>>)list.ToArray()).GetEnumerator();
             }
         }
     }
