@@ -277,7 +277,7 @@ namespace HintServiceMeow.Core.Models.Hints
         }
 
         /// <summary>
-        /// Gets or sets the line height multiplier for the hint text.
+        /// Gets or sets the line height offset for the hint text.
         /// </summary>
         public float LineHeight
         {
@@ -597,6 +597,7 @@ namespace HintServiceMeow.Core.Models.Hints
             this.lineHeight = copyFrom.LineHeight;
             this.content = copyFrom.Content;
             this.hide = copyFrom.Hide;
+            this.parameters = copyFrom.Parameters;
             this.fontSizeTransition = copyFrom.FontSizeTransition;
             this.fontSizeTransitionState = copyFrom.FontSizeTransitionState;
         }
