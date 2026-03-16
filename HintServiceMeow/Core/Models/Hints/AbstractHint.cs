@@ -227,7 +227,7 @@ namespace HintServiceMeow.Core.Models.Hints
                     if (fontSize == value)
                         return;
 
-                    previousFontSize = value;
+                    previousFontSize = fontSize;
                     fontSize = value;
                 }
                 finally
