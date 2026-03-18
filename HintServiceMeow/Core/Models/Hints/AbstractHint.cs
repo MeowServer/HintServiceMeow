@@ -39,6 +39,8 @@ namespace HintServiceMeow.Core.Models.Hints
 
         private List<Tuple<string, IHintParameter>> parameters = new();
 
+        private ResolutionOption resolutionOption = ResolutionOption.OffsetAndScale;
+
         #region Constructors
 
         /// <summary>
@@ -484,6 +486,42 @@ namespace HintServiceMeow.Core.Models.Hints
                 }
 
                 OnHintUpdated(nameof(Hide));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the way the HintParser handle hint's position when the screen resolution changes.
+        /// </summary>
+        public ResolutionOption ResolutionOption
+        {
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return resolutionOption;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
+
+            set
+            {
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (resolutionOption == value)
+                        return;
+                    resolutionOption = value;
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
+
+                OnHintUpdated(nameof(ResolutionOption));
             }
         }
 
