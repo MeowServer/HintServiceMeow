@@ -11,8 +11,8 @@ namespace HintServiceMeow.Core.Interface
         /// <summary>
         /// Parses the specified hint collection into a formatted message string.
         /// </summary>
-        /// <param name="collection">The collection of hints to parse.</param>
+        /// <param name="arg">The hints and arguments of hint parser.</param>
         /// <returns>A formatted string representing the hints for display.</returns>
-        HintParserResult ParseToMessage(HintCollection collection);
+        HintParserResult ParseToMessage(HintParserArgument arg);
     }
 }

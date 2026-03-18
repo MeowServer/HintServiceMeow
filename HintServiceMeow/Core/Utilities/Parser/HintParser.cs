@@ -5,7 +5,6 @@
     using System.Text;
     using HintServiceMeow.Core.Enum;
     using HintServiceMeow.Core.Interface;
-    using HintServiceMeow.Core.Models;
     using HintServiceMeow.Core.Models.Arguments;
     using HintServiceMeow.Core.Models.Hints;
     using HintServiceMeow.Core.Models.Parser;
@@ -64,9 +63,9 @@
             this.hintPool = hintPool ?? HintPool.Instance;
         }
 
-        public HintParserResult ParseToMessage(HintCollection collection)
+        public HintParserResult ParseToMessage(HintParserArgument arg)
         {
-            IReadOnlyList<IReadOnlyList<AbstractHint>> allGroups = collection.AllGroups;
+            IReadOnlyList<IReadOnlyList<AbstractHint>> allGroups = arg.Collection.AllGroups;
 
             for (int i = 0; i < allGroups.Count; i++)
             {
@@ -145,7 +144,7 @@
                     continue;
                 }
 
-                ParseToRichText(orderedHintGroups[i], messageBuilder);
+                ParseToRichText(orderedHintGroups[i], messageBuilder, arg.ScreenXyRatio);
             }
 
             messageBuilder.AppendLine(PlaceholderBottom); // Place Holder
@@ -319,7 +318,7 @@
                 + hint.LineHeight;// Add extra line height on top of the first line so that the line height will not be calculated for the first line
         }
 
-        private void ParseToRichText(Hint hint, StringBuilder messageBuilder)
+        private void ParseToRichText(Hint hint, StringBuilder messageBuilder, float xyRatio)
         {
             // Remove illegal tags
             string text = HandleTags(hint.Content.GetText() ?? string.Empty, hint.Parameters);

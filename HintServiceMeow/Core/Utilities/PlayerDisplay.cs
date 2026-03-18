@@ -107,7 +107,7 @@ namespace HintServiceMeow.Core.Utilities
             if (referenceHub.IsHost)
                 return;
 
-            displayOutputs.Add(new ScpslDisplayOutput(referenceHub.connectionToClient));
+            displayOutputs.Add(new ScpslDisplayOutput(referenceHub));
         }
 
         /// <summary>
@@ -855,31 +855,44 @@ namespace HintServiceMeow.Core.Utilities
 
                         try
                         {
-                            result = hintParser.ParseToMessage(hintCollection);
-
-                            mainThreadDispatcher.Dispatch(() =>
+                            List<float> allXyRatio = new List<float>();
+                            foreach (IDisplayOutput output in displayOutputs)
                             {
-                                try
+                                if (!allXyRatio.Contains(output.ScreenResolution.XyRatio))
                                 {
-                                    // If destroyed while waiting for main thread, skip the update
-                                    if (this.isDestructed)
-                                        return;
+                                    allXyRatio.Add(output.ScreenResolution.XyRatio);
+                                }
+                            }
 
-                                    SendHint(new DisplayOutputArg(this, result.Content, result.Parameters, [new AlphaEffect(1)], 999999f));
-                                }
-                                catch (Exception ex)
+                            foreach (float xyRatio in allXyRatio)
+                            {
+                                result = hintParser.ParseToMessage(new(hintCollection, xyRatio));
+
+                                mainThreadDispatcher.Dispatch(() =>
                                 {
-                                    Logger.Instance.Error(ex);
-                                }
-                                finally
-                                {
-                                    lock (currentParserTaskLock)
+                                    try
                                     {
-                                        currentParserTask = null; // Does this in main thread
-                                    }
+                                        // If destroyed while waiting for main thread, skip the update
+                                        if (this.isDestructed)
+                                            return;
 
-                                    updateScheduler.Resume(); // Resume action after the parser task is finishing
+                                        SendHint(new DisplayOutputArg(this, result.Content, result.Parameters, [new AlphaEffect(1)], 999999f), xyRatio);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Logger.Instance.Error(ex);
+                                    }
+                                });
+                            }
+
+                            MainThreadDispatcher.Dispatch(() =>
+                            {
+                                lock (currentParserTaskLock)
+                                {
+                                    currentParserTask = null; // Does this in main thread
                                 }
+
+                                updateScheduler.Resume(); // Resume action after the parser task is finishing
                             });
                         }
                         catch (Exception ex)
@@ -901,7 +914,7 @@ namespace HintServiceMeow.Core.Utilities
             }
         }
 
-        private void SendHint(DisplayOutputArg content)
+        private void SendHint(DisplayOutputArg content, float targetXyRatio)
         {
             IDisplayOutput[] outputsSnapshot;
 
@@ -914,6 +927,9 @@ namespace HintServiceMeow.Core.Utilities
             {
                 try
                 {
+                    if (output.ScreenResolution.XyRatio != targetXyRatio)
+                        continue;
+
                     output.ShowHint(content);
                 }
                 catch (Exception ex)

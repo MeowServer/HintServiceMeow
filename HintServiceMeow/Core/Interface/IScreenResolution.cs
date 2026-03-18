@@ -2,7 +2,7 @@
 
 namespace HintServiceMeow.Core.Interface
 {
-    internal interface IScreenResolution : INotifyPropertyChanged
+    public interface IScreenResolution : INotifyPropertyChanged
     {
         /// <summary>
         /// Gets the value of the X coordinate divided by Y coordinate.

@@ -4,12 +4,15 @@
     using Hints;
     using HintServiceMeow.Core.Interface;
     using HintServiceMeow.Core.Models.Arguments;
+    using HintServiceMeow.Core.Models.UniryAdaptors;
     using HintServiceMeow.Core.Utilities.Tools;
     using Mirror;
 
-    internal class ScpslDisplayOutput(NetworkConnection connectionToPlayer) : IDisplayOutput
+    internal class ScpslDisplayOutput(ReferenceHub referenceHub) : IDisplayOutput
     {
-        private readonly NetworkConnection? connectionToPlayer = connectionToPlayer;
+        private readonly NetworkConnection? connectionToPlayer = referenceHub.connectionToClient;
+
+        public IScreenResolution ScreenResolution { get; } = new ScpslScreenResolution(referenceHub);
 
         public void ShowHint(DisplayOutputArg ev)
         {
