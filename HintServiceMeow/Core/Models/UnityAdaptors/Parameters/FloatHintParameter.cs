@@ -8,7 +8,7 @@ namespace HintServiceMeow.Core.Parameters
         public float Value { get; set; }
         public string Format { get; set; }
 
-        public FloatHintParameter(float value, string format)
+        public FloatHintParameter(float value, string format = "F2")
         {
             this.Value = value;
             this.Format = format;

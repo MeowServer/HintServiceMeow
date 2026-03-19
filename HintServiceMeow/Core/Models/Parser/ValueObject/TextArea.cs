@@ -1,6 +1,6 @@
-﻿namespace HintServiceMeow.Core.Models.Parser
+﻿namespace HintServiceMeow.Core.Models.Parser.ValueObject
 {
-    internal class TextArea
+    internal struct TextArea
     {
         public float Top { get; set; }
 

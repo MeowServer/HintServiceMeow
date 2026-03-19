@@ -1,6 +1,5 @@
 ﻿namespace HintServiceMeow.Core.Interface
 {
-    using System.Collections.Generic;
     using HintServiceMeow.Core.Enum;
     using HintServiceMeow.Core.Models.Hints;
     using HintServiceMeow.Core.Models.Parser;
@@ -12,12 +11,6 @@
         float GetYCoordinate(Hint hint, HintVerticalAlign from, HintVerticalAlign to);
 
         float GetYCoordinate(float rawYCoordinate, float textHeight, HintVerticalAlign from, HintVerticalAlign to);
-
-        float GetCurrentYCoordinate(Hint hint, HintVerticalAlign to);
-
-        float GetCurrentYCoordinate(Hint hint, HintVerticalAlign from, HintVerticalAlign to);
-
-        float GetCurrentYCoordinate(float rawYCoordinate, float textHeight, HintVerticalAlign from, HintVerticalAlign to);
 
         float GetXCoordinateWithAlignment(Hint hint);
 
@@ -31,6 +24,6 @@
 
         float GetTextHeight(string text, int fontSize, float lineHeight);
 
-        IReadOnlyList<LineInfo> GetLineInfos(string text, int fontSize, HintAlignment align = HintAlignment.Center);
+        LineInfo[] GetLineInfos(string text, int fontSize, HintAlignment align = HintAlignment.Center);
     }
 }

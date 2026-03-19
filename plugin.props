@@ -21,26 +21,42 @@
         <PublicBeta>false</PublicBeta>
         <Nullable>enable</Nullable>
 
-        <HarmonyVersion>2.3.6</HarmonyVersion>
-		<YamlDotNetVersion>11.0.1</YamlDotNetVersion>
-        <StyleCopVersion>1.1.118</StyleCopVersion>
-		<LabAPIVersion>1.0.2</LabAPIVersion>
-        <ExiledVersion>9.6.0</ExiledVersion>
-
         <Copyright>Copyright © $(Authors) 2020 - $([System.DateTime]::Now.ToString("yyyy"))</Copyright>
         <RepositoryType>Git</RepositoryType>
         <RepositoryUrl>https://github.com/MeowServer/HintServiceMeow</RepositoryUrl>
 		<PackageProjectUrl>https://github.com/MeowServer/HintServiceMeow</PackageProjectUrl>
-        <PackageLicenseExpression>CC-BY-SA-3.0</PackageLicenseExpression>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
-        <DefineConstants Condition="$(PublicBeta) == 'true'">$(DefineConstants);PUBLIC_BETA</DefineConstants>
+        <DefineConstants Condition="$(Configuration) == 'ExiledPublish'">$(DefineConstants);EXILED</DefineConstants>
     </PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)' == 'Release' or '$(Configuration)' == 'Exiled'">
-		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
-		<DebugType>none</DebugType>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+        <DebugType>full</DebugType>
+        <DebugSymbols>true</DebugSymbols>
+        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Publish|x64'">
+        <Optimize>true</Optimize>
+        <DebugType>none</DebugType>
 		<DebugSymbols>false</DebugSymbols>
-	</PropertyGroup>
+        <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ExiledPublish|x64'">
+        <Optimize>true</Optimize>
+        <DebugType>none</DebugType>
+		<DebugSymbols>false</DebugSymbols>
+        <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+        <Optimize>true</Optimize>
+        <DebugType>none</DebugType>
+		<DebugSymbols>false</DebugSymbols>
+        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    </PropertyGroup>
+
 
     <!-- Disable warning about disabled generation of xml files on debug build -->
     <PropertyGroup>
@@ -57,8 +73,7 @@
         <NoWarn>$(NoWarn);SA1011</NoWarn>
         <NoWarn>$(NoWarn);SA1503</NoWarn>
         <NoWarn>$(NoWarn);SA1118</NoWarn>
-        <NoWarn>$(NoWarn);SA1600</NoWarn>
-		<NoWarn>$(NoWarn);SA1633</NoWarn>
+		<!-- <NoWarn>$(NoWarn);SA1633</NoWarn> -->
 		<NoWarn>$(NoWarn);SA1124</NoWarn>
     </PropertyGroup>
 

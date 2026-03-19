@@ -56,11 +56,13 @@
             {
                 lock (@lock)
                 {
-                    if (IsExpired)
+                    double time = NetworkTimeCache.Time;
+
+                    if ((time - StartTime) >= Duration) // If is expired
                         return ToValue;
 
-                    float elapsed = (float)(NetworkTimeCache.Time - StartTime);
-                    return Transition.Evluate(elapsed, FromValue, ToValue);
+                    float elapsed = (float)(time - StartTime);
+                    return Transition.Evaluate(elapsed, FromValue, ToValue);
                 }
             }
         }

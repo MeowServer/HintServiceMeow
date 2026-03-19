@@ -9,9 +9,6 @@ namespace HintServiceMeow.Benchmarks
     {
         public ScpslConfig()
         {
-            // Run once using the default Windows .NET Framework 4.8
-            //AddJob(Job.Default.WithRuntime(ClrRuntime.Net48));
-
             // Run again using the Mono runtime (requires "mono" to be configured in your Windows environment variables)
             // If the environment variable is not set, you can manually specify the path using the line below:
             string unityMonoPath = Environment.GetEnvironmentVariable("UNITY_MONO_PATH");

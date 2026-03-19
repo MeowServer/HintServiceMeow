@@ -12,6 +12,13 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ---
 
+## [5.5.1]
+
+### Corrigido
+- Erro de carregamento de configuração do Exiled causado pela propriedade Instance.
+
+---
+
 ## [5.5.0]
 
 ### Corrigido

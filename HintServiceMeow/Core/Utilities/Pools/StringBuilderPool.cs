@@ -20,8 +20,11 @@
             return new StringBuilder(2000);
         }
 
-        public void Return(StringBuilder sb)
+        public void Return(StringBuilder? sb)
         {
+            if (sb is null)
+                return;
+
             sb.Clear();
 
             stringBuilderQueue.Add(sb);

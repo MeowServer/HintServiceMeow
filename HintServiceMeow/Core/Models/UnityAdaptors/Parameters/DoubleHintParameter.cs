@@ -8,7 +8,7 @@ namespace HintServiceMeow.Core.Parameters
         public double Value { get; set; }
         public string Format { get; set; }
 
-        public DoubleHintParameter(double value, string format)
+        public DoubleHintParameter(double value, string format = "F2")
         {
             this.Value = value;
             this.Format = format;

@@ -1,16 +1,23 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+	<Import Project="../plugin.props" />
+
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>net48</TargetFramework>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-   		 <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+   		<GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+		<Configurations>Debug;ExiledPublish;Release;Publish</Configurations>
+		<Platforms>x64</Platforms>
 	</PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ExiledPublish|x64'">
+    <AssemblyName>HintServiceMeow.Benchmark-Exiled</AssemblyName>
+  </PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="BenchmarkDotNet" Version="0.13.12" />
-		<PackageReference Include="System.Collections.Immutable" Version="9.0.0" />
+		<PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
 
 		<PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
 		<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />

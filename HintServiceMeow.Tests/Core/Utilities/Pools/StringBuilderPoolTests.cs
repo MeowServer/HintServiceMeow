@@ -258,8 +258,8 @@ namespace HintServiceMeow.Tests.Core.Utilities.Pools
             var pool = StringBuilderPool.Instance;
 
             // Act & Assert
-            // Return calls sb.Clear() which will throw NullReferenceException for null input
-            Assert.ThrowsException<System.NullReferenceException>(() => pool.Return(null));
+            // Return null should not throw an exception.
+            pool.Return(null);
         }
 
         #endregion

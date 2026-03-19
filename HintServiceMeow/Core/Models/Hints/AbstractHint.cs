@@ -1,7 +1,6 @@
 namespace HintServiceMeow.Core.Models.Hints
 {
     using System;
-    using System.Collections.Generic;
     using System.ComponentModel;
     using System.Threading;
     using HintServiceMeow.Core.Enum;
@@ -37,7 +36,7 @@ namespace HintServiceMeow.Core.Models.Hints
 
         private bool hide;
 
-        private List<Tuple<string, IHintParameter>> parameters = new();
+        private HintParameterCollection parameters = new();
 
         private ResolutionOption resolutionOption = ResolutionOption.OffsetAndScale;
 
@@ -230,7 +229,7 @@ namespace HintServiceMeow.Core.Models.Hints
                     if (fontSize == value)
                         return;
 
-                    previousFontSize = value;
+                    previousFontSize = fontSize;
                     fontSize = value;
                 }
                 finally
@@ -280,7 +279,7 @@ namespace HintServiceMeow.Core.Models.Hints
         }
 
         /// <summary>
-        /// Gets or sets the line height multiplier for the hint text.
+        /// Gets or sets the line height offset for the hint text.
         /// </summary>
         public float LineHeight
         {
@@ -488,7 +487,6 @@ namespace HintServiceMeow.Core.Models.Hints
                 OnHintUpdated(nameof(Hide));
             }
         }
-
         /// <summary>
         /// Gets or sets the way the HintParser handle hint's position when the screen resolution changes.
         /// </summary>
@@ -500,6 +498,23 @@ namespace HintServiceMeow.Core.Models.Hints
                 try
                 {
                     return resolutionOption;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
+        }
+
+
+        public HintParameterCollection Parameters
+        {
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return parameters;
                 }
                 finally
                 {
@@ -574,22 +589,6 @@ namespace HintServiceMeow.Core.Models.Hints
             }
         }
 
-        internal Tuple<string, IHintParameter>[] Parameters
-        {
-            get
-            {
-                Lock.EnterReadLock();
-                try
-                {
-                    return parameters.ToArray();
-                }
-                finally
-                {
-                    Lock.ExitReadLock();
-                }
-            }
-        }
-
         internal int PreviousFontSize
         {
             get
@@ -623,46 +622,6 @@ namespace HintServiceMeow.Core.Models.Hints
             Content.TryUpdate(new ContentUpdateArg(this, ev.PlayerDisplay));
         }
 
-        public void AddParameter(string tagName, IHintParameter parameter)
-        {
-            Lock.EnterWriteLock();
-            try
-            {
-                parameters.RemoveAll(x => x.Item1 == tagName);
-                parameters.Add(Tuple.Create(tagName, parameter));
-            }
-            finally
-            {
-                Lock.ExitWriteLock();
-            }
-        }
-
-        public void RemoveParameter(string tagName)
-        {
-            Lock.EnterWriteLock();
-            try
-            {
-                parameters.RemoveAll(x => x.Item1 == tagName);
-            }
-            finally
-            {
-                Lock.ExitWriteLock();
-            }
-        }
-
-        public void RemoveParameters<T>() where T : IHintParameter
-        {
-            Lock.EnterWriteLock();
-            try
-            {
-                parameters.RemoveAll(p => p.Item2 is T);
-            }
-            finally
-            {
-                Lock.ExitWriteLock();
-            }
-        }
-
         /// <summary>
         /// Not thread friendly, should only be used in pool.
         /// </summary>
@@ -676,6 +635,7 @@ namespace HintServiceMeow.Core.Models.Hints
             this.lineHeight = copyFrom.LineHeight;
             this.content = copyFrom.Content;
             this.hide = copyFrom.Hide;
+            this.parameters = copyFrom.Parameters;
             this.fontSizeTransition = copyFrom.FontSizeTransition;
             this.fontSizeTransitionState = copyFrom.FontSizeTransitionState;
         }

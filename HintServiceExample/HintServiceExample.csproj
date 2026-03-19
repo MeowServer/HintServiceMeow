@@ -7,25 +7,18 @@
     <OutputType>Library</OutputType>
     <RootNamespace>HintServiceExample</RootNamespace>
     <AssemblyName>HintServiceExample</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
-    <Configurations>Debug;Release;Exiled</Configurations>
+    <Configurations>Debug;ExiledPublish;Release;Publish</Configurations>
+    <Platforms>x64</Platforms>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <Optimize>true</Optimize>
-    <ErrorReport>prompt</ErrorReport>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ExiledPublish|x64'">
+    <AssemblyName>HintServiceExample-Exiled</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Northwood.LabAPI" Version="$(LabAPIVersion)" IncludeAssets="compile" PrivateAssets="all" />
+    <PackageReference Include="Northwood.LabAPI" Version="1.0.2" IncludeAssets="compile" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
