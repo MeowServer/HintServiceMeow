@@ -328,6 +328,9 @@
             // Offset parameter index
             parameterIndex += result.ParameterIndex;
 
+            // Add pamameters used in hint content to the list
+            hintParameters.AddRange(result.Parameters);
+
             if (result.LineInfos.Length == 0)
                 return;
 

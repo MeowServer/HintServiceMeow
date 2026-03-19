@@ -72,7 +72,7 @@
                             HandleSelfCloseTag(tokens[i]);
                             break;
                         case RichTextTokenType.Parameter:
-                            HandleText($"{parameterIndex}");
+                            HandleText($"{{{parameterIndex}}}");
                             parameterIndex++;
                             parameters.Add(tokens[i].Parameter!);
                             break;
