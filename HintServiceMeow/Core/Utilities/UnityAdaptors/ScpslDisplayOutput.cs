@@ -18,10 +18,18 @@
                 if (connectionToPlayer is not { isReady: true })
                     return;
 
-                HintParameter[] hintParameters = new HintParameter[ev.Parameters.Length];
-                for (int i = 0; i < ev.Parameters.Length; i++)
+                HintParameter[] hintParameters;
+                if (ev.Parameters.Length > 0)
                 {
-                    hintParameters[i] = ev.Parameters[i].GetScpslHintParameter();
+                    hintParameters = new HintParameter[ev.Parameters.Length];
+                    for (int i = 0; i < ev.Parameters.Length; i++)
+                    {
+                        hintParameters[i] = ev.Parameters[i].GetScpslHintParameter();
+                    }
+                }
+                else
+                {
+                    hintParameters = [new StringHintParameter(string.Empty)];
                 }
 
                 HintEffect[] hintEffects = new HintEffect[ev.Effects.Length];
@@ -31,6 +39,7 @@
                 }
 
                 HintMessage hintMessageTemplate = new(new TextHint(ev.Content, hintParameters, hintEffects, ev.Duration));
+
                 connectionToPlayer.Send(hintMessageTemplate);
             }
             catch (Exception ex)
