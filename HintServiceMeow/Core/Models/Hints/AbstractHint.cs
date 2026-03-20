@@ -38,7 +38,7 @@ namespace HintServiceMeow.Core.Models.Hints
 
         private HintParameterCollection parameters = new();
 
-        private ResolutionOption resolutionOption = ResolutionOption.OffsetAndScale;
+        private ResolutionOption resolutionOption = ResolutionOption.Offset;
 
         #region Constructors
 
@@ -504,23 +504,6 @@ namespace HintServiceMeow.Core.Models.Hints
                     Lock.ExitReadLock();
                 }
             }
-        }
-
-
-        public HintParameterCollection Parameters
-        {
-            get
-            {
-                Lock.EnterReadLock();
-                try
-                {
-                    return parameters;
-                }
-                finally
-                {
-                    Lock.ExitReadLock();
-                }
-            }
 
             set
             {
@@ -537,6 +520,23 @@ namespace HintServiceMeow.Core.Models.Hints
                 }
 
                 OnHintUpdated(nameof(ResolutionOption));
+            }
+        }
+
+
+        public HintParameterCollection Parameters
+        {
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return parameters;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
             }
         }
 
@@ -638,6 +638,7 @@ namespace HintServiceMeow.Core.Models.Hints
             this.parameters = copyFrom.Parameters;
             this.fontSizeTransition = copyFrom.FontSizeTransition;
             this.fontSizeTransitionState = copyFrom.FontSizeTransitionState;
+            this.resolutionOption = copyFrom.ResolutionOption;
         }
 
         /// <summary>

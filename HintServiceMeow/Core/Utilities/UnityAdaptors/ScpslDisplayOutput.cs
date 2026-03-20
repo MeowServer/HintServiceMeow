@@ -14,20 +14,24 @@
 
         public IScreenResolution ScreenResolution { get; } = new ScpslScreenResolution(referenceHub);
 
-        public void ShowHint(DisplayOutputArg ev)
+        public void ShowHint(DisplayOutputArg arg)
         {
             try
             {
+                Logger.Instance.Debug($"[ScpslDisplayOutput] Trying to show hint to player {referenceHub.PlayerId} (X/Y: {ScreenResolution.XyRatio}) with content: {arg.Content}");
+
                 if (connectionToPlayer is not { isReady: true })
                     return;
 
+                Logger.Instance.Debug($"[ScpslDisplayOutput] Player {referenceHub.PlayerId} is ready to receive messages. Proceeding to send hint.");
+
                 HintParameter[] hintParameters;
-                if (ev.Parameters.Length > 0)
+                if (arg.Parameters.Length > 0)
                 {
-                    hintParameters = new HintParameter[ev.Parameters.Length];
-                    for (int i = 0; i < ev.Parameters.Length; i++)
+                    hintParameters = new HintParameter[arg.Parameters.Length];
+                    for (int i = 0; i < arg.Parameters.Length; i++)
                     {
-                        hintParameters[i] = ev.Parameters[i].GetScpslHintParameter();
+                        hintParameters[i] = arg.Parameters[i].GetScpslHintParameter();
                     }
                 }
                 else
@@ -35,15 +39,16 @@
                     hintParameters = [new StringHintParameter(string.Empty)];
                 }
 
-                HintEffect[] hintEffects = new HintEffect[ev.Effects.Length];
-                for (int i = 0; i < ev.Effects.Length; i++)
+                HintEffect[] hintEffects = new HintEffect[arg.Effects.Length];
+                for (int i = 0; i < arg.Effects.Length; i++)
                 {
-                    hintEffects[i] = ev.Effects[i].GetScpslHintEffect();
+                    hintEffects[i] = arg.Effects[i].GetScpslHintEffect();
                 }
 
-                HintMessage hintMessageTemplate = new(new TextHint(ev.Content, hintParameters, hintEffects, ev.Duration));
+                HintMessage hintMessage = new(new TextHint(arg.Content, hintParameters, hintEffects, arg.Duration));
+                connectionToPlayer.Send(hintMessage);
 
-                connectionToPlayer.Send(hintMessageTemplate);
+                Logger.Instance.Debug($"[ScpslDisplayOutput] Hint sent to player {referenceHub.PlayerId} successfully.");
             }
             catch (Exception ex)
             {

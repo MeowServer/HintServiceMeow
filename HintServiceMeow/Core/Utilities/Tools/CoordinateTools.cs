@@ -82,6 +82,75 @@
             return rawYCoordinate + offset;
         }
 
+        public float GetCurrentYCoordinate(Hint hint, HintVerticalAlign to)
+        {
+            if (hint == null)
+                throw new ArgumentNullException(nameof(hint), "Hint cannot be null.");
+
+            return GetCurrentYCoordinate(hint, hint.YCoordinateAlign, to);
+        }
+
+        public float GetCurrentYCoordinate(Hint hint, HintVerticalAlign from, HintVerticalAlign to)
+        {
+            if (hint == null)
+                throw new ArgumentNullException(nameof(hint), "Hint cannot be null.");
+
+            return GetCurrentYCoordinate(hint.CurrentYCoordinate, GetTextHeight(hint), from, to);
+        }
+
+        public float GetCurrentYCoordinate(float rawCurrentYCoordinate, float textHeight, HintVerticalAlign from, HintVerticalAlign to)
+        {
+            if (from == to)
+                return rawCurrentYCoordinate;
+
+            float offset = 0;
+
+            switch (from)
+            {
+                case HintVerticalAlign.Top:
+                    offset += textHeight;
+                    break;
+                case HintVerticalAlign.Middle:
+                    offset += textHeight / 2;
+                    break;
+                case HintVerticalAlign.Bottom:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(from), from, null);
+            }
+
+            switch (to)
+            {
+                case HintVerticalAlign.Top:
+                    offset -= textHeight;
+                    break;
+                case HintVerticalAlign.Middle:
+                    offset -= textHeight / 2;
+                    break;
+                case HintVerticalAlign.Bottom:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(to), to, null);
+            }
+
+            return rawCurrentYCoordinate + offset;
+        }
+
+        public float GetEdgeOffset(float xyRatio, HintAlignment alignment)
+        {
+            switch (alignment)
+            {
+                case HintAlignment.Left:
+                    return -(xyRatio * 540) + 600;// (-(xyRatio - (4f / 3f)) * 240f / (4f / 9f)) - 120f; // 4/3 => 120, 16/9 => 360
+                case HintAlignment.Right:
+                    return 0; // Cannot push thorugh the right edge, otherwise the hint will be cut off by auto line-wrapping. So just align to the right edge.
+                case HintAlignment.Center:
+                    return 0;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(alignment), alignment, null);
+            }
+        }
+
         public float GetXCoordinateWithAlignment(Hint hint)
         {
             if (hint == null)

@@ -12,6 +12,14 @@
 
         float GetYCoordinate(float rawYCoordinate, float textHeight, HintVerticalAlign from, HintVerticalAlign to);
 
+        float GetCurrentYCoordinate(Hint hint, HintVerticalAlign to);
+
+        float GetCurrentYCoordinate(Hint hint, HintVerticalAlign from, HintVerticalAlign to);
+
+        float GetCurrentYCoordinate(float rawYCoordinate, float textHeight, HintVerticalAlign from, HintVerticalAlign to);
+
+        float GetEdgeOffset(float xyRatio, HintAlignment alignment);
+        
         float GetXCoordinateWithAlignment(Hint hint);
 
         float GetXCoordinateWithAlignment(Hint hint, HintAlignment alignment);

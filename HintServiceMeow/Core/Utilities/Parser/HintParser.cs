@@ -72,12 +72,14 @@
         {
             IReadOnlyList<IReadOnlyList<AbstractHint>> allGroups = arg.Collection.AllGroups;
 
+            Logger.Instance.Debug($"[HintParser] Start parsing hints. Total groups: {allGroups.Count}. Screen Ratio (X/Y): {arg.ScreenXyRatio}.");
+
             for (int i = 0; i < allGroups.Count; i++)
             {
                 for (int j = 0; j < allGroups[i].Count; j++)
                 {
                     if (allGroups[i][j] is Hint { Hide: false } hint && !string.IsNullOrEmpty(hint.Content.GetText()))
-                        dynamicHintColliders.Add(ParseToArea(hint));
+                        dynamicHintColliders.Add(ParseToArea(hint, arg.ScreenXyRatio));
                 }
             }
 
@@ -106,12 +108,12 @@
 
                 for (int j = 0; j < dynamicHints.Count; j++)
                 {
-                    Hint? handledDH = ParseToHint(dynamicHints[j], dynamicHintColliders);
+                    Hint? handledDH = ParseToHint(dynamicHints[j], dynamicHintColliders, arg.ScreenXyRatio);
 
                     if (handledDH is null)
                         continue;
 
-                    dynamicHintColliders.Add(ParseToArea(handledDH));
+                    dynamicHintColliders.Add(ParseToArea(handledDH, arg.ScreenXyRatio));
                     orderedHints.Add(handledDH);
                 }
 
@@ -172,13 +174,27 @@
             return result;
         }
 
-        private Hint? ParseToHint(DynamicHint dynamicHint, IList<TextArea> colliders)
+        private float GetActualX(float rawX, float xyRatio, HintAlignment align, ResolutionOption option)
+        {
+            switch (option)
+            {
+                case ResolutionOption.None:
+                    return rawX;
+                case ResolutionOption.Offset:
+                    return rawX + coordinateTool.GetEdgeOffset(xyRatio, align);
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        private Hint? ParseToHint(DynamicHint dynamicHint, IList<TextArea> colliders, float xyRatio)
         {
             float dhWidth = coordinateTool.GetTextWidth(dynamicHint);
             float dhHeight = coordinateTool.GetTextHeight(dynamicHint);
 
             // Check target position before checking the cache
-            ValueTuple<float, float> targetCoordinate = ValueTuple.Create(dynamicHint.TargetX, dynamicHint.TargetY);
+            float actualTargetX = GetActualX(dynamicHint.TargetX, xyRatio, HintAlignment.Center, dynamicHint.ResolutionOption);
+            ValueTuple<float, float> targetCoordinate = ValueTuple.Create(actualTargetX, dynamicHint.TargetY);
             TextArea targetArea = DynamicHintToArea(targetCoordinate);
 
             bool targetAreaAvailable = true;
@@ -199,7 +215,7 @@
 
                 Hint hint = hintPool.Rent();
                 rentedHints.Add(hint);
-                hint.Set(dynamicHint, dynamicHint.TargetX, dynamicHint.TargetY);
+                hint.GetFromDynamicHint(dynamicHint, actualTargetX, dynamicHint.TargetY);
                 return hint;
             }
 
@@ -221,7 +237,7 @@
                 {
                     Hint hint = hintPool.Rent();
                     rentedHints.Add(hint);
-                    hint.Set(dynamicHint, cachedPosition.Item1, cachedPosition.Item2);
+                    hint.GetFromDynamicHint(dynamicHint, cachedPosition.Item1, cachedPosition.Item2);
                     return hint;
                 }
             }
@@ -256,7 +272,7 @@
 
                     Hint hint = hintPool.Rent();
                     rentedHints.Add(hint);
-                    hint.Set(dynamicHint, tuple.Item1, tuple.Item2);
+                    hint.GetFromDynamicHint(dynamicHint, tuple.Item1, tuple.Item2);
                     return hint;
                 }
 
@@ -275,7 +291,7 @@
             {
                 Hint hint = hintPool.Rent();
                 rentedHints.Add(hint);
-                hint.Set(dynamicHint, dynamicHint.TargetX, dynamicHint.TargetY);
+                hint.GetFromDynamicHint(dynamicHint, actualTargetX, dynamicHint.TargetY);
                 return hint;
             }
 
@@ -292,9 +308,9 @@
                 };
         }
 
-        private TextArea ParseToArea(Hint hint)
+        private TextArea ParseToArea(Hint hint, float xyRatio)
         {
-            float xCoordinate = coordinateTool.GetXCoordinateWithAlignment(hint);
+            float xCoordinate = GetActualX(coordinateTool.GetXCoordinateWithAlignment(hint), xyRatio, hint.Alignment, hint.ResolutionOption);
             float yCoordinate = coordinateTool.GetYCoordinate(hint, HintVerticalAlign.Bottom);
 
             float width = coordinateTool.GetTextWidth(hint);
@@ -316,7 +332,7 @@
                 + hint.LineHeight;// Add extra line height on top of the first line so that the line height will not be calculated for the first line
         }
 
-        private void ParseToRichText(Hint hint, StringBuilder messageBuilder)
+        private void ParseToRichText(Hint hint, StringBuilder messageBuilder, float xyRatio)
         {
             // Parse into line infos
             RichTextParser parser = richTextParserPool.Rent();
@@ -372,18 +388,19 @@
                     continue;
 
                 // X coordinate
+                float actualXCoordinate = GetActualX(hint.XCoordinate, xyRatio, hint.Alignment, hint.ResolutionOption);
                 if (hint.XCoordinateTransition is not null)
                 {
-                    IAnimationCurve curve = hint.XCoordinateTransition.GetCurve(hint.CurrentXCoordinate, hint.XCoordinate);
+                    IAnimationCurve curve = hint.XCoordinateTransition.GetCurve(hint.CurrentXCoordinate, actualXCoordinate);
                     messageBuilder.Append("<pos=");
                     AddTag(messageBuilder, new AnimationCurveHintParameter(NetworkTimeCache.Time, curve, formatString, useIntegral));
                     messageBuilder.Append('>');
-                    hint.XCoordinateTransitionState = new TransitionState(hint.XCoordinateTransition, hint.CurrentXCoordinate, hint.XCoordinate);
+                    hint.XCoordinateTransitionState = new TransitionState(hint.XCoordinateTransition, hint.CurrentXCoordinate, actualXCoordinate);
                 }
                 else
                 {
-                    if (hint.XCoordinate != 0)
-                        messageBuilder.AppendFormat("<pos={0:0.#}>", hint.XCoordinate);
+                    if (actualXCoordinate != 0)
+                        messageBuilder.AppendFormat("<pos={0:0.#}>", actualXCoordinate);
                 }
 
                 messageBuilder.Append("<line-height=0>"); // Make sure each line will not affect each other's position

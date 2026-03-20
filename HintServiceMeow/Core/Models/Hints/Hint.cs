@@ -433,7 +433,7 @@ namespace HintServiceMeow.Core.Models.Hints
         /// <param name="dynamicHint">The dynamic hint to be transform.</param>
         /// <param name="x">The X Coordinate.</param>
         /// <param name="y">The Y Coordinate.</param>
-        internal void Set(DynamicHint dynamicHint, float x, float y)
+        internal void GetFromDynamicHint(DynamicHint dynamicHint, float x, float y)
         {
             this.CopyFieldsFrom(dynamicHint);
 
@@ -448,6 +448,7 @@ namespace HintServiceMeow.Core.Models.Hints
             this.previousYCoordinate = dynamicHint.PreviousYCoordinate;
             this.alignment = HintAlignment.Center;
             this.yCoordinateAlign = HintVerticalAlign.Bottom;
+            this.ResolutionOption = ResolutionOption.None;
         }
     }
 }

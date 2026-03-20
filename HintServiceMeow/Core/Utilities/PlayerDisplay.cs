@@ -65,7 +65,14 @@ namespace HintServiceMeow.Core.Utilities
             if (hintParser != null)
                 this.hintParser = hintParser;
             if (displayOutputs != null)
+            {
                 this.displayOutputs = displayOutputs.ToList();
+                foreach (var displayOutput in displayOutputs)
+                {
+                    displayOutput.ScreenResolution.PropertyChanged += OnResolutionUpdate;
+                }
+            }
+
             if (dispatcher != null)
                 this.mainThreadDispatcher = dispatcher;
             if (coroutineRunner != null)
@@ -107,7 +114,9 @@ namespace HintServiceMeow.Core.Utilities
             if (referenceHub.IsHost)
                 return;
 
-            displayOutputs.Add(new ScpslDisplayOutput(referenceHub));
+            var displayOutput = new ScpslDisplayOutput(referenceHub);
+            displayOutputs.Add(displayOutput);
+            displayOutput.ScreenResolution.PropertyChanged += OnResolutionUpdate;
         }
 
         /// <summary>
@@ -234,6 +243,7 @@ namespace HintServiceMeow.Core.Utilities
             lock (displayOutputsLock)
             {
                 displayOutputs.Add(output);
+                output.ScreenResolution.PropertyChanged += OnResolutionUpdate;
             }
         }
 
@@ -245,6 +255,7 @@ namespace HintServiceMeow.Core.Utilities
         {
             lock (displayOutputsLock)
             {
+                output.ScreenResolution.PropertyChanged -= OnResolutionUpdate;
                 displayOutputs.Remove(output);
             }
         }
@@ -258,6 +269,14 @@ namespace HintServiceMeow.Core.Utilities
         {
             lock (displayOutputsLock)
             {
+                foreach (IDisplayOutput output in displayOutputs)
+                {
+                    if (output is T)
+                    {
+                        output.ScreenResolution.PropertyChanged -= OnResolutionUpdate;
+                    }
+                }
+
                 displayOutputs.RemoveAll(x => x is T);
             }
         }
@@ -785,6 +804,14 @@ namespace HintServiceMeow.Core.Utilities
             ScheduleUpdate(maxWaitingTime, hint);
         }
 
+        private void OnResolutionUpdate(object sender, PropertyChangedEventArgs ev)
+        {
+            if (sender is not IScreenResolution)
+                return;
+
+            ScheduleUpdate();
+        }
+
         private void ScheduleUpdate(float maxWaitingTime = float.MinValue, AbstractHint? updatingHint = null)
         {
             if (maxWaitingTime <= 0)
@@ -793,7 +820,7 @@ namespace HintServiceMeow.Core.Utilities
                 return;
             }
 
-            Logger.Instance.Debug($"Scheduling update with max waiting time: {maxWaitingTime}s");
+            Logger.Instance.Debug($"[PlayerDisplay] Scheduling update with max waiting time: {maxWaitingTime}s");
             IReadOnlyList<IReadOnlyList<AbstractHint>> allGroups = hintCollection.AllGroups;
             List<AbstractHint> predictingHints = new List<AbstractHint>();
 
@@ -805,18 +832,18 @@ namespace HintServiceMeow.Core.Utilities
                 }
             }
 
-            Logger.Instance.Debug($"Predicting hints count: {predictingHints.Count}");
+            Logger.Instance.Debug($"[PlayerDisplay] Predicting hints count: {predictingHints.Count}");
             DateTime now = DateTime.Now;
             DateTime maxTime = now.AddSeconds(maxWaitingTime);
             DateTime delayedUpdateTime = now;
 
-            Logger.Instance.Debug($"delayed update: {delayedUpdateTime}");
+            Logger.Instance.Debug($"[PlayerDisplay] delayed update: {delayedUpdateTime}");
             foreach (var h in predictingHints)
             {
                 if (h.SyncSpeed < updatingHint?.SyncSpeed || h == updatingHint)
                     continue;
 
-                Logger.Instance.Debug($"Predicting hint: {h.Id} ({h.Guid})");
+                Logger.Instance.Debug($"[PlayerDisplay] Predicting hint: {h.Id} ({h.Guid})");
                 DateTime estNextUpdate = h.UpdateAnalyser.EstimateNextUpdate();
 
                 if (estNextUpdate == DateTime.MaxValue)
@@ -824,14 +851,14 @@ namespace HintServiceMeow.Core.Utilities
 
                 TimeSpan delta = estNextUpdate - now;
 
-                Logger.Instance.Debug($"Estimated next update time: {estNextUpdate} (in {delta.TotalSeconds}s)");
+                Logger.Instance.Debug($"[PlayerDisplay] Estimated next update time: {estNextUpdate} (in {delta.TotalSeconds}s)");
 
                 // Only consider the updates that will happen within the max waiting time
                 if (estNextUpdate > delayedUpdateTime && estNextUpdate < maxTime)
                     delayedUpdateTime = estNextUpdate;
             }
 
-            Logger.Instance.Debug($"Final delayed update: {delayedUpdateTime}");
+            Logger.Instance.Debug($"[PlayerDisplay] Final delayed update: {delayedUpdateTime}");
             float delay = (float)(delayedUpdateTime - now).TotalSeconds;
 
             // Clamp delay to maxWaitingTime
@@ -851,8 +878,6 @@ namespace HintServiceMeow.Core.Utilities
                 currentParserTask =
                     ConcurrentTaskDispatcher.Instance.Enqueue(async () =>
                     {
-                        HintParserResult result;
-
                         try
                         {
                             List<float> allXyRatio = new List<float>();
@@ -866,7 +891,7 @@ namespace HintServiceMeow.Core.Utilities
 
                             foreach (float xyRatio in allXyRatio)
                             {
-                                result = hintParser.ParseToMessage(new(hintCollection, xyRatio));
+                                HintParserResult result = hintParser.ParseToMessage(new(hintCollection, xyRatio));
 
                                 mainThreadDispatcher.Dispatch(() =>
                                 {
