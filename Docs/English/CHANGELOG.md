@@ -26,6 +26,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added `RichTag` class and extension methods to help with building unity rich text.
 - Added extensino for `string` and `StringBuilder` for more convenient rich text writing experience.
 - Added / operator to apply a tag to a `string` instance.
+#### Resolution Adaption
+- Added adaption to different screen size.
+- Added `AbstractHint::ResolutionOption`.
 
 ### Changed
 #### Better RichTextParser
