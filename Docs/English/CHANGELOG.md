@@ -34,6 +34,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Addeed `TagChecker`, `Tokenizer` utility classes.
 - Rewrote `RichTextParser`.
 
+#### Minor Changes
+- `AbstractHint::LineHeight` can be negative.
+
 ---
 
 ## [5.5.1]

@@ -55,6 +55,19 @@ public class CoordinateToolsTests
     }
 
     [TestMethod]
+    public void GetTextHeight_WhenLineHeightIsNegative_DontThrow()
+    {
+        // Arrange
+        CoordinateTools tools = new();
+
+        // Act
+        float height = tools.GetTextHeight("x", 20, -1);
+
+        // Assert
+        Assert.IsTrue(height > 0);
+    }
+
+    [TestMethod]
     public void GetLineInfos_WhenParsingCompletes_ReturnsParserToPool()
     {
         // Arrange
