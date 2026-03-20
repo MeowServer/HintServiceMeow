@@ -1,20 +1,20 @@
-namespace HintServiceMeow.Core.Parameters
+namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
 {
     using global::Hints;
     using HintServiceMeow.Core.Interface;
 
-    public class ULongHintParameter : IHintParameter
+    public class PackedULongValueParameter : IParameter
     {
         public ulong Value { get; set; }
 
-        public ULongHintParameter(ulong value)
+        public PackedULongValueParameter(ulong value)
         {
             this.Value = value;
         }
 
         public HintParameter GetScpslHintParameter()
         {
-            return new global::Hints.ULongHintParameter(this.Value);
+            return new global::Hints.PackedULongHintParameter(this.Value);
         }
     }
 }

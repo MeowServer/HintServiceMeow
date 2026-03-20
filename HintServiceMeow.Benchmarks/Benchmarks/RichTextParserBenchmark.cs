@@ -46,7 +46,7 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
 
             setting = new RichTextParserSetting(
                 TextMeshStyle.Default,
-                Array.Empty<Tuple<string, IHintParameter>>(),
+                Array.Empty<Tuple<string, IParameter>>(),
                 Array.Empty<string>(),
                 new HashSet<string>());
 
@@ -97,7 +97,7 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
         {
             setting = new RichTextParserSetting(
                 TextMeshStyle.Default,
-                Array.Empty<Tuple<string, IHintParameter>>(),
+                Array.Empty<Tuple<string, IParameter>>(),
                 Array.Empty<string>(),
                 new HashSet<string>());
 
@@ -297,7 +297,7 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
         {
             setting = new RichTextParserSetting(
                 TextMeshStyle.Default,
-                Array.Empty<Tuple<string, IHintParameter>>(),
+                Array.Empty<Tuple<string, IParameter>>(),
                 Array.Empty<string>(),
                 new HashSet<string>());
             parser = new RichTextParser();
@@ -375,7 +375,7 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
         {
             setting = new RichTextParserSetting(
                 TextMeshStyle.Default,
-                Array.Empty<Tuple<string, IHintParameter>>(),
+                Array.Empty<Tuple<string, IParameter>>(),
                 Array.Empty<string>(),
                 new HashSet<string>());
 
@@ -426,13 +426,13 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
 
             settingNoIgnore = new RichTextParserSetting(
                 TextMeshStyle.Default,
-                Array.Empty<Tuple<string, IHintParameter>>(),
+                Array.Empty<Tuple<string, IParameter>>(),
                 Array.Empty<string>(),
                 new HashSet<string>());
 
             settingWithIgnore = new RichTextParserSetting(
                 TextMeshStyle.Default,
-                Array.Empty<Tuple<string, IHintParameter>>(),
+                Array.Empty<Tuple<string, IParameter>>(),
                 Array.Empty<string>(),
                 new HashSet<string>
                 {
@@ -474,7 +474,7 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
         {
             setting = new RichTextParserSetting(
                 TextMeshStyle.Default,
-                Array.Empty<Tuple<string, IHintParameter>>(),
+                Array.Empty<Tuple<string, IParameter>>(),
                 Array.Empty<string>(),
                 new HashSet<string>());
 

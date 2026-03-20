@@ -1,14 +1,14 @@
-namespace HintServiceMeow.Core.Parameters
+namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
 {
     using global::Hints;
     using HintServiceMeow.Core.Interface;
 
-    public class FloatHintParameter : IHintParameter
+    public class FloatValueParameter : IParameter
     {
         public float Value { get; set; }
         public string Format { get; set; }
 
-        public FloatHintParameter(float value, string format = "F2")
+        public FloatValueParameter(float value, string format = "F2")
         {
             this.Value = value;
             this.Format = format;

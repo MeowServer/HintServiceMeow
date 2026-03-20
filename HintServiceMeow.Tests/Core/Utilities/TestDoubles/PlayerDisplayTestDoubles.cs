@@ -179,7 +179,7 @@ namespace HintServiceMeow.Tests.Core.Utilities.TestDoubles
     /// </summary>
     internal sealed class TestHintParser : IHintParser
     {
-        public HintParserResult ReturnResult { get; set; } = new HintParserResult("result", Array.Empty<IHintParameter>());
+        public HintParserResult ReturnResult { get; set; } = new HintParserResult("result", Array.Empty<IParameter>());
 
         public int ParseCallCount { get; private set; }
 

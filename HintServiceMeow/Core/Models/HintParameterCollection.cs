@@ -5,12 +5,12 @@ using HintServiceMeow.Core.Interface;
 
 namespace HintServiceMeow.Core.Models
 {
-    public class HintParameterCollection : IEnumerable<Tuple<string, IHintParameter>>
+    public class HintParameterCollection : IEnumerable<Tuple<string, IParameter>>
     {
         private readonly object collectionLock = new object();
-        private readonly List<Tuple<string, IHintParameter>> list = new(4);
+        private readonly List<Tuple<string, IParameter>> list = new(4);
 
-        public void Add(string tagName, IHintParameter parameter)
+        public void Add(string tagName, IParameter parameter)
         {
             lock (collectionLock)
             {
@@ -19,7 +19,7 @@ namespace HintServiceMeow.Core.Models
             }
         }
 
-        public void RemoveAll(Predicate<Tuple<string, IHintParameter>> match)
+        public void RemoveAll(Predicate<Tuple<string, IParameter>> match)
         {
             lock (collectionLock)
             {
@@ -29,9 +29,9 @@ namespace HintServiceMeow.Core.Models
 
         public void RemoveParameter(string tagName) => RemoveAll(x => x.Item1 == tagName);
 
-        public void RemoveParameters<T>() where T : IHintParameter => RemoveAll(p => p.Item2 is T);
+        public void RemoveParameters<T>() where T : IParameter => RemoveAll(p => p.Item2 is T);
 
-        public Tuple<string, IHintParameter>[] ToArray()
+        public Tuple<string, IParameter>[] ToArray()
         {
             lock (collectionLock)
             {
@@ -47,11 +47,11 @@ namespace HintServiceMeow.Core.Models
             }
         }
 
-        IEnumerator<Tuple<string, IHintParameter>> IEnumerable<Tuple<string, IHintParameter>>.GetEnumerator()
+        IEnumerator<Tuple<string, IParameter>> IEnumerable<Tuple<string, IParameter>>.GetEnumerator()
         {
             lock (collectionLock)
             {
-                return ((IEnumerable<Tuple<string, IHintParameter>>)list.ToArray()).GetEnumerator();
+                return ((IEnumerable<Tuple<string, IParameter>>)list.ToArray()).GetEnumerator();
             }
         }
     }

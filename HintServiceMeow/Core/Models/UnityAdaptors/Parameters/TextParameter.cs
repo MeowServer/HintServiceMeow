@@ -1,13 +1,13 @@
-namespace HintServiceMeow.Core.Parameters
+namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
 {
     using global::Hints;
     using HintServiceMeow.Core.Interface;
 
-    public class StringHintParameter : IHintParameter
+    public class TextParameter : IParameter
     {
         public string Value { get; set; }
 
-        public StringHintParameter(string value)
+        public TextParameter(string value)
         {
             this.Value = value;
         }

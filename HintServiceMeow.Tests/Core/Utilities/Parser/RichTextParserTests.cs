@@ -106,7 +106,7 @@ public class RichTextParserTests
         TextMeshStyle? style = null) =>
         new RichTextParserSetting(
             style ?? TextMeshStyle.Default,
-            Array.Empty<Tuple<string, IHintParameter>>(),
+            Array.Empty<Tuple<string, IParameter>>(),
             illegalTags ?? Array.Empty<string>(),
             ignoreTags ?? new HashSet<string>());
 
@@ -120,7 +120,7 @@ public class RichTextParserTests
     // ③ Stub IHintParameter
     // ═════════════════════════════════════════════════════════════════════════
 
-    private sealed class StubParameter : IHintParameter
+    private sealed class StubParameter : IParameter
     {
         public global::Hints.HintParameter GetScpslHintParameter() =>
             throw new NotSupportedException("Stub only.");
@@ -1353,7 +1353,7 @@ public class RichTextParserTests
         var param = new StubParameter();
         var setting = new RichTextParserSetting(
             TextMeshStyle.Default,
-            new[] { Tuple.Create<string, IHintParameter>("foo", param) },
+            new[] { Tuple.Create<string, IParameter>("foo", param) },
             Array.Empty<string>(),
             new HashSet<string>());
 
@@ -1371,7 +1371,7 @@ public class RichTextParserTests
     {
         var setting = new RichTextParserSetting(
             TextMeshStyle.Default,
-            new[] { Tuple.Create<string, IHintParameter>("foo", (IHintParameter)new StubParameter()) },
+            new[] { Tuple.Create<string, IParameter>("foo", (IParameter)new StubParameter()) },
             Array.Empty<string>(),
             new HashSet<string>());
 
@@ -1393,8 +1393,8 @@ public class RichTextParserTests
             TextMeshStyle.Default,
             new[]
             {
-                Tuple.Create<string, IHintParameter>("a", (IHintParameter)p0),
-                Tuple.Create<string, IHintParameter>("b", (IHintParameter)p1),
+                Tuple.Create<string, IParameter>("a", (IParameter)p0),
+                Tuple.Create<string, IParameter>("b", (IParameter)p1),
             },
             Array.Empty<string>(),
             new HashSet<string>());
@@ -1417,8 +1417,8 @@ public class RichTextParserTests
             TextMeshStyle.Default,
             new[]
             {
-                Tuple.Create<string, IHintParameter>("a", (IHintParameter)new StubParameter()),
-                Tuple.Create<string, IHintParameter>("b", (IHintParameter)new StubParameter()),
+                Tuple.Create<string, IParameter>("a", (IParameter)new StubParameter()),
+                Tuple.Create<string, IParameter>("b", (IParameter)new StubParameter()),
             },
             Array.Empty<string>(),
             new HashSet<string>());

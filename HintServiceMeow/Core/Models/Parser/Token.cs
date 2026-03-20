@@ -25,9 +25,9 @@ namespace HintServiceMeow.Core.Models.Parser
         /// <summary>
         /// Gets or sets the hint parameter. Only valid when token type is Parameter. Null if the token is not a parameter token.
         /// </summary>
-        public IHintParameter? Parameter { get; set; } = null;
+        public IParameter? Parameter { get; set; } = null;
 
-        public Token(RichTextTokenType type, string? tagName = null, string? tagValue = null, string? text = null, IHintParameter? parameter = null)
+        public Token(RichTextTokenType type, string? tagName = null, string? tagValue = null, string? text = null, IParameter? parameter = null)
         {
             Type = type;
             TagName = tagName;
@@ -51,7 +51,7 @@ namespace HintServiceMeow.Core.Models.Parser
             return new Token(RichTextTokenType.LineBreak);
         }
 
-        public static Token GetParameter(IHintParameter parameter)
+        public static Token GetParameter(IParameter parameter)
         {
             return new Token(RichTextTokenType.Parameter, parameter: parameter);
         }

@@ -16,7 +16,7 @@
         private string? rawText = null;
         private StringBuilder? sb = null;
 
-        public List<Token> Tokenize(string raw, Tuple<string, IHintParameter>[] registeredParameters)
+        public List<Token> Tokenize(string raw, Tuple<string, IParameter>[] registeredParameters)
         {
             lock (tokenizerLock)
             {
@@ -183,7 +183,7 @@
         /// <param name="registeredParameters">An array of tuples containing parameter names and their corresponding hint parameter objects to match
         /// against the input text.</param>
         /// <returns>true if a matching parameter is found and handled; otherwise, false.</returns>
-        private bool TryHandleParameter(Tuple<string, IHintParameter>[] registeredParameters)
+        private bool TryHandleParameter(Tuple<string, IParameter>[] registeredParameters)
         {
             if (rawText![index] != '{')
             {

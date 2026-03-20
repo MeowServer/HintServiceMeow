@@ -105,14 +105,14 @@ public class TokenizerTests
 
     private static Tokenizer NewTokenizer() => new Tokenizer();
 
-    private static Tuple<string, IHintParameter>[] NoParams =>
-        Array.Empty<Tuple<string, IHintParameter>>();
+    private static Tuple<string, IParameter>[] NoParams =>
+        Array.Empty<Tuple<string, IParameter>>();
 
     private List<ParserToken> Tokenize(string input,
-        Tuple<string, IHintParameter>[]? parameters = null) =>
+        Tuple<string, IParameter>[]? parameters = null) =>
         NewTokenizer().Tokenize(input, parameters ?? NoParams);
 
-    private sealed class StubParam : IHintParameter
+    private sealed class StubParam : IParameter
     {
         public global::Hints.HintParameter GetScpslHintParameter() =>
             throw new NotSupportedException();
@@ -923,7 +923,7 @@ public class TokenizerTests
     public void Tokenize_MatchingParameter_ProducesParameterToken()
     {
         var stub = new StubParam();
-        var @params = new[] { Tuple.Create<string, IHintParameter>("foo", stub) };
+        var @params = new[] { Tuple.Create<string, IParameter>("foo", stub) };
         const string input = "{foo}";
 
         var tokens = Tokenize(input, @params);
@@ -940,7 +940,7 @@ public class TokenizerTests
     public void Tokenize_MatchingParameter_CaseInsensitive()
     {
         var stub = new StubParam();
-        var @params = new[] { Tuple.Create<string, IHintParameter>("FOO", stub) };
+        var @params = new[] { Tuple.Create<string, IParameter>("FOO", stub) };
         const string input = "{foo}";
 
         var tokens = Tokenize(input, @params);
@@ -966,8 +966,8 @@ public class TokenizerTests
         var p1 = new StubParam();
         var @params = new[]
         {
-            Tuple.Create<string, IHintParameter>("a", p0),
-            Tuple.Create<string, IHintParameter>("b", p1),
+            Tuple.Create<string, IParameter>("a", p0),
+            Tuple.Create<string, IParameter>("b", p1),
         };
         const string input = "{a}{b}";
 
@@ -986,7 +986,7 @@ public class TokenizerTests
     public void Tokenize_ParameterSurroundedByText_CorrectTokenSequence()
     {
         var stub = new StubParam();
-        var @params = new[] { Tuple.Create<string, IHintParameter>("val", stub) };
+        var @params = new[] { Tuple.Create<string, IParameter>("val", stub) };
         const string input = "before{val}after";
 
         var tokens = Tokenize(input, @params);

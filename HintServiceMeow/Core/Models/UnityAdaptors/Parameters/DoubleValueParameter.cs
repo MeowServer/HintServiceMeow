@@ -1,14 +1,14 @@
-namespace HintServiceMeow.Core.Parameters
+namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
 {
     using global::Hints;
     using HintServiceMeow.Core.Interface;
 
-    public class DoubleHintParameter : IHintParameter
+    public class DoubleValueParameter : IParameter
     {
         public double Value { get; set; }
         public string Format { get; set; }
 
-        public DoubleHintParameter(double value, string format = "F2")
+        public DoubleValueParameter(double value, string format = "F2")
         {
             this.Value = value;
             this.Format = format;

@@ -1,13 +1,13 @@
-namespace HintServiceMeow.Core.Parameters
+namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
 {
     using global::Hints;
     using HintServiceMeow.Core.Interface;
 
-    public class ItemCategoryHintParameter : IHintParameter
+    public class ItemCategoryParameter : IParameter
     {
         public ItemCategory Category { get; set; }
 
-        public ItemCategoryHintParameter(ItemCategory category)
+        public ItemCategoryParameter(ItemCategory category)
         {
             this.Category = category;
         }

@@ -10,7 +10,7 @@
     using HintServiceMeow.Core.Models.Parser.Style;
     using HintServiceMeow.Core.Models.Parser.ValueObject;
     using HintServiceMeow.Core.Models.Transition;
-    using HintServiceMeow.Core.Parameters;
+    using HintServiceMeow.Core.Models.UnityAdaptors.Parameters;
     using HintServiceMeow.Core.Utilities.Pools;
     using HintServiceMeow.Core.Utilities.Tools;
     using HintServiceMeow.Core.Utilities.UnityAdaptors;
@@ -43,14 +43,14 @@
 
         // For hint parameter handling
         private int parameterIndex = 0;
-        private readonly List<IHintParameter> hintParameters = new(128);
+        private readonly List<IParameter> hintParameters = new(128);
 
         // For animation
         private string formatString = "F1"; // 1 decimal place
         private bool useIntegral = false; // Use float or int for animated value
 
         // For ParseToRichText method
-        private RichTextParserSetting settingTemplate = new RichTextParserSetting(TextMeshStyle.Default, Array.Empty<Tuple<string, IHintParameter>>(), ["line-height"],
+        private RichTextParserSetting settingTemplate = new RichTextParserSetting(TextMeshStyle.Default, Array.Empty<Tuple<string, IParameter>>(), ["line-height"],
             ["a", "allcaps", "alpha", "b", "color", "font", "font-weight", "gradient",
             "i", "lowercase", "mark", "noparse", "s", "smallcaps", "style", "u", "uppercase", "link"]); // Tags that does not affect the size of the text are ignored.
 
@@ -354,7 +354,7 @@
             {
                 IAnimationCurve curve = hint.FontSizeTransition.GetCurve(hint.CurrentFontSize, hint.FontSize);
                 messageBuilder.Append("<size=");
-                AddTag(messageBuilder, new AnimationCurveHintParameter(NetworkTimeCache.Time, curve, formatString, useIntegral));
+                AddTag(messageBuilder, new AnimationParameter(NetworkTimeCache.Time, curve, formatString, useIntegral));
                 messageBuilder.Append('>');
                 hint.FontSizeTransitionState = new TransitionState(hint.FontSizeTransition, hint.CurrentFontSize, hint.FontSize);
             }
@@ -393,7 +393,7 @@
                 {
                     IAnimationCurve curve = hint.XCoordinateTransition.GetCurve(hint.CurrentXCoordinate, actualXCoordinate);
                     messageBuilder.Append("<pos=");
-                    AddTag(messageBuilder, new AnimationCurveHintParameter(NetworkTimeCache.Time, curve, formatString, useIntegral));
+                    AddTag(messageBuilder, new AnimationParameter(NetworkTimeCache.Time, curve, formatString, useIntegral));
                     messageBuilder.Append('>');
                     hint.XCoordinateTransitionState = new TransitionState(hint.XCoordinateTransition, hint.CurrentXCoordinate, actualXCoordinate);
                 }
@@ -410,7 +410,7 @@
                 {
                     IAnimationCurve curve = hint.YCoordinateTransition.GetCurve(fromVOffset, vOffset);
                     messageBuilder.Append("<voffset=");
-                    AddTag(messageBuilder, new AnimationCurveHintParameter(NetworkTimeCache.Time, curve, formatString, useIntegral));
+                    AddTag(messageBuilder, new AnimationParameter(NetworkTimeCache.Time, curve, formatString, useIntegral));
                     messageBuilder.Append('>');
                     hint.YCoordinateTransitionState = new TransitionState(hint.YCoordinateTransition, hint.CurrentYCoordinate, hint.YCoordinate);
                 }
@@ -440,7 +440,7 @@
             hintParameters.Clear();
         }
 
-        private void AddTag(StringBuilder sb, IHintParameter hintParameter)
+        private void AddTag(StringBuilder sb, IParameter hintParameter)
         {
             sb.Append('{').Append(parameterIndex).Append('}');
             parameterIndex++;

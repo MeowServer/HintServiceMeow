@@ -8,7 +8,7 @@ namespace HintServiceMeow.Core.Models.Arguments
     internal class RichTextParserSetting
     {
         public RichTextParserSetting(TextMeshStyle defaultStyle,
-            Tuple<string, IHintParameter>[] parameters,
+            Tuple<string, IParameter>[] parameters,
             string[] illegalTags,
             HashSet<string> ignoreTags)
         {
@@ -20,7 +20,7 @@ namespace HintServiceMeow.Core.Models.Arguments
 
         public TextMeshStyle DefaultStyle { get; }
 
-        public Tuple<string, IHintParameter>[] Parameters { get; set; }
+        public Tuple<string, IParameter>[] Parameters { get; set; }
 
         public string[] IllegalTags { get; }
 

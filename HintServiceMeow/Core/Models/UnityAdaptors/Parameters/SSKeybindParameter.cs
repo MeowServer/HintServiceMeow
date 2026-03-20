@@ -1,9 +1,9 @@
-namespace HintServiceMeow.Core.Parameters
+namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
 {
     using global::Hints;
     using HintServiceMeow.Core.Interface;
 
-    public class SSKeybindHintParameter : IHintParameter
+    public class SSKeybindParameter : IParameter
     {
         public int Value { get; set; }
         public string Format { get; set; }
@@ -12,13 +12,13 @@ namespace HintServiceMeow.Core.Parameters
         public const string KeyNotAssigned = "KEY NOT ASSIGNED";
         public const string DefaultKeybindFormat = "[{0}]";
 
-        public SSKeybindHintParameter(int value, string format)
+        public SSKeybindParameter(int value, string format)
         {
             this.Value = value;
             this.Format = format;
         }
 
-        public SSKeybindHintParameter(int value) : this(value, DefaultKeybindFormat)
+        public SSKeybindParameter(int value) : this(value, DefaultKeybindFormat)
         {
         }
 

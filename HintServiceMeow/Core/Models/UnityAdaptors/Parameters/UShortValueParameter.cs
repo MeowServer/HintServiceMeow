@@ -1,13 +1,13 @@
-namespace HintServiceMeow.Core.Parameters
+namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
 {
     using global::Hints;
     using HintServiceMeow.Core.Interface;
 
-    public class UShortHintParameter : IHintParameter
+    public class UShortValueParameter : IParameter
     {
         public ushort Value { get; set; }
 
-        public UShortHintParameter(ushort value)
+        public UShortValueParameter(ushort value)
         {
             this.Value = value;
         }

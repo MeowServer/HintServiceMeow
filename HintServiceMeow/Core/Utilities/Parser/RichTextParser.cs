@@ -22,7 +22,7 @@
         private LineStyle? lineStyleAutoWrappedCache;
         private LineStyle? lineStyleNonAutoWrappedCache;
 
-        private List<IHintParameter> parameters = new List<IHintParameter>();
+        private List<IParameter> parameters = new List<IParameter>();
 
         private List<LineInfo> lineInfos = new(16);
         private List<TextSegment> currentLineChars = new(256);
@@ -86,7 +86,7 @@
                 FinishLine(defaultStyle, false);
 
                 LineInfo[] lineInfosArray = lineInfos.ToArray();
-                IHintParameter[] parametersArray = parameters.ToArray();
+                IParameter[] parametersArray = parameters.ToArray();
 
                 Reset();
 

@@ -1,11 +1,11 @@
-namespace HintServiceMeow.Core.Parameters
+namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
 {
     using global::Hints;
     using HintServiceMeow.Core.Interface;
     using HintServiceMeow.Core.Utilities.UnityAdaptors;
     using UnityEngine;
 
-    public class AnimationCurveHintParameter : IHintParameter
+    public class AnimationParameter : IParameter
     {
         public double Offset { get; set; }
 
@@ -15,7 +15,7 @@ namespace HintServiceMeow.Core.Parameters
 
         public bool Integral { get; set; }
 
-        public AnimationCurveHintParameter(double offset, IAnimationCurve curve, string format, bool integral)
+        public AnimationParameter(double offset, IAnimationCurve curve, string format, bool integral)
         {
             this.Offset = offset;
             this.Curve = curve;
@@ -23,7 +23,7 @@ namespace HintServiceMeow.Core.Parameters
             this.Integral = integral;
         }
 
-        public AnimationCurveHintParameter(IAnimationCurve curve, string format = "F1") : this(NetworkTimeCache.Time, curve, format, false)
+        public AnimationParameter(IAnimationCurve curve, string format = "F1") : this(NetworkTimeCache.Time, curve, format, false)
         {
         }
 

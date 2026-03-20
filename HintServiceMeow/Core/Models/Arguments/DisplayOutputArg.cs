@@ -8,7 +8,7 @@ namespace HintServiceMeow.Core.Models.Arguments
     /// </summary>
     public class DisplayOutputArg
     {
-        internal DisplayOutputArg(PlayerDisplay playerDisplay, string content, IHintParameter[] parameters, IHintEffect[] effects, float duration)
+        internal DisplayOutputArg(PlayerDisplay playerDisplay, string content, IParameter[] parameters, IEffect[] effects, float duration)
         {
             PlayerDisplay = playerDisplay;
             Content = content;
@@ -27,9 +27,9 @@ namespace HintServiceMeow.Core.Models.Arguments
         /// </summary>
         public string Content { get; }
 
-        public IHintParameter[] Parameters { get; }
+        public IParameter[] Parameters { get; }
 
-        public IHintEffect[] Effects { get; }
+        public IEffect[] Effects { get; }
 
         public float Duration { get; }
     }
