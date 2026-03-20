@@ -34,44 +34,58 @@
                 }
 
                 this.referenceHub = referenceHub;
+
+                _ = TryUpdate();
+
                 if (!coroutineHandle.IsRunning)
                 {
                     coroutineHandle = Timing.RunCoroutine(CoroutineMethod());
                 }
 
                 Instances.Add(this);
+
+                Utilities.Tools.Logger.Instance.Debug($"[ScpslScreenResolution] ScpslScreenResolution object initialized for player {referenceHub.PlayerId}. Current X/Y ratio: {XyRatio}");
             }
         }
 
         public float XyRatio => xyRatio;
 
+        private bool TryUpdate()
+        {
+            if (xScreenEdge != referenceHub!.aspectRatioSync.XScreenEdge)
+            {
+                xScreenEdge = referenceHub.aspectRatioSync.XScreenEdge;
+                xyRatio = Mathf.Tan(xScreenEdge * Mathf.Deg2Rad) / Mathf.Tan(yScreenEdge * Mathf.Deg2Rad);
+
+                return true;
+            }
+
+            return false;
+        }
+
         private static IEnumerator<float> CoroutineMethod()
         {
+            Utilities.Tools.Logger.Instance.Debug("[ScpslScreenResolution] Aspect ratio synchronization coroutine started.");
+
             while (true)
             {
                 List<ScpslScreenResolution> updatedInstances = new();
 
                 lock (StaticStatusLock)
                 {
-                    if (Instances.Count == 0)
-                        yield break;
-
                     Instances.RemoveAll(x => x.referenceHub == null);
 
                     foreach (ScpslScreenResolution resolution in Instances)
                     {
-                        if (resolution.xScreenEdge != resolution.referenceHub!.aspectRatioSync.XScreenEdge)
-                        {
-                            resolution.xScreenEdge = resolution.referenceHub.aspectRatioSync.XScreenEdge;
-                            resolution.xyRatio = Mathf.Tan(resolution.xScreenEdge * Mathf.Deg2Rad) / Mathf.Tan(yScreenEdge * Mathf.Deg2Rad);
+                        if (resolution.TryUpdate())
                             updatedInstances.Add(resolution);
-                        }
                     }
                 }
 
                 foreach (ScpslScreenResolution resolution in updatedInstances)
                 {
                     resolution.PropertyChanged?.Invoke(resolution, new PropertyChangedEventArgs(nameof(XyRatio)));
+                    Utilities.Tools.Logger.Instance.Debug($"[ScpslScreenResolution] ScpslScreenResolution object for player {resolution.referenceHub!.PlayerId} updated. Current X/Y ratio: {resolution.XyRatio}");
                 }
 
                 yield return Timing.WaitForSeconds(1f);
