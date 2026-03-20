@@ -207,9 +207,6 @@
             if (fontSize < 0)
                 throw new ArgumentOutOfRangeException(nameof(fontSize), "Font size must be greater than zero.");
 
-            if (lineHeight < 0)
-                throw new ArgumentOutOfRangeException(nameof(lineHeight), "Line height cannot be negative.");
-
             IReadOnlyList<LineInfo> lineInfos = GetLineInfos(text, fontSize);
 
             float height = 0f;
