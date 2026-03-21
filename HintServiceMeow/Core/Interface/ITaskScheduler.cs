@@ -3,7 +3,7 @@
     using System;
     using HintServiceMeow.Core.Enum;
 
-    internal interface ITaskScheduler
+    internal interface ITaskScheduler : IDisposable
     {
         public TimeSpan Elapsed { get; }
 

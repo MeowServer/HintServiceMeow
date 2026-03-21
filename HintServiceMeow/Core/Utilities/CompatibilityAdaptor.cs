@@ -19,7 +19,7 @@
     /// <summary>
     /// Adapt raw unity rich text into HSM.
     /// </summary>
-    internal class CompatibilityAdaptor : ICompatibilityAdaptor, IDestructible
+    internal class CompatibilityAdaptor : ICompatibilityAdaptor
     {
         internal static readonly HashSet<string> RegisteredAssemblies = new(); // All assemblies that used compatibility adaptor
         private static readonly ICache<string, IReadOnlyList<Hint>> HintCache = new Cache<string, IReadOnlyList<Hint>>(500);
@@ -46,7 +46,8 @@
             this.coroutineRunner = coroutineRunner ?? new UnityCoroutineRunner();
         }
 
-        void IDestructible.Destruct()
+        /// <inheritdoc/>
+        void IDisposable.Dispose()
         {
             if (destructed)
                 return;

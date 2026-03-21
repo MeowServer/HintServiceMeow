@@ -24,7 +24,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
         [TestCleanup]
         public void TearDown()
         {
-            ((HintServiceMeow.Core.Interface.IDestructible)_scheduler).Destruct();
+            ((IDisposable)_scheduler).Dispose();
         }
 
         [TestMethod]

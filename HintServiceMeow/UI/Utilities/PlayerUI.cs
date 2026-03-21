@@ -1,5 +1,6 @@
 namespace HintServiceMeow.UI.Utilities
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using HintServiceMeow.Core.Utilities;
@@ -7,7 +8,7 @@ namespace HintServiceMeow.UI.Utilities
     /// <summary>
     /// Aggregates the display and UI components for a specific player, providing access to common hints and the underlying <see cref="PlayerDisplay"/>.
     /// </summary>
-    public class PlayerUI : Core.Interface.IDestructible
+    public class PlayerUI : IDisposable
     {
         private static readonly HashSet<PlayerUI> PlayerUIList = [];
 
@@ -96,10 +97,10 @@ namespace HintServiceMeow.UI.Utilities
         #endregion
 
         #region Destructor Methods
-        void Core.Interface.IDestructible.Destruct()
+        void IDisposable.Dispose()
         {
             // Destruct Components
-            ((Core.Interface.IDestructible)CommonHint).Destruct();
+            ((IDisposable)CommonHint).Dispose();
         }
 
         internal static void Destruct(ReferenceHub referenceHub)
@@ -110,7 +111,7 @@ namespace HintServiceMeow.UI.Utilities
             if (ui == null)
                 return;
 
-            ((Core.Interface.IDestructible)ui).Destruct();
+            ((IDisposable)ui).Dispose();
 
             // Remove from list
             PlayerUIList.Remove(ui);
@@ -121,7 +122,7 @@ namespace HintServiceMeow.UI.Utilities
             // Destruct Components
             foreach (PlayerUI ui in PlayerUIList)
             {
-                ((Core.Interface.IDestructible)ui.CommonHint).Destruct();
+                ((IDisposable)ui.CommonHint).Dispose();
             }
 
             // Clear the list

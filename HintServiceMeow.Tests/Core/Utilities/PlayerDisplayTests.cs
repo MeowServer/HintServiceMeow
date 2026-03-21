@@ -40,7 +40,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
         [TestCleanup]
         public void TearDown()
         {
-            ((HintServiceMeow.Core.Interface.IDestructible)display).Destruct();
+            ((IDisposable)display).Dispose();
         }
 
         [TestMethod]
@@ -67,7 +67,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
             // Arrange - display already created in SetUp
 
             // Act
-            ((HintServiceMeow.Core.Interface.IDestructible)display).Destruct();
+            ((IDisposable)display).Dispose();
 
             // Assert
             Assert.IsTrue(coroutineRunner.LastCoroutine.IsKilled);
@@ -80,7 +80,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
             // Arrange - display already created in SetUp
 
             // Act
-            ((HintServiceMeow.Core.Interface.IDestructible)display).Destruct();
+            ((IDisposable)display).Dispose();
 
             // Assert
             Assert.IsTrue(scheduler.IsDestructed);
@@ -343,7 +343,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
             Hint hint = new() { Id = "destruct", SyncSpeed = HintSyncSpeed.Normal };
             display.AddHint(hint);
             scheduler.Invokes.Clear();
-            ((HintServiceMeow.Core.Interface.IDestructible)display).Destruct();
+            ((IDisposable)display).Dispose();
 
             // Act
             hint.FontSize++;
@@ -419,7 +419,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
             }
             finally
             {
-                ((HintServiceMeow.Core.Interface.IDestructible)localDisplay).Destruct();
+                ((IDisposable)localDisplay).Dispose();
             }
         }
 
@@ -456,7 +456,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
             }
             finally
             {
-                ((HintServiceMeow.Core.Interface.IDestructible)localDisplay).Destruct();
+                ((IDisposable)localDisplay).Dispose();
             }
         }
 
@@ -501,7 +501,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
             }
             finally
             {
-                ((HintServiceMeow.Core.Interface.IDestructible)localDisplay).Destruct();
+                ((IDisposable)localDisplay).Dispose();
             }
         }
 

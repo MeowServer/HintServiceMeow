@@ -21,7 +21,7 @@ namespace HintServiceMeow.Core.Utilities
     /// <summary>
     /// Represents a player's display, responsible for managing hints and rendering them on the player's screen.
     /// </summary>
-    public class PlayerDisplay : IPlayerDisplay, IDestructible
+    public class PlayerDisplay : IPlayerDisplay
     {
         private static readonly HashSet<PlayerDisplay> PlayerDisplayList = [];
         private static readonly object PlayerDisplayListLock = new();
@@ -45,7 +45,7 @@ namespace HintServiceMeow.Core.Utilities
 
         private Task? currentParserTask;
 
-        private volatile bool isDestructed = false;
+        private volatile bool isDisposed = false;
 
         internal PlayerDisplay(
             IPlayerContext playerContext,
@@ -621,9 +621,10 @@ namespace HintServiceMeow.Core.Utilities
             return hints.Any();
         }
 
-        void IDestructible.Destruct()
+        /// <inheritdoc/>
+        void IDisposable.Dispose()
         {
-            isDestructed = true; // Mark as destroyed to prevent further actions
+            isDisposed = true; // Mark as destroyed to prevent further actions
 
             coroutine.Kill(); // Stop coroutine
 
@@ -642,9 +643,9 @@ namespace HintServiceMeow.Core.Utilities
             // Clear pd's reference to hints
             hintCollection.ClearHints(null);
 
-            ((IDestructible)updateScheduler).Destruct(); // Stop task scheduler's coroutine
+            ((IDisposable)updateScheduler).Dispose(); // Stop task scheduler's coroutine
 
-            ((IDestructible)adapter).Destruct(); // Stop compatibility adaptor's coroutine
+            ((IDisposable)adapter).Dispose(); // Stop compatibility adaptor's coroutine
 
             lock (PlayerDisplayListLock)
                 PlayerDisplayList.Remove(this);
@@ -668,7 +669,7 @@ namespace HintServiceMeow.Core.Utilities
                 if (pd is null)
                     return;
 
-                ((IDestructible)pd).Destruct();
+                ((IDisposable)pd).Dispose();
 
                 PlayerDisplayList.Remove(pd); // Remove from the reference list
             }
@@ -901,7 +902,7 @@ namespace HintServiceMeow.Core.Utilities
                                     try
                                     {
                                         // If destroyed while waiting for main thread, skip the update
-                                        if (this.isDestructed)
+                                        if (this.isDisposed)
                                             return;
 
                                         SendHint(new DisplayOutputArg(this, result.Content, result.Parameters, [new TransparencyEffect(1)], 999999f), xyRatio);

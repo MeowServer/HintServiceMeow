@@ -4,9 +4,10 @@
     using System.Threading;
     using System.Threading.Tasks;
     using HintServiceMeow.Core.Enum;
+    using HintServiceMeow.Core.Interface;
     using HintServiceMeow.Core.Utilities.Tools;
 
-    internal class TaskScheduler : Interface.ITaskScheduler, Interface.IDestructible
+    internal class TaskScheduler : ITaskScheduler
     {
         private readonly ReaderWriterLockSlim schedulerLock = new();
 
@@ -135,8 +136,9 @@
 
         /// <summary>
         /// Not thread safe.
+        /// <inheritdoc/>
         /// </summary>
-        void Interface.IDestructible.Destruct()
+        void IDisposable.Dispose()
         {
             runner.Dispose();
             schedulerLock.Dispose();

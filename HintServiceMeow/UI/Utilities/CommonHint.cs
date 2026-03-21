@@ -11,7 +11,7 @@ namespace HintServiceMeow.UI.Utilities
     /// <summary>
     /// Provides pre-configured hint slots for common in-game UI scenarios such as item, map, role, and other general-purpose hints.
     /// </summary>
-    public class CommonHint : Core.Interface.IDestructible
+    public class CommonHint : IDisposable
     {
         private const string HintGroupId = "HSM_CommonHint";
 
@@ -113,7 +113,7 @@ namespace HintServiceMeow.UI.Utilities
         private PlayerDisplay PlayerDisplay => PlayerDisplay.Get(ReferenceHub);
         #endregion
 
-        void Core.Interface.IDestructible.Destruct()
+        void IDisposable.Dispose()
         {
             PlayerDisplay.InternalClearHint(HintGroupId);
         }

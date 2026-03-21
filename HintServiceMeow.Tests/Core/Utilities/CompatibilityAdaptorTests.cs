@@ -64,8 +64,8 @@ public class CompatibilityAdaptorTests
         CompatibilityAdaptor adaptor = CreateAdaptor(out PlayerDisplay display);
 
         // Act
-        ((HintServiceMeow.Core.Interface.IDestructible)adaptor).Destruct();
-        ((HintServiceMeow.Core.Interface.IDestructible)adaptor).Destruct();
+        ((IDisposable)adaptor).Dispose();
+        ((IDisposable)adaptor).Dispose();
         adaptor.ShowHint(new("asm", "later", 1f));
         Thread.Sleep(50);
 

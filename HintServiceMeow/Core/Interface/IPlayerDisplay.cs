@@ -1,12 +1,13 @@
 namespace HintServiceMeow.Core.Interface
 {
+    using System;
     using System.Collections.Generic;
     using HintServiceMeow.Core.Models.Hints;
 
     /// <summary>
     /// Defines the contract for managing and displaying hints for a specific player.
     /// </summary>
-    public interface IPlayerDisplay
+    public interface IPlayerDisplay : IDisposable
     {
         /// <summary>
         /// Gets or sets the parser used to convert hint collections into display messages.
