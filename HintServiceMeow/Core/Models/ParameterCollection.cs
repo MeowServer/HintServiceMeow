@@ -5,10 +5,20 @@ using HintServiceMeow.Core.Interface;
 
 namespace HintServiceMeow.Core.Models
 {
-    public class HintParameterCollection : IEnumerable<Tuple<string, IHintParameter>>
+    public class ParameterCollection : IEnumerable<Tuple<string, IHintParameter>>
     {
         private readonly object collectionLock = new object();
         private readonly List<Tuple<string, IHintParameter>> list = new(4);
+
+        public ParameterCollection() { }
+
+        public ParameterCollection(ParameterCollection other)
+        {
+            lock (other.collectionLock)
+            {
+                list.AddRange(other.list);
+            }
+        }
 
         public void Add(string tagName, IHintParameter parameter)
         {
