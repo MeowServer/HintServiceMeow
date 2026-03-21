@@ -645,6 +645,9 @@ namespace HintServiceMeow.Core.Utilities
             ((IDestructible)updateScheduler).Destruct(); // Stop task scheduler's coroutine
 
             ((IDestructible)adapter).Destruct(); // Stop compatibility adaptor's coroutine
+
+            lock (PlayerDisplayListLock)
+                PlayerDisplayList.Remove(this);
         }
 
         /// <summary>
