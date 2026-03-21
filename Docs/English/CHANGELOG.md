@@ -37,6 +37,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Addeed `TagChecker`, `Tokenizer` utility classes.
 - Rewrote `RichTextParser`.
 
+#### Better CommonHint
+- Removed redundant API.
+- Add auto expand.
+
 #### Minor Changes
 - `AbstractHint::LineHeight` can be negative.
 
