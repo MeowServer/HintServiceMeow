@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -1631,5 +1632,24 @@ public class RichTextParserTests
         Assert.AreEqual(0, errors.Count,
             $"{errors.Count} distinct-instance concurrent task(s) failed:\n" + string.Join("\n---\n", errors.Take(5)));
         Assert.AreEqual(N, ok, $"Expected {N} successful parses, got {ok}.");
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // Section 16 – Cache
+    // ═════════════════════════════════════════════════════════════════════════
+    [TestMethod]
+    public async Task ParseText_HasCachedResult_ReturnCached()
+    {
+        RichTextParser parser = NewParser();
+
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        parser.ParseText("cached - *IASDHFOIPA#RG(CGB97uAG#R", DefaultSetting()); // warm up cache
+        TimeSpan timeUncached = stopwatch.Elapsed;
+        stopwatch.Restart();
+        parser.ParseText("cached - *IASDHFOIPA#RG(CGB97uAG#R", DefaultSetting()); // should hit cache
+        TimeSpan timeCached = stopwatch.Elapsed;
+
+        Assert.IsTrue(timeUncached > timeCached,
+            $"Expected cached parse to be faster, got uncached {timeUncached} ms while cached {timeCached} ms");
     }
 }
