@@ -2,6 +2,7 @@ namespace HintServiceMeow.UI.Utilities
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using HintServiceMeow.Core.Enum;
     using HintServiceMeow.Core.Extension;
     using HintServiceMeow.Core.Models.Hints;
@@ -17,7 +18,6 @@ namespace HintServiceMeow.UI.Utilities
 
         #region Common Hints
         private readonly TaskScheduler itemHintsHideScheduler;
-
         private readonly List<Hint> itemHints =
         [
             new()
@@ -170,12 +170,18 @@ namespace HintServiceMeow.UI.Utilities
             itemHints[0].Text = itemName;
             itemHints[0].Hide = false;
 
-            for (int i = 1; i < itemHints.Count; i++)
+            for (int i = 1; i < description.Length; i++)
             {
-                if (!description.TryGet(i - 1, out string element))
-                    break;
+                if (itemHints.Count < i + 1)
+                {
+                    itemHints.Add(new()
+                    {
+                        YCoordinate = itemHints.Last().YCoordinate + 25,
+                        FontSize = 25,
+                    });
+                }
 
-                itemHints[i].Text = element;
+                itemHints[i].Text = description[i];
                 itemHints[i].Hide = false;
             }
         }
@@ -233,12 +239,18 @@ namespace HintServiceMeow.UI.Utilities
             mapHints[0].Text = roomName;
             mapHints[0].Hide = false;
 
-            for (int i = 1; i < mapHints.Count; i++)
+            for (int i = 1; i < description.Length; i++)
             {
-                if (!description.TryGet(i - 1, out string element))
-                    break;
+                if (mapHints.Count < i + 1)
+                {
+                    mapHints.Add(new()
+                    {
+                        YCoordinate = mapHints.Last().YCoordinate + 25,
+                        FontSize = 25,
+                    });
+                }
 
-                mapHints[i].Text = element;
+                mapHints[i].Text = description[i];
                 mapHints[i].Hide = false;
             }
         }
@@ -296,12 +308,19 @@ namespace HintServiceMeow.UI.Utilities
             roleHints[0].Text = roleName;
             roleHints[0].Hide = false;
 
-            for (int i = 1; i < roleHints.Count; i++)
+            for (int i = 1; i < description.Length; i++)
             {
-                if (!description.TryGet(i - 1, out string element))
-                    break;
+                if (roleHints.Count < i + 1)
+                {
+                    roleHints.Add(new()
+                    {
+                        YCoordinate = roleHints.Last().YCoordinate + 25,
+                        FontSize = 25,
+                        Alignment = HintAlignment.Left,
+                    });
+                }
 
-                roleHints[i].Text = element;
+                roleHints[i].Text = description[i];
                 roleHints[i].Hide = false;
             }
         }
