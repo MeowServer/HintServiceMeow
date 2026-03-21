@@ -1,13 +1,13 @@
-namespace HintServiceMeow.Core.Parameters
+namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
 {
     using global::Hints;
     using HintServiceMeow.Core.Interface;
 
-    public class SByteHintParameter : IHintParameter
+    public class SByteValueParameter : IParameter
     {
         public sbyte Value { get; set; }
 
-        public SByteHintParameter(sbyte value)
+        public SByteValueParameter(sbyte value)
         {
             this.Value = value;
         }

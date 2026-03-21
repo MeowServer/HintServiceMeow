@@ -1,13 +1,13 @@
-namespace HintServiceMeow.Core.Parameters
+namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
 {
     using global::Hints;
     using HintServiceMeow.Core.Interface;
 
-    public class AmmoHintParameter : IHintParameter
+    public class AmmoParameter : IParameter
     {
         public byte Id { get; set; }
 
-        public AmmoHintParameter(byte id)
+        public AmmoParameter(byte id)
         {
             this.Id = id;
         }

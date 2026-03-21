@@ -1,13 +1,13 @@
-namespace HintServiceMeow.Core.Parameters
+namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
 {
     using global::Hints;
     using HintServiceMeow.Core.Interface;
 
-    public class LongHintParameter : IHintParameter
+    public class LongValueParameter : IParameter
     {
         public long Value { get; set; }
 
-        public LongHintParameter(long value)
+        public LongValueParameter(long value)
         {
             this.Value = value;
         }

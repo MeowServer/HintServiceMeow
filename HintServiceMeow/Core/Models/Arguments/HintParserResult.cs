@@ -4,7 +4,7 @@
 
     public class HintParserResult
     {
-        public HintParserResult(string content, IHintParameter[] parameters)
+        public HintParserResult(string content, IParameter[] parameters)
         {
             Content = content;
             Parameters = parameters;
@@ -15,6 +15,6 @@
         /// </summary>
         public string Content { get; }
 
-        public IHintParameter[] Parameters { get; }
+        public IParameter[] Parameters { get; }
     }
 }

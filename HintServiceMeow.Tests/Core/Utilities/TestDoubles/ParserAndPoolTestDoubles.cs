@@ -81,12 +81,14 @@ internal sealed class StubCoordinateTools : ICoordinateTools
 
     public float GetTextWidth(AbstractHint hint) => TextWidth(hint);
 
-    public float GetTextWidth(string text, int fontSize, HintAlignment align = HintAlignment.Center) => 100f;
+    public float GetTextWidth(string text, float fontSize, HintAlignment align = HintAlignment.Center) => 100f;
 
     public float GetTextHeight(AbstractHint hint) => TextHeight(hint);
 
-    public float GetTextHeight(string text, int fontSize, float lineHeight) => 20f;
+    public float GetTextHeight(string text, float fontSize, float lineHeight) => 20f;
 
-    public LineInfo[] GetLineInfos(string text, int fontSize, HintAlignment align = HintAlignment.Center)
+    public LineInfo[] GetLineInfos(string text, float fontSize, HintAlignment align = HintAlignment.Center)
         => [new LineInfo([], LineStyle.Default, string.Empty)];
+
+    public float GetEdgeOffset(float xyRatio, HintAlignment alignment) => 0f;
 }

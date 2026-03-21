@@ -16,6 +16,8 @@ namespace HintServiceMeow.Tests.Core.Utilities
     [TestClass]
     public class PlayerDisplayTests
     {
+        private const float AspectRatio = 16f / 9f;
+
         private TestTaskScheduler scheduler = null!;
         private TestCompatibilityAdaptor adaptor = null!;
         private TestHintParser parser = null!;
@@ -361,7 +363,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
 
             // Act
             display.RemoveDisplayOutput<TestDisplayOutput>();
-            InvokeSendHint(display, new DisplayOutputArg(display, "after-remove-type", Array.Empty<IHintParameter>(), Array.Empty<IHintEffect>(), 99999f));
+            InvokeSendHint(display, new DisplayOutputArg(display, "after-remove-type", Array.Empty<IParameter>(), Array.Empty<IEffect>(), 99999f), AspectRatio);
 
             // Assert
             Assert.AreEqual(0, first.Calls.Count);
@@ -381,7 +383,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
             display.RemoveDisplayOutput(removeOutput);
 
             // Act
-            InvokeSendHint(display, new DisplayOutputArg(display, "hello", Array.Empty<IHintParameter>(), Array.Empty<IHintEffect>(), 99999f));
+            InvokeSendHint(display, new DisplayOutputArg(display, "hello", Array.Empty<IParameter>(), Array.Empty<IEffect>(), 99999f), AspectRatio);
 
             // Assert
             Assert.AreEqual(1, keepOutput.Calls.Count);
@@ -400,7 +402,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
                 new TestPlayerContext { IsStillValid = false },
                 updateScheduler: localScheduler,
                 adaptor: new TestCompatibilityAdaptor(),
-                hintParser: new DelegateHintParser(_ => new HintParserResult("pipeline-success", Array.Empty<IHintParameter>())),
+                hintParser: new DelegateHintParser(_ => new HintParserResult("pipeline-success", Array.Empty<IParameter>())),
                 coroutineRunner: new TestCoroutineRunner(),
                 dispatcher: dispatcher,
                 displayOutputs: new[] { output });
@@ -469,7 +471,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
             {
                 entered.Set();
                 release.Wait(1000);
-                return new HintParserResult("done", Array.Empty<IHintParameter>());
+                return new HintParserResult("done", Array.Empty<IParameter>());
             });
 
             PlayerDisplay localDisplay = new(
@@ -478,7 +480,8 @@ namespace HintServiceMeow.Tests.Core.Utilities
                 adaptor: new TestCompatibilityAdaptor(),
                 hintParser: blockingParser,
                 coroutineRunner: new TestCoroutineRunner(),
-                dispatcher: new TestMainThreadDispatcher());
+                dispatcher: new TestMainThreadDispatcher(),
+                displayOutputs: new[] { new TestDisplayOutput() });
 
             try
             {
@@ -642,10 +645,10 @@ namespace HintServiceMeow.Tests.Core.Utilities
             Assert.Fail(message);
         }
 
-        private static void InvokeSendHint(PlayerDisplay pd, DisplayOutputArg arg)
+        private static void InvokeSendHint(PlayerDisplay pd, DisplayOutputArg arg, float xyRatio)
         {
             MethodInfo method = typeof(PlayerDisplay).GetMethod("SendHint", BindingFlags.NonPublic | BindingFlags.Instance)!;
-            method.Invoke(pd, [arg]);
+            method.Invoke(pd, [arg, xyRatio]);
         }
     }
 }

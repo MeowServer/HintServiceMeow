@@ -7,13 +7,13 @@ namespace HintServiceMeow.Core.Utilities
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
-    using HintServiceMeow.Core.Effects;
     using HintServiceMeow.Core.Enum;
     using HintServiceMeow.Core.Extension;
     using HintServiceMeow.Core.Interface;
     using HintServiceMeow.Core.Models;
     using HintServiceMeow.Core.Models.Arguments;
     using HintServiceMeow.Core.Models.Hints;
+    using HintServiceMeow.Core.Models.UnityAdaptors.Effects;
     using HintServiceMeow.Core.Utilities.Parser;
     using HintServiceMeow.Core.Utilities.Tools;
     using HintServiceMeow.Core.Utilities.UnityAdaptors;
@@ -645,6 +645,9 @@ namespace HintServiceMeow.Core.Utilities
             ((IDestructible)updateScheduler).Destruct(); // Stop task scheduler's coroutine
 
             ((IDestructible)adapter).Destruct(); // Stop compatibility adaptor's coroutine
+
+            lock (PlayerDisplayListLock)
+                PlayerDisplayList.Remove(this);
         }
 
         /// <summary>
@@ -901,7 +904,7 @@ namespace HintServiceMeow.Core.Utilities
                                         if (this.isDestructed)
                                             return;
 
-                                        SendHint(new DisplayOutputArg(this, result.Content, result.Parameters, [new AlphaEffect(1)], 999999f), xyRatio);
+                                        SendHint(new DisplayOutputArg(this, result.Content, result.Parameters, [new TransparencyEffect(1)], 999999f), xyRatio);
                                     }
                                     catch (Exception ex)
                                     {
@@ -910,7 +913,7 @@ namespace HintServiceMeow.Core.Utilities
                                 });
                             }
 
-                            MainThreadDispatcher.Dispatch(() =>
+                            mainThreadDispatcher.Dispatch(() =>
                             {
                                 lock (currentParserTaskLock)
                                 {

@@ -1,14 +1,14 @@
-namespace HintServiceMeow.Core.Parameters
+namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
 {
     using global::Hints;
     using HintServiceMeow.Core.Interface;
     using InventorySystem.Items.Usables.Scp330;
 
-    public class Scp330HintParameter : IHintParameter
+    public class Scp330Parameter : IParameter
     {
         public Scp330Translations.Entry Index { get; set; }
 
-        public Scp330HintParameter(Scp330Translations.Entry index)
+        public Scp330Parameter(Scp330Translations.Entry index)
         {
             this.Index = index;
         }

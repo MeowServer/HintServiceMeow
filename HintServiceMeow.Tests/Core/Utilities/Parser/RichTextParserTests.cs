@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -106,9 +107,10 @@ public class RichTextParserTests
         TextMeshStyle? style = null) =>
         new RichTextParserSetting(
             style ?? TextMeshStyle.Default,
-            Array.Empty<Tuple<string, IHintParameter>>(),
+            Array.Empty<Tuple<string, IParameter>>(),
             illegalTags ?? Array.Empty<string>(),
-            ignoreTags ?? new HashSet<string>());
+            ignoreTags ?? new HashSet<string>(),
+            false);
 
     private static TextSegmentStyle SegStyle(RichTextParserResult r, int line = 0, int seg = 0)
         => r.LineInfos[line].CharacterInfos[seg].Style;
@@ -120,7 +122,7 @@ public class RichTextParserTests
     // ③ Stub IHintParameter
     // ═════════════════════════════════════════════════════════════════════════
 
-    private sealed class StubParameter : IHintParameter
+    private sealed class StubParameter : IParameter
     {
         public global::Hints.HintParameter GetScpslHintParameter() =>
             throw new NotSupportedException("Stub only.");
@@ -1353,9 +1355,10 @@ public class RichTextParserTests
         var param = new StubParameter();
         var setting = new RichTextParserSetting(
             TextMeshStyle.Default,
-            new[] { Tuple.Create<string, IHintParameter>("foo", param) },
+            new[] { Tuple.Create<string, IParameter>("foo", param) },
             Array.Empty<string>(),
-            new HashSet<string>());
+            new HashSet<string>(),
+            false);
 
         const string input = "{foo}";
         var result = NewParser().ParseText(input, setting);
@@ -1371,17 +1374,18 @@ public class RichTextParserTests
     {
         var setting = new RichTextParserSetting(
             TextMeshStyle.Default,
-            new[] { Tuple.Create<string, IHintParameter>("foo", (IHintParameter)new StubParameter()) },
+            new[] { Tuple.Create<string, IParameter>("foo", (IParameter)new StubParameter()) },
             Array.Empty<string>(),
-            new HashSet<string>());
+            new HashSet<string>(),
+            false);
 
         const string input = "{foo}";
         var result = NewParser().ParseText(input, setting);
 
-        bool hasIndexSeg = result.LineInfos[0].CharacterInfos.Any(s => s.Text == "0");
+        bool hasIndexSeg = result.LineInfos[0].CharacterInfos.Any(s => s.Text == "{0}");
         string allTexts = string.Join(", ", result.LineInfos[0].CharacterInfos.Select(s => $"\"{s.Text}\""));
         Assert.IsTrue(hasIndexSeg,
-            $"Input: \"{input}\"\nExpected a segment with Text=\"0\". Actual segments: [{allTexts}]." + Dump(result));
+            $"Input: \"{input}\"\nExpected a segment with Text=\"{{0}}\". Actual segments: [{allTexts}]." + Dump(result));
     }
 
     [TestMethod]
@@ -1393,11 +1397,12 @@ public class RichTextParserTests
             TextMeshStyle.Default,
             new[]
             {
-                Tuple.Create<string, IHintParameter>("a", (IHintParameter)p0),
-                Tuple.Create<string, IHintParameter>("b", (IHintParameter)p1),
+                Tuple.Create<string, IParameter>("a", (IParameter)p0),
+                Tuple.Create<string, IParameter>("b", (IParameter)p1),
             },
             Array.Empty<string>(),
-            new HashSet<string>());
+            new HashSet<string>(),
+            false);
 
         const string input = "{a} {b}";
         var result = NewParser().ParseText(input, setting);
@@ -1417,21 +1422,22 @@ public class RichTextParserTests
             TextMeshStyle.Default,
             new[]
             {
-                Tuple.Create<string, IHintParameter>("a", (IHintParameter)new StubParameter()),
-                Tuple.Create<string, IHintParameter>("b", (IHintParameter)new StubParameter()),
+                Tuple.Create<string, IParameter>("a", (IParameter)new StubParameter()),
+                Tuple.Create<string, IParameter>("b", (IParameter)new StubParameter()),
             },
             Array.Empty<string>(),
-            new HashSet<string>());
+            new HashSet<string>(),
+            false);
 
         const string input = "{a}{b}";
         var result = NewParser().ParseText(input, setting);
         var segs = result.LineInfos[0].CharacterInfos;
         string allTexts = string.Join(", ", segs.Select(s => $"\"{s.Text}\""));
 
-        Assert.IsTrue(segs.Any(s => s.Text == "0"),
-            $"Input: \"{input}\"\nExpected segment \"0\". Segments: [{allTexts}]." + Dump(result));
-        Assert.IsTrue(segs.Any(s => s.Text == "1"),
-            $"Input: \"{input}\"\nExpected segment \"1\". Segments: [{allTexts}]." + Dump(result));
+        Assert.IsTrue(segs.Any(s => s.Text == "{0}"),
+            $"Input: \"{input}\"\nExpected segment \"{{0}}\". Segments: [{allTexts}]." + Dump(result));
+        Assert.IsTrue(segs.Any(s => s.Text == "{1}"),
+            $"Input: \"{input}\"\nExpected segment \"{{1}}\". Segments: [{allTexts}]." + Dump(result));
     }
 
     [TestMethod]
@@ -1631,5 +1637,757 @@ public class RichTextParserTests
         Assert.AreEqual(0, errors.Count,
             $"{errors.Count} distinct-instance concurrent task(s) failed:\n" + string.Join("\n---\n", errors.Take(5)));
         Assert.AreEqual(N, ok, $"Expected {N} successful parses, got {ok}.");
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // Section 16 – Cache
+    // ═════════════════════════════════════════════════════════════════════════
+    [TestMethod]
+    public async Task ParseText_HasCachedResult_ReturnCached()
+    {
+        RichTextParser parser = NewParser();
+
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        parser.ParseText("cached - *IASDHFOIPA#RG(CGB97uAG#R", DefaultSetting()); // warm up cache
+        TimeSpan timeUncached = stopwatch.Elapsed;
+        stopwatch.Restart();
+        parser.ParseText("cached - *IASDHFOIPA#RG(CGB97uAG#R", DefaultSetting()); // should hit cache
+        TimeSpan timeCached = stopwatch.Elapsed;
+
+        Assert.IsTrue(timeUncached > timeCached,
+            $"Expected cached parse to be faster, got uncached {timeUncached} ms while cached {timeCached} ms");
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // Section 17 – Close Unclosed Tags
+    // ═════════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Creates a setting with CloseUnclosedTags = true (the feature under test).
+    /// </summary>
+    private static RichTextParserSetting ClosingSetting(
+        string[]? illegalTags = null,
+        HashSet<string>? ignoreTags = null,
+        TextMeshStyle? style = null)
+    {
+        var setting = new RichTextParserSetting(
+            style ?? TextMeshStyle.Default,
+            Array.Empty<Tuple<string, IParameter>>(),
+            illegalTags ?? Array.Empty<string>(),
+            ignoreTags ?? new HashSet<string>(),
+            true);
+        return setting;
+    }
+
+    /// <summary>
+    /// Creates a setting with CloseUnclosedTags = false (baseline / control).
+    /// </summary>
+    private static RichTextParserSetting NonClosingSetting(
+        string[]? illegalTags = null,
+        HashSet<string>? ignoreTags = null) =>
+        new RichTextParserSetting(
+            TextMeshStyle.Default,
+            Array.Empty<Tuple<string, IParameter>>(),
+            illegalTags ?? Array.Empty<string>(),
+            ignoreTags ?? new HashSet<string>(),
+            false);
+
+    /// <summary>
+    /// Returns the CleanText of the last line (where close tags are emitted).
+    /// </summary>
+    private static string LastCleanText(RichTextParserResult r)
+        => r.LineInfos[r.LineInfos.Length - 1].CleanText;
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // Counter-based tags: single unclosed
+    // ═════════════════════════════════════════════════════════════════════════
+
+    [TestMethod]
+    public void CloseUnclosed_Bold_CleanTextContainsCloseTag()
+    {
+        const string input = "<b>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</b>",
+            $"Input: \"{input}\"\nUnclosed <b> must be closed in CleanText.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_Italic_CleanTextContainsCloseTag()
+    {
+        const string input = "<i>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</i>",
+            $"Input: \"{input}\"\nUnclosed <i> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_Underline_CleanTextContainsCloseTag()
+    {
+        const string input = "<u>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</u>",
+            $"Input: \"{input}\"\nUnclosed <u> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_Strikethrough_CleanTextContainsCloseTag()
+    {
+        const string input = "<s>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</s>",
+            $"Input: \"{input}\"\nUnclosed <s> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_Subscript_CleanTextContainsCloseTag()
+    {
+        const string input = "<sub>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</sub>",
+            $"Input: \"{input}\"\nUnclosed <sub> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_Superscript_CleanTextContainsCloseTag()
+    {
+        const string input = "<sup>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</sup>",
+            $"Input: \"{input}\"\nUnclosed <sup> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_AllCaps_CleanTextContainsCloseTag()
+    {
+        const string input = "<allcaps>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</allcaps>",
+            $"Input: \"{input}\"\nUnclosed <allcaps> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_Lowercase_CleanTextContainsCloseTag()
+    {
+        const string input = "<lowercase>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</lowercase>",
+            $"Input: \"{input}\"\nUnclosed <lowercase> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_Uppercase_CleanTextContainsCloseTag()
+    {
+        const string input = "<uppercase>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</uppercase>",
+            $"Input: \"{input}\"\nUnclosed <uppercase> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // Counter-based tags: nested (multiple close tags)
+    // ═════════════════════════════════════════════════════════════════════════
+
+    [TestMethod]
+    public void CloseUnclosed_DoubleBold_TwoCloseTagsEmitted()
+    {
+        const string input = "<b><b>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        int count = CountOccurrences(clean, "</b>");
+        Assert.AreEqual(2, count,
+            $"Input: \"{input}\"\nExpected 2× </b>, found {count}.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_TripleItalic_ThreeCloseTagsEmitted()
+    {
+        const string input = "<i><i><i>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        int count = CountOccurrences(clean, "</i>");
+        Assert.AreEqual(3, count,
+            $"Input: \"{input}\"\nExpected 3× </i>, found {count}.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_PartiallyClosedBold_OnlyRemainingClosed()
+    {
+        // Open 3, close 1 manually → 2 should be auto-closed
+        const string input = "<b><b><b>text</b>";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        // Total </b> = 1 (manual) + 2 (auto) = 3
+        int count = CountOccurrences(clean, "</b>");
+        Assert.AreEqual(3, count,
+            $"Input: \"{input}\"\nExpected 3× </b> total (1 manual + 2 auto), found {count}.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // Stack-based tags
+    // ═════════════════════════════════════════════════════════════════════════
+
+    [TestMethod]
+    public void CloseUnclosed_Color_CleanTextContainsCloseTag()
+    {
+        const string input = "<color=red>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</color>",
+            $"Input: \"{input}\"\nUnclosed <color> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_NestedColors_TwoCloseTagsEmitted()
+    {
+        const string input = "<color=red><color=blue>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        int count = CountOccurrences(clean, "</color>");
+        Assert.AreEqual(2, count,
+            $"Input: \"{input}\"\nExpected 2× </color>, found {count}.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_Size_CleanTextContainsCloseTag()
+    {
+        const string input = "<size=32>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</size>",
+            $"Input: \"{input}\"\nUnclosed <size> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_NestedSizes_TwoCloseTagsEmitted()
+    {
+        const string input = "<size=24><size=48>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        int count = CountOccurrences(clean, "</size>");
+        Assert.AreEqual(2, count,
+            $"Input: \"{input}\"\nExpected 2× </size>, found {count}.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_Align_CleanTextContainsCloseTag()
+    {
+        const string input = "<align=left>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</align>",
+            $"Input: \"{input}\"\nUnclosed <align> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_Indent_CleanTextContainsCloseTag()
+    {
+        const string input = "<indent=20>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</indent>",
+            $"Input: \"{input}\"\nUnclosed <indent> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_Mark_CleanTextContainsCloseTag()
+    {
+        const string input = "<mark=red>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</mark>",
+            $"Input: \"{input}\"\nUnclosed <mark> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // Single-value tags
+    // ═════════════════════════════════════════════════════════════════════════
+
+    [TestMethod]
+    public void CloseUnclosed_CSpace_CleanTextContainsCloseTag()
+    {
+        const string input = "<cspace=3>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</cspace>",
+            $"Input: \"{input}\"\nUnclosed <cspace> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_Font_CleanTextContainsCloseTag()
+    {
+        const string input = "<font=Arial>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</font>",
+            $"Input: \"{input}\"\nUnclosed <font> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_FontWeight_CleanTextContainsCloseTag()
+    {
+        const string input = "<font-weight=700>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</font-weight>",
+            $"Input: \"{input}\"\nUnclosed <font-weight> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_LineHeight_CleanTextContainsCloseTag()
+    {
+        const string input = "<line-height=30>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</line-height>",
+            $"Input: \"{input}\"\nUnclosed <line-height> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_LineIndent_CleanTextContainsCloseTag()
+    {
+        const string input = "<line-indent=10>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</line-indent>",
+            $"Input: \"{input}\"\nUnclosed <line-indent> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_Margin_ClosesAsMarginLeftAndRight()
+    {
+        // <margin=15> sets both MarginLeft and MarginRight.
+        // CloseUnclosedTag closes them individually as </margin-left> and </margin-right>.
+        const string input = "<margin=15>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</margin-left>",
+            $"Input: \"{input}\"\nUnclosed <margin> must close margin-left.\nCleanText=\"{clean}\"" + Dump(result));
+        StringAssert.Contains(clean, "</margin-right>",
+            $"Input: \"{input}\"\nUnclosed <margin> must close margin-right.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_MarginLeft_CleanTextContainsCloseTag()
+    {
+        const string input = "<margin-left=10>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</margin-left>",
+            $"Input: \"{input}\"\nUnclosed <margin-left> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_MarginRight_CleanTextContainsCloseTag()
+    {
+        const string input = "<margin-right=10>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</margin-right>",
+            $"Input: \"{input}\"\nUnclosed <margin-right> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_MSpace_CleanTextContainsCloseTag()
+    {
+        const string input = "<mspace=10>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</mspace>",
+            $"Input: \"{input}\"\nUnclosed <mspace> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_Rotate_CleanTextContainsCloseTag()
+    {
+        const string input = "<rotate=45>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</rotate>",
+            $"Input: \"{input}\"\nUnclosed <rotate> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_VOffset_CleanTextContainsCloseTag()
+    {
+        const string input = "<voffset=5>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</voffset>",
+            $"Input: \"{input}\"\nUnclosed <voffset> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_Width_CleanTextContainsCloseTag()
+    {
+        const string input = "<width=400>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</width>",
+            $"Input: \"{input}\"\nUnclosed <width> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_Alpha_CleanTextContainsCloseTag()
+    {
+        const string input = "<alpha=#80>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</alpha>",
+            $"Input: \"{input}\"\nUnclosed <alpha> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // Boolean tags
+    // ═════════════════════════════════════════════════════════════════════════
+
+    [TestMethod]
+    public void CloseUnclosed_Smallcaps_CleanTextContainsCloseTag()
+    {
+        const string input = "<smallcaps>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</smallcaps>",
+            $"Input: \"{input}\"\nUnclosed <smallcaps> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_NoBr_CleanTextContainsCloseTag()
+    {
+        const string input = "<nobr>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</nobr>",
+            $"Input: \"{input}\"\nUnclosed <nobr> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_Noparse_CleanTextContainsCloseTag()
+    {
+        const string input = "<noparse>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        StringAssert.Contains(clean, "</noparse>",
+            $"Input: \"{input}\"\nUnclosed <noparse> must be closed.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // Noparse closed first (critical ordering)
+    // ═════════════════════════════════════════════════════════════════════════
+
+    [TestMethod]
+    public void CloseUnclosed_NoparseWithBoldInside_BoldAlsoClosedInOutput()
+    {
+        // <noparse> must be closed FIRST, so subsequent </b> is emitted
+        // as a real close tag and not treated as literal text.
+        const string input = "<b><noparse>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        // </noparse> must appear before </b>
+        int noparsePos = clean.IndexOf("</noparse>");
+        int boldPos = clean.IndexOf("</b>");
+
+        Assert.IsTrue(noparsePos >= 0,
+            $"Input: \"{input}\"\n</noparse> must be present.\nCleanText=\"{clean}\"" + Dump(result));
+        Assert.IsTrue(boldPos >= 0,
+            $"Input: \"{input}\"\n</b> must be present.\nCleanText=\"{clean}\"" + Dump(result));
+        Assert.IsTrue(noparsePos < boldPos,
+            $"Input: \"{input}\"\n</noparse> (pos={noparsePos}) must come before </b> (pos={boldPos}).\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_NoparseWithColorInside_ColorAlsoClosedInOutput()
+    {
+        const string input = "<color=red><noparse>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        int noparsePos = clean.IndexOf("</noparse>");
+        int colorPos = clean.IndexOf("</color>");
+
+        Assert.IsTrue(noparsePos >= 0 && colorPos >= 0,
+            $"Input: \"{input}\"\nBoth </noparse> and </color> must be present.\nCleanText=\"{clean}\"" + Dump(result));
+        Assert.IsTrue(noparsePos < colorPos,
+            $"Input: \"{input}\"\n</noparse> must come before </color>.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // Already-closed tags: no extra close emitted
+    // ═════════════════════════════════════════════════════════════════════════
+
+    [TestMethod]
+    public void CloseUnclosed_AlreadyClosedBold_NoExtraCloseTag()
+    {
+        const string input = "<b>text</b>";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        int count = CountOccurrences(clean, "</b>");
+        Assert.AreEqual(1, count,
+            $"Input: \"{input}\"\nAlready-closed <b> should have exactly 1× </b>, found {count}.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_AlreadyClosedColor_NoExtraCloseTag()
+    {
+        const string input = "<color=red>text</color>";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        int count = CountOccurrences(clean, "</color>");
+        Assert.AreEqual(1, count,
+            $"Input: \"{input}\"\nAlready-closed <color> should have exactly 1× </color>, found {count}.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_AlreadyClosedSize_NoExtraCloseTag()
+    {
+        const string input = "<size=32>text</size>";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        int count = CountOccurrences(clean, "</size>");
+        Assert.AreEqual(1, count,
+            $"Input: \"{input}\"\nAlready-closed <size> should have exactly 1× </size>, found {count}.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_FullyBalancedInput_NoAdditionalCloseTags()
+    {
+        const string input = "<b><i><color=red>text</color></i></b>";
+
+        var resultClose = NewParser().ParseText(input, ClosingSetting());
+        var resultNoClose = NewParser().ParseText(input, NonClosingSetting());
+
+        string cleanClose = LastCleanText(resultClose);
+        string cleanNoClose = LastCleanText(resultNoClose);
+
+        Assert.AreEqual(cleanNoClose, cleanClose,
+            $"Input: \"{input}\"\nFully balanced input should produce identical CleanText regardless of CloseUnclosedTags.\n" +
+            $"  CloseUnclosed=true:  \"{cleanClose}\"\n" +
+            $"  CloseUnclosed=false: \"{cleanNoClose}\"" + Dump(resultClose));
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // Disabled: CloseUnclosedTags=false
+    // ═════════════════════════════════════════════════════════════════════════
+
+    [TestMethod]
+    public void CloseUnclosed_Disabled_UnclosedBoldNotAutoClosedInCleanText()
+    {
+        const string input = "<b>text";
+        var result = NewParser().ParseText(input, NonClosingSetting());
+        string clean = LastCleanText(result);
+
+        int count = CountOccurrences(clean, "</b>");
+        Assert.AreEqual(0, count,
+            $"Input: \"{input}\"\nWith CloseUnclosedTags=false, no auto </b> should appear, found {count}.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_Disabled_UnclosedColorNotAutoClosedInCleanText()
+    {
+        const string input = "<color=red>text";
+        var result = NewParser().ParseText(input, NonClosingSetting());
+        string clean = LastCleanText(result);
+
+        int count = CountOccurrences(clean, "</color>");
+        Assert.AreEqual(0, count,
+            $"Input: \"{input}\"\nWith CloseUnclosedTags=false, no auto </color> should appear, found {count}.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // IllegalTags interaction
+    // ═════════════════════════════════════════════════════════════════════════
+
+    [TestMethod]
+    public void CloseUnclosed_IllegalBold_CloseTagNotEmittedInCleanText()
+    {
+        // If <b> is illegal, the open tag is stripped from CleanText,
+        // and the auto-close should also be stripped.
+        var setting = ClosingSetting(illegalTags: new[] { "b" });
+        const string input = "<b>text";
+        var result = NewParser().ParseText(input, setting);
+        string clean = LastCleanText(result);
+
+        Assert.IsFalse(clean.Contains("</b>"),
+            $"Input: \"{input}\"\nIllegal <b> auto-close must NOT appear in CleanText.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_IllegalColor_CloseTagNotEmittedButStyleReset()
+    {
+        var setting = ClosingSetting(illegalTags: new[] { "color" });
+        const string input = "<color=red>text";
+        var result = NewParser().ParseText(input, setting);
+        string clean = LastCleanText(result);
+
+        // Close tag stripped from output
+        Assert.IsFalse(clean.Contains("</color>"),
+            $"Input: \"{input}\"\nIllegal <color> auto-close must NOT appear in CleanText.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // Multi-line scenario
+    // ═════════════════════════════════════════════════════════════════════════
+
+    [TestMethod]
+    public void CloseUnclosed_TagOpenedBeforeNewline_ClosedOnLastLine()
+    {
+        const string input = "<b>line1\nline2";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string lastClean = LastCleanText(result);
+
+        StringAssert.Contains(lastClean, "</b>",
+            $"Input: \"{input}\"\nAuto-close </b> must appear on last line's CleanText.\nLastCleanText=\"{lastClean}\"" + Dump(result));
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // Combined stress test
+    // ═════════════════════════════════════════════════════════════════════════
+
+    [TestMethod]
+    public void CloseUnclosed_ManyMixedUnclosedTags_AllClosedInCleanText()
+    {
+        const string input = "<b><i><u><color=red><size=32><align=left><indent=10><cspace=3><font=Arial><voffset=5>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        string[] expectedCloseTags = new[]
+        {
+            "</b>", "</i>", "</u>", "</color>", "</size>",
+            "</align>", "</indent>", "</cspace>", "</font>", "</voffset>"
+        };
+
+        foreach (string tag in expectedCloseTags)
+        {
+            StringAssert.Contains(clean, tag,
+                $"Input: \"{input}\"\nMissing auto-close \"{tag}\" in CleanText.\nCleanText=\"{clean}\"" + Dump(result));
+        }
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_CounterAndStackMixed_CorrectCounts()
+    {
+        // 2× <b>, 1× <color>, 2× <size>
+        const string input = "<b><b><color=red><size=24><size=48>text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        Assert.AreEqual(2, CountOccurrences(clean, "</b>"),
+            $"Input: \"{input}\"\nExpected 2× </b>.\nCleanText=\"{clean}\"" + Dump(result));
+        Assert.AreEqual(1, CountOccurrences(clean, "</color>"),
+            $"Input: \"{input}\"\nExpected 1× </color>.\nCleanText=\"{clean}\"" + Dump(result));
+        Assert.AreEqual(2, CountOccurrences(clean, "</size>"),
+            $"Input: \"{input}\"\nExpected 2× </size>.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // Single-value tags already closed: no duplicate
+    // ═════════════════════════════════════════════════════════════════════════
+
+    [TestMethod]
+    public void CloseUnclosed_FontAlreadyClosed_NoExtraCloseTag()
+    {
+        const string input = "<font=Arial>text</font>";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        Assert.AreEqual(1, CountOccurrences(clean, "</font>"),
+            $"Input: \"{input}\"\nAlready-closed <font> should have exactly 1× </font>.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_VOffsetAlreadyClosed_NoExtraCloseTag()
+    {
+        const string input = "<voffset=5>text</voffset>";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        Assert.AreEqual(1, CountOccurrences(clean, "</voffset>"),
+            $"Input: \"{input}\"\nAlready-closed <voffset> should have exactly 1× </voffset>.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    // Plain text / no tags: nothing extra emitted
+    [TestMethod]
+    public void CloseUnclosed_PlainText_CleanTextHasNoCloseTags()
+    {
+        const string input = "just plain text";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        Assert.IsFalse(clean.Contains("</"),
+            $"Input: \"{input}\"\nPlain text should have no close tags.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    [TestMethod]
+    public void CloseUnclosed_EmptyInput_CleanTextIsEmpty()
+    {
+        const string input = "";
+        var result = NewParser().ParseText(input, ClosingSetting());
+        string clean = LastCleanText(result);
+
+        Assert.AreEqual("", clean,
+            $"Input: \"\"\nEmpty input CleanText must be empty.\nCleanText=\"{clean}\"" + Dump(result));
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // Utility
+    // ═════════════════════════════════════════════════════════════════════════
+
+    private static int CountOccurrences(string text, string pattern)
+    {
+        int count = 0;
+        int idx = 0;
+        while ((idx = text.IndexOf(pattern, idx, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            idx += pattern.Length;
+        }
+        return count;
     }
 }

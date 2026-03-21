@@ -19,19 +19,19 @@
         float GetCurrentYCoordinate(float rawYCoordinate, float textHeight, HintVerticalAlign from, HintVerticalAlign to);
 
         float GetEdgeOffset(float xyRatio, HintAlignment alignment);
-        
+
         float GetXCoordinateWithAlignment(Hint hint);
 
         float GetXCoordinateWithAlignment(Hint hint, HintAlignment alignment);
 
         float GetTextWidth(AbstractHint hint);
 
-        float GetTextWidth(string text, int fontSize, HintAlignment align = HintAlignment.Center);
+        float GetTextWidth(string text, float fontSize, HintAlignment align = HintAlignment.Center);
 
         float GetTextHeight(AbstractHint hint);
 
-        float GetTextHeight(string text, int fontSize, float lineHeight);
+        float GetTextHeight(string text, float fontSize, float lineHeight);
 
-        LineInfo[] GetLineInfos(string text, int fontSize, HintAlignment align = HintAlignment.Center);
+        LineInfo[] GetLineInfos(string text, float fontSize, HintAlignment align = HintAlignment.Center);
     }
 }

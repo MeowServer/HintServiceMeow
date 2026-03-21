@@ -7,11 +7,11 @@ namespace HintServiceMeow.Core.Models.Arguments
     {
         public LineInfo[] LineInfos { get; }
 
-        public IHintParameter[] Parameters { get; }
+        public IParameter[] Parameters { get; }
 
         public int ParameterIndex { get; }
 
-        public RichTextParserResult(LineInfo[] lineInfos, IHintParameter[] parameters, int parameterIndex)
+        public RichTextParserResult(LineInfo[] lineInfos, IParameter[] parameters, int parameterIndex)
         {
             LineInfos = lineInfos;
             Parameters = parameters;
