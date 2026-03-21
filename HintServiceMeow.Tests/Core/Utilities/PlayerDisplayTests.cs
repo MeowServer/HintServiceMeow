@@ -480,7 +480,8 @@ namespace HintServiceMeow.Tests.Core.Utilities
                 adaptor: new TestCompatibilityAdaptor(),
                 hintParser: blockingParser,
                 coroutineRunner: new TestCoroutineRunner(),
-                dispatcher: new TestMainThreadDispatcher());
+                dispatcher: new TestMainThreadDispatcher(),
+                displayOutputs: new[] { new TestDisplayOutput() });
 
             try
             {
