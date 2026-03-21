@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using HintServiceMeow.Core.Enum;
 using HintServiceMeow.Core.Interface;
-using HintServiceMeow.Core.Models;
 using HintServiceMeow.Core.Models.Arguments;
 
 namespace HintServiceMeow.Tests.Core.Utilities.TestDoubles
@@ -183,7 +183,7 @@ namespace HintServiceMeow.Tests.Core.Utilities.TestDoubles
 
         public int ParseCallCount { get; private set; }
 
-        public HintParserResult ParseToMessage(HintCollection collection)
+        public HintParserResult ParseToMessage(HintParserArgument arg)
         {
             ParseCallCount++;
             return ReturnResult;
@@ -192,19 +192,19 @@ namespace HintServiceMeow.Tests.Core.Utilities.TestDoubles
 
     internal sealed class DelegateHintParser : IHintParser
     {
-        private readonly Func<HintCollection, HintParserResult> parseFunc;
+        private readonly Func<HintParserArgument, HintParserResult> parseFunc;
 
-        public DelegateHintParser(Func<HintCollection, HintParserResult> parseFunc)
+        public DelegateHintParser(Func<HintParserArgument, HintParserResult> parseFunc)
         {
             this.parseFunc = parseFunc ?? throw new ArgumentNullException(nameof(parseFunc));
         }
 
         public int ParseCallCount { get; private set; }
 
-        public HintParserResult ParseToMessage(HintCollection collection)
+        public HintParserResult ParseToMessage(HintParserArgument arg)
         {
             ParseCallCount++;
-            return parseFunc(collection);
+            return parseFunc(arg);
         }
     }
 
@@ -234,6 +234,8 @@ namespace HintServiceMeow.Tests.Core.Utilities.TestDoubles
 
         public bool ThrowOnShow { get; set; }
 
+        public IScreenResolution ScreenResolution { get; } = new TestScreenResolution();
+
         public void ShowHint(DisplayOutputArg ev)
         {
             if (ThrowOnShow)
@@ -241,6 +243,13 @@ namespace HintServiceMeow.Tests.Core.Utilities.TestDoubles
 
             Calls.Add(ev);
         }
+    }
+
+    internal sealed class TestScreenResolution : IScreenResolution
+    {
+        public float XyRatio { get; } = 16f / 9f;
+
+        public event PropertyChangedEventHandler PropertyChanged;
     }
 
     /// <summary>

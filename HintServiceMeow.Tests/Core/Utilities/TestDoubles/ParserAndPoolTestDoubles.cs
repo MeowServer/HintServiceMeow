@@ -89,4 +89,24 @@ internal sealed class StubCoordinateTools : ICoordinateTools
 
     public LineInfo[] GetLineInfos(string text, int fontSize, HintAlignment align = HintAlignment.Center)
         => [new LineInfo([], LineStyle.Default, string.Empty)];
+
+    public float GetEdgeOffset(float xyRatio, HintAlignment alignment)
+    {
+        throw new NotImplementedException();
+    }
+
+    public float GetTextWidth(string text, float fontSize, HintAlignment align = HintAlignment.Center)
+    {
+        throw new NotImplementedException();
+    }
+
+    public float GetTextHeight(string text, float fontSize, float lineHeight)
+    {
+        throw new NotImplementedException();
+    }
+
+    public LineInfo[] GetLineInfos(string text, float fontSize, HintAlignment align = HintAlignment.Center)
+    {
+        throw new NotImplementedException();
+    }
 }

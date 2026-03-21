@@ -35,11 +35,13 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
         [ParamsSource(nameof(GetParameters))]
         public HintParams CurrentParams { get; set; }
 
+        public const float AspectRatio = 16f / 9f;
+
         public List<Hint> hints;
         public List<DynamicHint> dynamicHints;
-        public HintCollection hintCollection;
-        public HintCollection hintOnlyCollection;
-        public HintCollection dynamicHintOnlyCollection;
+        public HintParserArgument hintArg;
+        public HintParserArgument hintOnlyArg;
+        public HintParserArgument dynamicHintOnlyArg;
         public List<string> testRichTexts;
 
         // Use GlobalSetup instead of the constructor. BenchmarkDotNet calls this 
@@ -50,9 +52,9 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
             // Re-initialize collections for each parameter run to prevent data carryover.
             hints = new List<Hint>();
             dynamicHints = new List<DynamicHint>();
-            hintCollection = new HintCollection();
-            hintOnlyCollection = new HintCollection();
-            dynamicHintOnlyCollection = new HintCollection();
+            var hintCollection = new HintCollection();
+            var hintOnlyCollection = new HintCollection();
+            var dynamicHintOnlyCollection = new HintCollection();
 
             // Static constructor to initialize any static data if needed in the future.
             for (int i = 0; i < CurrentParams.RegularHints; i++)
@@ -96,6 +98,10 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
                 dynamicHintOnlyCollection.AddHint($"Assembly_Dynamic_{i % 3}", dynamicHint);
                 hintCollection.AddHint($"Assembly_Dynamic_{i % 3}", dynamicHint);
             }
+
+            hintArg = new HintParserArgument(hintCollection, AspectRatio);
+            hintOnlyArg = new HintParserArgument(hintOnlyCollection, AspectRatio);
+            dynamicHintOnlyArg = new HintParserArgument(dynamicHintOnlyCollection, AspectRatio);
         }
 
         [Benchmark()]
@@ -105,7 +111,7 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
             // and use the populated 'hintCollection' instead to ensure actual load testing.
             HintParser parser = new HintParser();
 
-            HintParserResult result = parser.ParseToMessage(hintCollection);
+            HintParserResult result = parser.ParseToMessage(hintArg);
 
             // Ensure the result is not optimized away by the compiler 
             // (If the framework requires assertions, a rough check on resultMessage.Length can be done here).
@@ -120,7 +126,7 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
         {
             HintParser parser = new HintParser();
 
-            HintParserResult result = parser.ParseToMessage(hintOnlyCollection);
+            HintParserResult result = parser.ParseToMessage(hintOnlyArg);
 
             if (string.IsNullOrEmpty(result.Content))
             {
@@ -133,7 +139,7 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
         {
             HintParser parser = new HintParser();
 
-            HintParserResult result = parser.ParseToMessage(dynamicHintOnlyCollection);
+            HintParserResult result = parser.ParseToMessage(dynamicHintOnlyArg);
 
             if (string.IsNullOrEmpty(result.Content))
             {
