@@ -217,10 +217,10 @@ namespace HintServiceMeow.Core.Utilities
         /// <summary>
         /// Forces an immediate display update. Only needed when using <see cref="HintSyncSpeed.UnSync"/>.
         /// </summary>
-        /// <param name="useFastUpdate">If <see langword="true"/>, schedules the update as soon as possible; otherwise applies a short delay.</param>
-        public void ForceUpdate(bool useFastUpdate = false)
+        /// <param name="maxDelay">Set the maximum delay for this update. Setting a longer max delay can reduce the resource usage.</param>
+        public void ForceUpdate(float maxDelay = 0.3f)
         {
-            ScheduleUpdate(useFastUpdate ? 0f : 0.3f);
+            ScheduleUpdate(maxDelay);
         }
 
         /// <summary>
@@ -518,7 +518,7 @@ namespace HintServiceMeow.Core.Utilities
         /// <returns>An enumerable sequence of matching hints.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="id"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentException">Thrown when <paramref name="id"/> is an empty string.</exception>
-        public IEnumerable<AbstractHint> GetHints(string id)
+        public AbstractHint[] GetHints(string id)
         {
             if (id is null)
                 throw new ArgumentNullException(nameof(id));
@@ -533,7 +533,7 @@ namespace HintServiceMeow.Core.Utilities
         /// Returns all hints registered by the calling assembly.
         /// </summary>
         /// <returns>An enumerable sequence of all hints belonging to the calling assembly.</returns>
-        public IEnumerable<AbstractHint> GetHints()
+        public AbstractHint[] GetHints()
         {
             return InternalGetHints(Assembly.GetCallingAssembly().FullName);
         }
@@ -574,7 +574,6 @@ namespace HintServiceMeow.Core.Utilities
         /// <returns><see langword="true"/> if a matching hint was found; otherwise <see langword="false"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="id"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentException">Thrown when <paramref name="id"/> is an empty string.</exception>
-#nullable disable
         public bool TryGetHint(string id, out AbstractHint hint)
         {
             if (id is null)
@@ -599,7 +598,6 @@ namespace HintServiceMeow.Core.Utilities
             hint = InternalGetHints(Assembly.GetCallingAssembly().FullName, x => x.Guid == guid).FirstOrDefault();
             return hint != null;
         }
-#nullable restore
 
         /// <summary>
         /// Attempts to retrieve all hints registered by the calling assembly that match the specified identifier.
@@ -727,12 +725,12 @@ namespace HintServiceMeow.Core.Utilities
             hintCollection.ClearHints(name);
         }
 
-        internal IReadOnlyList<AbstractHint> InternalGetHints(string name)
+        internal AbstractHint[] InternalGetHints(string name)
         {
             return hintCollection.GetHints(name);
         }
 
-        internal IReadOnlyList<AbstractHint> InternalGetHints(string name, Func<AbstractHint, bool> predicate)
+        internal AbstractHint[] InternalGetHints(string name, Func<AbstractHint, bool> predicate)
         {
             return hintCollection.GetHints(name, predicate);
         }
