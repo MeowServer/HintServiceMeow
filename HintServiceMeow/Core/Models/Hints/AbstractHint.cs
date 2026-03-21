@@ -36,7 +36,7 @@ namespace HintServiceMeow.Core.Models.Hints
 
         private bool hide;
 
-        private HintParameterCollection parameters = new();
+        private ParameterCollection parameters = new();
 
         private ResolutionOption resolutionOption = ResolutionOption.Offset;
 
@@ -524,7 +524,7 @@ namespace HintServiceMeow.Core.Models.Hints
         }
 
 
-        public HintParameterCollection Parameters
+        public ParameterCollection Parameters
         {
             get
             {
@@ -639,6 +639,7 @@ namespace HintServiceMeow.Core.Models.Hints
             this.fontSizeTransition = copyFrom.FontSizeTransition;
             this.fontSizeTransitionState = copyFrom.FontSizeTransitionState;
             this.resolutionOption = copyFrom.ResolutionOption;
+            this.parameters = new ParameterCollection(copyFrom.Parameters);
         }
 
         /// <summary>
