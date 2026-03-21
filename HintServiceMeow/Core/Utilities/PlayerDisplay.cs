@@ -50,14 +50,13 @@ namespace HintServiceMeow.Core.Utilities
         internal PlayerDisplay(
             IPlayerContext playerContext,
             HintCollection? displayHints = null,
+            ITaskScheduler? updateScheduler = null,
             ICompatibilityAdaptor? adaptor = null,
             IHintParser? hintParser = null,
             IEnumerable<IDisplayOutput>? displayOutputs = null,
-            ServiceContext? context = null)
+            IMainThreadDispatcher? dispatcher = null,
+            ICoroutineRunner? coroutineRunner = null)
         {
-            if (context == null)
-                context = ServiceContext.Default;
-
             // Initialize each components
             this.playerContext = playerContext ?? throw new ArgumentNullException(nameof(playerContext));
 
@@ -74,11 +73,13 @@ namespace HintServiceMeow.Core.Utilities
                 }
             }
 
-            this.mainThreadDispatcher = context.MainThreadDispatcher;
-            this.coroutineRunner = context.CoroutineRunner;
+            if (dispatcher != null)
+                this.mainThreadDispatcher = dispatcher;
+            if (coroutineRunner != null)
+                this.coroutineRunner = coroutineRunner;
 
             adapter = adaptor ?? new CompatibilityAdaptor(this); // Default compatibility adaptor
-            this.updateScheduler = context.TaskScheduler; // Default task scheduler with zero interval
+            this.updateScheduler = updateScheduler ?? new TaskScheduler(); // Default task scheduler with zero interval
 
             // When collection changed, update the content on player's screen
             this.hintCollection.CollectionChanged += OnCollectionChanged;

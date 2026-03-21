@@ -57,16 +57,16 @@
 
         public HintParser(
             ICache<Guid, ValueTuple<float, float>>? dynamicHintPositionCache = null,
-            ServiceContext? context = null)
+            ICoordinateTools? coordinateTool = null,
+            IPool<StringBuilder>? stringBuilderPool = null,
+            IPool<RichTextParser>? richTextParserPool = null,
+            IPool<Hint>? hintPool = null)
         {
-            if (context == null)
-                return;
-
             this.dynamicHintPositionCache = dynamicHintPositionCache ?? new Cache<Guid, ValueTuple<float, float>>(500);
-            this.coordinateTool = context.CoordinateTools ?? new CoordinateTools();
-            this.stringBuilderPool = context.StringBuilderPool ?? StringBuilderPool.Instance;
-            this.richTextParserPool = context.RichTextParserPool ?? RichTextParserPool.Instance;
-            this.hintPool = context.HintPool ?? HintPool.Instance;
+            this.coordinateTool = coordinateTool ?? new CoordinateTools();
+            this.stringBuilderPool = stringBuilderPool ?? StringBuilderPool.Instance;
+            this.richTextParserPool = richTextParserPool ?? RichTextParserPool.Instance;
+            this.hintPool = hintPool ?? HintPool.Instance;
         }
 
         public HintParserResult ParseToMessage(HintParserArgument arg)
