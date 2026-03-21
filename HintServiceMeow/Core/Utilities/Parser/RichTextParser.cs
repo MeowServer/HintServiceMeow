@@ -1,5 +1,6 @@
 ﻿namespace HintServiceMeow.Core.Utilities.Parser
 {
+    using System;
     using System.Collections.Generic;
     using System.Text;
     using HintServiceMeow.Core.Enum;
@@ -16,6 +17,8 @@
     /// </summary>
     internal class RichTextParser
     {
+        private static Cache<ValueTuple<string, RichTextParserSetting>, RichTextParserResult> parserCache = new Cache<ValueTuple<string, RichTextParserSetting>, RichTextParserResult>(200);
+
         private object parserLock = new object();
 
         private TextSegmentStyle? charStyleCache;
@@ -37,6 +40,11 @@
 
         public RichTextParserResult ParseText(string rawText, RichTextParserSetting setting)
         {
+            if (parserCache.TryGet((rawText, setting), out RichTextParserResult cachedResult))
+            {
+                return cachedResult;
+            }
+
             lock (parserLock)
             {
                 // Reset
