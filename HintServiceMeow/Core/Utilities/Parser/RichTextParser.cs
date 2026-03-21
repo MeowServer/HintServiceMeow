@@ -90,6 +90,9 @@
                     }
                 }
 
+                if (setting.CloseUnclosedTags)
+                    CloseUnclosedTag();
+
                 // Finish last line
                 FinishLine(defaultStyle, false);
 
@@ -104,6 +107,221 @@
 
                 return new RichTextParserResult(lineInfosArray, parametersArray, parameterIndex);
             }
+        }
+
+        private void CloseUnclosedTag()
+        {
+            // NoParse must be closed first, otherwise subsequent closing tags would be treated as text
+            if (currentStyle.NoParse)
+            {
+                currentStyle.NoParse = false;
+                if (!illegalTags.Contains("noparse"))
+                    sb!.Append("</noparse>");
+            }
+
+            // ── Stack-based tags ──────────────────────────────────────
+            for (int i = 0; i < currentStyle.Alignment.Count; i++)
+            {
+                if (!illegalTags.Contains("align"))
+                    sb!.Append("</align>");
+            }
+            currentStyle.Alignment.Clear();
+
+            for (int i = 0; i < currentStyle.Color.Count; i++)
+            {
+                if (!illegalTags.Contains("color"))
+                    sb!.Append("</color>");
+            }
+            currentStyle.Color.Clear();
+
+            for (int i = 0; i < currentStyle.Indent.Count; i++)
+            {
+                if (!illegalTags.Contains("indent"))
+                    sb!.Append("</indent>");
+            }
+            currentStyle.Indent.Clear();
+
+            for (int i = 0; i < currentStyle.Mark.Count; i++)
+            {
+                if (!illegalTags.Contains("mark"))
+                    sb!.Append("</mark>");
+            }
+            currentStyle.Mark.Clear();
+
+            for (int i = 0; i < currentStyle.FontSize.Count; i++)
+            {
+                if (!illegalTags.Contains("size"))
+                    sb!.Append("</size>");
+            }
+            currentStyle.FontSize.Clear();
+
+            // ── Counter-based tags ────────────────────────────────────
+            for (int i = 0; i < currentStyle.AllCaps; i++)
+            {
+                if (!illegalTags.Contains("allcaps"))
+                    sb!.Append("</allcaps>");
+            }
+            currentStyle.AllCaps = 0;
+
+            for (int i = 0; i < currentStyle.Bold; i++)
+            {
+                if (!illegalTags.Contains("b"))
+                    sb!.Append("</b>");
+            }
+            currentStyle.Bold = 0;
+
+            for (int i = 0; i < currentStyle.Italic; i++)
+            {
+                if (!illegalTags.Contains("i"))
+                    sb!.Append("</i>");
+            }
+            currentStyle.Italic = 0;
+
+            for (int i = 0; i < currentStyle.Lowercase; i++)
+            {
+                if (!illegalTags.Contains("lowercase"))
+                    sb!.Append("</lowercase>");
+            }
+            currentStyle.Lowercase = 0;
+
+            for (int i = 0; i < currentStyle.Strikethrough; i++)
+            {
+                if (!illegalTags.Contains("s"))
+                    sb!.Append("</s>");
+            }
+            currentStyle.Strikethrough = 0;
+
+            for (int i = 0; i < currentStyle.Subscript; i++)
+            {
+                if (!illegalTags.Contains("sub"))
+                    sb!.Append("</sub>");
+            }
+            currentStyle.Subscript = 0;
+
+            for (int i = 0; i < currentStyle.Superscript; i++)
+            {
+                if (!illegalTags.Contains("sup"))
+                    sb!.Append("</sup>");
+            }
+            currentStyle.Superscript = 0;
+
+            for (int i = 0; i < currentStyle.Underline; i++)
+            {
+                if (!illegalTags.Contains("u"))
+                    sb!.Append("</u>");
+            }
+            currentStyle.Underline = 0;
+
+            for (int i = 0; i < currentStyle.Uppercase; i++)
+            {
+                if (!illegalTags.Contains("uppercase"))
+                    sb!.Append("</uppercase>");
+            }
+            currentStyle.Uppercase = 0;
+
+            // ── Single-value tags ─────────────────────────────────────
+            if (currentStyle.Alpha.HasValue)
+            {
+                currentStyle.Alpha = null;
+                if (!illegalTags.Contains("alpha"))
+                    sb!.Append("</alpha>");
+            }
+
+            if (currentStyle.CharSpace.HasValue)
+            {
+                currentStyle.CharSpace = null;
+                if (!illegalTags.Contains("cspace"))
+                    sb!.Append("</cspace>");
+            }
+
+            if (currentStyle.Font != null)
+            {
+                currentStyle.Font = null;
+                if (!illegalTags.Contains("font"))
+                    sb!.Append("</font>");
+            }
+
+            if (currentStyle.FontWeight.HasValue)
+            {
+                currentStyle.FontWeight = null;
+                if (!illegalTags.Contains("font-weight"))
+                    sb!.Append("</font-weight>");
+            }
+
+            if (currentStyle.LineHeight.HasValue)
+            {
+                currentStyle.LineHeight = null;
+                if (!illegalTags.Contains("line-height"))
+                    sb!.Append("</line-height>");
+            }
+
+            if (currentStyle.LineIndent.HasValue)
+            {
+                currentStyle.LineIndent = null;
+                if (!illegalTags.Contains("line-indent"))
+                    sb!.Append("</line-indent>");
+            }
+
+            if (currentStyle.MarginLeft.HasValue)
+            {
+                currentStyle.MarginLeft = null;
+                if (!illegalTags.Contains("margin-left"))
+                    sb!.Append("</margin-left>");
+            }
+
+            if (currentStyle.MarginRight.HasValue)
+            {
+                currentStyle.MarginRight = null;
+                if (!illegalTags.Contains("margin-right"))
+                    sb!.Append("</margin-right>");
+            }
+
+            if (currentStyle.Monospace.HasValue)
+            {
+                currentStyle.Monospace = null;
+                if (!illegalTags.Contains("mspace"))
+                    sb!.Append("</mspace>");
+            }
+
+            if (currentStyle.Rotate.HasValue)
+            {
+                currentStyle.Rotate = null;
+                if (!illegalTags.Contains("rotate"))
+                    sb!.Append("</rotate>");
+            }
+
+            if (currentStyle.VOffset.HasValue)
+            {
+                currentStyle.VOffset = null;
+                if (!illegalTags.Contains("voffset"))
+                    sb!.Append("</voffset>");
+            }
+
+            if (currentStyle.Width.HasValue)
+            {
+                currentStyle.Width = null;
+                if (!illegalTags.Contains("width"))
+                    sb!.Append("</width>");
+            }
+
+            // ── Boolean tags ──────────────────────────────────────────
+            if (currentStyle.NoBreak)
+            {
+                currentStyle.NoBreak = false;
+                if (!illegalTags.Contains("nobr"))
+                    sb!.Append("</nobr>");
+            }
+
+            if (currentStyle.Smallcap)
+            {
+                currentStyle.Smallcap = false;
+                if (!illegalTags.Contains("smallcaps"))
+                    sb!.Append("</smallcaps>");
+            }
+
+            // Clear caches since styles have been reset
+            ClearCharStyleCache();
+            ClearLineStyleCache();
         }
 
         private void HandleText(string text)

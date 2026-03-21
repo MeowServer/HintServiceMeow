@@ -10,12 +10,14 @@ namespace HintServiceMeow.Core.Models.Arguments
         public RichTextParserSetting(TextMeshStyle defaultStyle,
             Tuple<string, IParameter>[] parameters,
             string[] illegalTags,
-            HashSet<string> ignoreTags)
+            HashSet<string> ignoreTags,
+            bool closeUnclosedTags)
         {
             DefaultStyle = defaultStyle;
             Parameters = parameters;
             IllegalTags = illegalTags;
             IgnoreTags = ignoreTags;
+            CloseUnclosedTags = closeUnclosedTags;
         }
 
         public TextMeshStyle DefaultStyle { get; }
@@ -27,6 +29,8 @@ namespace HintServiceMeow.Core.Models.Arguments
         public HashSet<string> IgnoreTags { get; }
 
         public int ParameterIndex { get; }
+
+        public bool CloseUnclosedTags { get; set; }
 
         public bool Equals(RichTextParserSetting other)
         {

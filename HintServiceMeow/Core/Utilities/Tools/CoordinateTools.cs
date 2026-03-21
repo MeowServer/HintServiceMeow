@@ -21,7 +21,8 @@
 
         private readonly RichTextParserSetting settingTemplate = new RichTextParserSetting(TextMeshStyle.Default, [], [],
             ["a", "allcaps", "alpha", "b", "color", "font", "font-weight", "gradient",
-            "i", "lowercase", "mark", "noparse", "s", "smallcaps", "style", "sub", "sup", "u", "uppercase", "link"]); // Tags that does not affect the size of the text, so they can be ignored when calculating text size.
+            "i", "lowercase", "mark", "noparse", "s", "smallcaps", "style", "sub", "sup", "u", "uppercase", "link"],
+            true); // Tags that does not affect the size of the text, so they can be ignored when calculating text size.
 
         public CoordinateTools(IPool<RichTextParser>? richTextParserPool = null)
         {
