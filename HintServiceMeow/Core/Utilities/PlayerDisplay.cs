@@ -910,7 +910,7 @@ namespace HintServiceMeow.Core.Utilities
                                 });
                             }
 
-                            MainThreadDispatcher.Dispatch(() =>
+                            mainThreadDispatcher.Dispatch(() =>
                             {
                                 lock (currentParserTaskLock)
                                 {

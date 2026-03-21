@@ -1382,10 +1382,10 @@ public class RichTextParserTests
         const string input = "{foo}";
         var result = NewParser().ParseText(input, setting);
 
-        bool hasIndexSeg = result.LineInfos[0].CharacterInfos.Any(s => s.Text == "0");
+        bool hasIndexSeg = result.LineInfos[0].CharacterInfos.Any(s => s.Text == "{0}");
         string allTexts = string.Join(", ", result.LineInfos[0].CharacterInfos.Select(s => $"\"{s.Text}\""));
         Assert.IsTrue(hasIndexSeg,
-            $"Input: \"{input}\"\nExpected a segment with Text=\"0\". Actual segments: [{allTexts}]." + Dump(result));
+            $"Input: \"{input}\"\nExpected a segment with Text=\"{{0}}\". Actual segments: [{allTexts}]." + Dump(result));
     }
 
     [TestMethod]
@@ -1434,10 +1434,10 @@ public class RichTextParserTests
         var segs = result.LineInfos[0].CharacterInfos;
         string allTexts = string.Join(", ", segs.Select(s => $"\"{s.Text}\""));
 
-        Assert.IsTrue(segs.Any(s => s.Text == "0"),
-            $"Input: \"{input}\"\nExpected segment \"0\". Segments: [{allTexts}]." + Dump(result));
-        Assert.IsTrue(segs.Any(s => s.Text == "1"),
-            $"Input: \"{input}\"\nExpected segment \"1\". Segments: [{allTexts}]." + Dump(result));
+        Assert.IsTrue(segs.Any(s => s.Text == "{0}"),
+            $"Input: \"{input}\"\nExpected segment \"{{0}}\". Segments: [{allTexts}]." + Dump(result));
+        Assert.IsTrue(segs.Any(s => s.Text == "{1}"),
+            $"Input: \"{input}\"\nExpected segment \"{{1}}\". Segments: [{allTexts}]." + Dump(result));
     }
 
     [TestMethod]

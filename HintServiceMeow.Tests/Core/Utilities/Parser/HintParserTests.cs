@@ -13,6 +13,8 @@ namespace HintServiceMeow.Tests.Core.Utilities.Parser;
 [TestClass]
 public class HintParserTests
 {
+    private const float AspectRatio = 16f / 9f;
+
     [TestMethod]
     public void ParseToMessage_WhenHiddenAndEmptyHintsExist_FiltersThemOut()
     {
@@ -21,11 +23,12 @@ public class HintParserTests
         collection.AddHint("a", new Hint { Text = "visible" });
         collection.AddHint("a", new Hint { Hide = true, Text = "hidden" });
         collection.AddHint("a", new Hint { Text = "" });
+        HintParserArgument arg = new(collection, AspectRatio);
 
         HintParser parser = new();
 
         // Act
-        HintParserResult result = parser.ParseToMessage(collection);
+        HintParserResult result = parser.ParseToMessage(arg);
 
         // Assert
         StringAssert.Contains(result.Content, "visible");
@@ -38,11 +41,12 @@ public class HintParserTests
         // Arrange
         HintCollection collection = new();
         collection.AddHint("a", new Hint { Text = "<line-height=10><voffset=20>Y</voffset>" });
+        HintParserArgument arg = new(collection, AspectRatio);
 
         HintParser parser = new();
 
         // Act
-        HintParserResult result = parser.ParseToMessage(collection);
+        HintParserResult result = parser.ParseToMessage(arg);
 
         // Assert
         Assert.IsFalse(result.Content.Contains("<line-height=10>"));
@@ -58,11 +62,12 @@ public class HintParserTests
         Hint high = new() { Text = "high", YCoordinate = 400 };
         collection.AddHint("a", high);
         collection.AddHint("a", low);
+        HintParserArgument arg = new(collection, AspectRatio);
 
         HintParser parser = new(coordinateTool: new StubCoordinateTools { YConverter = (h, _) => h.YCoordinate });
 
         // Act
-        HintParserResult result = parser.ParseToMessage(collection);
+        HintParserResult result = parser.ParseToMessage(arg);
 
         // Assert
         Assert.IsTrue(result.Content.IndexOf("low", StringComparison.Ordinal) < result.Content.IndexOf("high", StringComparison.Ordinal));
@@ -85,12 +90,13 @@ public class HintParserTests
             BottomBoundary = 100,
             Strategy = DynamicHintStrategy.Hide,
         });
+        HintParserArgument arg = new(collection, AspectRatio);
 
         StubCoordinateTools tools = new() { TextWidth = _ => 1000, TextHeight = _ => 500, YConverter = (h, _) => h.YCoordinate };
         HintParser parser = new(coordinateTool: tools);
 
         // Act
-        HintParserResult result = parser.ParseToMessage(collection);
+        HintParserResult result = parser.ParseToMessage(arg);
 
         // Assert
         Assert.IsFalse(result.Content.Contains("dynamic"));
@@ -103,11 +109,12 @@ public class HintParserTests
         HintCollection collection = new();
         collection.AddHint("a", new Hint { Text = "<b>g1" });
         collection.AddHint("b", new Hint { Text = "g2" });
+        HintParserArgument arg = new(collection, AspectRatio);
 
         HintParser parser = new();
 
         // Act
-        HintParserResult result = parser.ParseToMessage(collection);
+        HintParserResult result = parser.ParseToMessage(arg);
 
         // Assert
         StringAssert.Contains(result.Content, "</align></size></b></i>");
@@ -122,11 +129,12 @@ public class HintParserTests
 
         HintCollection collection = new();
         collection.AddHint("a", new Hint { Text = "hello" });
+        HintParserArgument arg = new(collection, AspectRatio);
 
         HintParser parser = new(stringBuilderPool: sbPool, richTextParserPool: parserPool);
 
         // Act
-        _ = parser.ParseToMessage(collection);
+        _ = parser.ParseToMessage(arg);
 
         // Assert
         Assert.AreEqual(sbPool.RentCount, sbPool.ReturnCount);
