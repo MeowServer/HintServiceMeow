@@ -128,7 +128,13 @@
                         outTangent: keys[i].OutTangent * range / duration);
                 }
 
-                return CurveFactory.Build(scaled);
+                IAnimationCurve result = CurveFactory.Build(scaled);
+
+                // Copy wrap modes
+                result.PreWrapMode = curve.PreWrapMode;
+                result.PostWrapMode = curve.PostWrapMode;
+
+                return result;
             }
         }
 
