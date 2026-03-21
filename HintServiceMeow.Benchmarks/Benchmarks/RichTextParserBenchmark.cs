@@ -48,7 +48,8 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
                 TextMeshStyle.Default,
                 Array.Empty<Tuple<string, IParameter>>(),
                 Array.Empty<string>(),
-                new HashSet<string>());
+                new HashSet<string>(),
+                true);
 
             parser = new RichTextParser();
         }
@@ -99,7 +100,8 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
                 TextMeshStyle.Default,
                 Array.Empty<Tuple<string, IParameter>>(),
                 Array.Empty<string>(),
-                new HashSet<string>());
+                new HashSet<string>(),
+                true);
 
             parser = new RichTextParser();
 
@@ -299,7 +301,8 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
                 TextMeshStyle.Default,
                 Array.Empty<Tuple<string, IParameter>>(),
                 Array.Empty<string>(),
-                new HashSet<string>());
+                new HashSet<string>(),
+                true);
             parser = new RichTextParser();
         }
 
@@ -377,7 +380,8 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
                 TextMeshStyle.Default,
                 Array.Empty<Tuple<string, IParameter>>(),
                 Array.Empty<string>(),
-                new HashSet<string>());
+                new HashSet<string>(),
+                true);
 
             parser = new RichTextParser();
 
@@ -428,7 +432,8 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
                 TextMeshStyle.Default,
                 Array.Empty<Tuple<string, IParameter>>(),
                 Array.Empty<string>(),
-                new HashSet<string>());
+                new HashSet<string>(),
+                true);
 
             settingWithIgnore = new RichTextParserSetting(
                 TextMeshStyle.Default,
@@ -439,7 +444,8 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
                     "a", "allcaps", "alpha", "b", "color", "font", "font-weight", "gradient",
                     "i", "lowercase", "mark", "noparse", "s", "smallcaps", "style", "sub",
                     "sup", "u", "uppercase", "link"
-                });
+                },
+                true);
         }
 
         [Benchmark(Baseline = true)]
@@ -476,7 +482,8 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
                 TextMeshStyle.Default,
                 Array.Empty<Tuple<string, IParameter>>(),
                 Array.Empty<string>(),
-                new HashSet<string>());
+                new HashSet<string>(),
+                true);
 
             var sb = new StringBuilder();
             for (int i = 0; i < 10; i++)
