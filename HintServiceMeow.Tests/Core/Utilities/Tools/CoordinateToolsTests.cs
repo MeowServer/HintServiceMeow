@@ -28,6 +28,18 @@ public class CoordinateToolsTests
     }
 
     [TestMethod]
+    public void GetEdgeOffset_WhenCalled_ReturnCorrectValue()
+    {
+        CoordinateTools tool = new();
+
+        Assert.AreEqual(0, tool.GetEdgeOffset(0, HintAlignment.Center));
+        Assert.AreEqual(0, tool.GetEdgeOffset(0, HintAlignment.Right));
+
+        Assert.AreEqual(-360f, tool.GetEdgeOffset(16f / 9f, HintAlignment.Left));
+        Assert.AreEqual(-120f, tool.GetEdgeOffset(4f / 3f, HintAlignment.Left));
+    }
+
+    [TestMethod]
     public void GetXCoordinateWithAlignment_WhenAlignmentVaries_AppliesCanvasOffsets()
     {
         // Arrange
