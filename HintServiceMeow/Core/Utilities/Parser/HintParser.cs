@@ -148,7 +148,6 @@
                 // When a group ends
                 if (orderedHintGroups[i] is null)
                 {
-                    messageBuilder.AppendLine("</align></size></b></i>"); // Make sure one group will not affect another group
                     continue;
                 }
 
@@ -161,14 +160,6 @@
             HintParserResult result = new HintParserResult(messageBuilder.ToString(), hintParameters.ToArray());
 
             // Clear buffer
-            orderedHintGroups.Clear();
-            dynamicHintColliders.Clear();
-            for (int i = 0; i < rentedHints.Count; i++)// Return rented hints to pool
-            {
-                hintPool.Return(rentedHints[i]);
-            }
-
-            rentedHints.Clear();
             stringBuilderPool.Return(messageBuilder);
             Clear();
 
@@ -437,6 +428,14 @@
 
         private void Clear()
         {
+            for (int i = 0; i < rentedHints.Count; i++)// Return rented hints to pool
+            {
+                hintPool.Return(rentedHints[i]);
+            }
+
+            rentedHints.Clear();
+            orderedHintGroups.Clear();
+            dynamicHintColliders.Clear();
             parameterIndex = 0;
             hintParameters.Clear();
         }
