@@ -38,12 +38,14 @@
 
         internal CompatibilityAdaptor(
             PlayerDisplay playerDisplay,
-            IPool<RichTextParser>? richTextParserPool = null,
-            ICoroutineRunner? coroutineRunner = null)
+            ServiceContext? context = null)
         {
+            if (context == null)
+                context = ServiceContext.Default;
+
             this.playerDisplay = playerDisplay ?? throw new ArgumentNullException(nameof(playerDisplay));
-            this.richTextParserPool = richTextParserPool ?? RichTextParserPool.Instance;
-            this.coroutineRunner = coroutineRunner ?? new UnityCoroutineRunner();
+            this.richTextParserPool = context.RichTextParserPool ?? RichTextParserPool.Instance;
+            this.coroutineRunner = context.CoroutineRunner ?? new UnityCoroutineRunner();
         }
 
         void IDestructible.Destruct()
