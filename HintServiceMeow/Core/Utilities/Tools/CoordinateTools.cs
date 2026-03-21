@@ -180,7 +180,7 @@
             return GetTextWidth(hint.Content.GetText(), hint.FontSize);
         }
 
-        public float GetTextWidth(string? text, int fontSize, HintAlignment align = HintAlignment.Center)
+        public float GetTextWidth(string? text, float fontSize, HintAlignment align = HintAlignment.Center)
         {
             IReadOnlyList<LineInfo> lineInfos = GetLineInfos(text, fontSize, align);
 
@@ -202,7 +202,7 @@
             return GetTextHeight(hint.Content.GetText(), hint.FontSize, hint.LineHeight);
         }
 
-        public float GetTextHeight(string? text, int fontSize, float lineHeight)
+        public float GetTextHeight(string? text, float fontSize, float lineHeight)
         {
             if (fontSize < 0)
                 throw new ArgumentOutOfRangeException(nameof(fontSize), "Font size must be greater than zero.");
@@ -218,7 +218,7 @@
             return height > 0 ? height - lineHeight : 0f; // Remove the line height of the last line
         }
 
-        public LineInfo[] GetLineInfos(string? text, int fontSize, HintAlignment align = HintAlignment.Center)
+        public LineInfo[] GetLineInfos(string? text, float fontSize, HintAlignment align = HintAlignment.Center)
         {
             RichTextParser parser = richTextParserPool.Rent();
             settingTemplate.DefaultStyle.CharStyle.FontSize = fontSize;

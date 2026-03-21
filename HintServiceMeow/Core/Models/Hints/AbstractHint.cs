@@ -25,8 +25,8 @@ namespace HintServiceMeow.Core.Models.Hints
 
         private HintSyncSpeed syncSpeed = HintSyncSpeed.Normal;
 
-        private int previousFontSize = 20;
-        private int fontSize = 20;
+        private float previousFontSize = 20f;
+        private float fontSize = 20f;
         private Transition? fontSizeTransition = null;
         private TransitionState? fontSizeTransitionState = null;
 
@@ -206,7 +206,7 @@ namespace HintServiceMeow.Core.Models.Hints
         /// <summary>
         /// Gets or sets the font size of the hint text.
         /// </summary>
-        public int FontSize
+        public float FontSize
         {
             get
             {
@@ -589,7 +589,7 @@ namespace HintServiceMeow.Core.Models.Hints
             }
         }
 
-        internal int PreviousFontSize
+        internal float PreviousFontSize
         {
             get
             {

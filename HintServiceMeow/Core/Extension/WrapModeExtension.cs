@@ -13,7 +13,7 @@ namespace HintServiceMeow.Core.Extension
                 WrapMode.Loop => HsmWrapMode.Loop,
                 WrapMode.PingPong => HsmWrapMode.PingPong,
                 WrapMode.Default => HsmWrapMode.Default,
-                WrapMode.ClampForever => HsmWrapMode.ClampForever,
+                WrapMode.ClampForever => HsmWrapMode.Once,
             };
         }
 
@@ -25,7 +25,6 @@ namespace HintServiceMeow.Core.Extension
                 HsmWrapMode.Loop => WrapMode.Loop,
                 HsmWrapMode.PingPong => WrapMode.PingPong,
                 HsmWrapMode.Default => WrapMode.Default,
-                HsmWrapMode.ClampForever => WrapMode.ClampForever,
             };
         }
     }

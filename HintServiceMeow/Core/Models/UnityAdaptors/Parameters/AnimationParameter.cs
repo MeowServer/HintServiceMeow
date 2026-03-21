@@ -1,6 +1,7 @@
 namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
 {
     using global::Hints;
+    using HintServiceMeow.Core.Extension;
     using HintServiceMeow.Core.Interface;
     using HintServiceMeow.Core.Utilities.UnityAdaptors;
     using UnityEngine;
@@ -36,7 +37,11 @@ namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
                 keyframes[i] = new Keyframe(kf.Time, kf.Value, kf.InTangent, kf.OutTangent);
             }
 
-            return new global::Hints.AnimationCurveHintParameter(this.Offset, new AnimationCurve(keyframes), this.Format, this.Integral);
+            AnimationCurve curve = new AnimationCurve(keyframes);
+            curve.preWrapMode = Curve.PreWrapMode.ToUnityWrapMode();
+            curve.postWrapMode = Curve.PostWrapMode.ToUnityWrapMode();
+
+            return new global::Hints.AnimationCurveHintParameter(this.Offset, curve, this.Format, this.Integral);
         }
     }
 }
