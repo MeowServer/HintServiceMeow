@@ -16,6 +16,8 @@ namespace HintServiceMeow.Tests.Core.Utilities
     [TestClass]
     public class PlayerDisplayTests
     {
+        private const float AspectRatio = 16f / 9f;
+
         private TestTaskScheduler scheduler = null!;
         private TestCompatibilityAdaptor adaptor = null!;
         private TestHintParser parser = null!;
@@ -361,7 +363,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
 
             // Act
             display.RemoveDisplayOutput<TestDisplayOutput>();
-            InvokeSendHint(display, new DisplayOutputArg(display, "after-remove-type", Array.Empty<IParameter>(), Array.Empty<IEffect>(), 99999f));
+            InvokeSendHint(display, new DisplayOutputArg(display, "after-remove-type", Array.Empty<IParameter>(), Array.Empty<IEffect>(), 99999f), AspectRatio);
 
             // Assert
             Assert.AreEqual(0, first.Calls.Count);
@@ -381,7 +383,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
             display.RemoveDisplayOutput(removeOutput);
 
             // Act
-            InvokeSendHint(display, new DisplayOutputArg(display, "hello", Array.Empty<IParameter>(), Array.Empty<IEffect>(), 99999f));
+            InvokeSendHint(display, new DisplayOutputArg(display, "hello", Array.Empty<IParameter>(), Array.Empty<IEffect>(), 99999f), AspectRatio);
 
             // Assert
             Assert.AreEqual(1, keepOutput.Calls.Count);
@@ -642,10 +644,10 @@ namespace HintServiceMeow.Tests.Core.Utilities
             Assert.Fail(message);
         }
 
-        private static void InvokeSendHint(PlayerDisplay pd, DisplayOutputArg arg)
+        private static void InvokeSendHint(PlayerDisplay pd, DisplayOutputArg arg, float xyRatio)
         {
             MethodInfo method = typeof(PlayerDisplay).GetMethod("SendHint", BindingFlags.NonPublic | BindingFlags.Instance)!;
-            method.Invoke(pd, [arg]);
+            method.Invoke(pd, [arg, xyRatio]);
         }
     }
 }

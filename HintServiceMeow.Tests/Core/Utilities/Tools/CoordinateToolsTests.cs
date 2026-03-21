@@ -45,6 +45,7 @@ public class CoordinateToolsTests
     }
 
     [TestMethod]
+    [Ignore("Behavior changed. Now CoordianteTools shouldn't throw when line height is negative.")]
     public void GetTextHeight_WhenLineHeightIsNegative_Throws()
     {
         // Arrange
