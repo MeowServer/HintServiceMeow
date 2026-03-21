@@ -117,7 +117,13 @@
 
                 float range = to - from;
                 HsmKeyFrame[] keys = curve.Keys;
-                HsmKeyFrame[] scaled = new HsmKeyFrame[keys.Length];
+
+                int frameCount = keys.Length;
+
+                if (curve.PostWrapMode == Enum.UnityAdaptor.HsmWrapMode.Once)
+                    frameCount += 1;
+
+                HsmKeyFrame[] scaled = new HsmKeyFrame[frameCount];
 
                 for (int i = 0; i < keys.Length; i++)
                 {
@@ -127,6 +133,10 @@
                         inTangent: keys[i].InTangent * range / duration,
                         outTangent: keys[i].OutTangent * range / duration);
                 }
+
+                // Add an super long keyframe to prevent loop from happening.
+                if (curve.PostWrapMode == Enum.UnityAdaptor.HsmWrapMode.Once)
+                    scaled[keys.Length] = new HsmKeyFrame(time: 99999f, value: to, inTangent: 0f, outTangent: 0f);
 
                 IAnimationCurve result = CurveFactory.Build(scaled);
 
