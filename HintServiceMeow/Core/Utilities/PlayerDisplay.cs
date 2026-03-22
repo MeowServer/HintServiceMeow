@@ -156,6 +156,17 @@ namespace HintServiceMeow.Core.Utilities
         }
 
         /// <summary>
+        /// Gets or sets the minimum interval between consecutive update operations.
+        /// </summary>
+        /// <remarks>Setting a shorter interval may increase update frequency, potentially impacting
+        /// performance.</remarks>
+        public TimeSpan MinUpdateInterval
+        {
+            get => updateScheduler.MinInterval;
+            set => updateScheduler.MinInterval = value;
+        }
+
+        /// <summary>
         /// Gets or creates the <see cref="PlayerDisplay"/> instance for the specified reference hub.
         /// </summary>
         /// <param name="referenceHub">The <see cref="global::ReferenceHub"/> that owns the <see cref="PlayerDisplay"/>.</param>
@@ -224,17 +235,6 @@ namespace HintServiceMeow.Core.Utilities
         }
 
         /// <summary>
-        /// Sets the minimum interval between each updates.
-        /// </summary>
-        /// <remarks>Use this method to control how frequently updates are allowed to occur. Setting a
-        /// longer interval can help reduce resource usage by limiting update frequency.</remarks>
-        /// <param name="interval">The minimum time interval that must elapse between updates. Must be a positive value.</param>
-        public void SetMinUpdateInterval(TimeSpan interval)
-        {
-            updateScheduler.MinInterval = interval;
-        }
-
-        /// <summary>
         /// Registers an additional display output target that will receive rendered hint content.
         /// </summary>
         /// <param name="output">The display output to add.</param>
@@ -279,18 +279,6 @@ namespace HintServiceMeow.Core.Utilities
 
                 displayOutputs.RemoveAll(x => x is T);
             }
-        }
-
-        /// <summary>
-        /// Adds a hint to this player's display under the calling assembly's group.
-        /// </summary>
-        /// <param name="hint">The hint to add. Ignored if <see langword="null"/>.</param>
-        public void AddHint(AbstractHint? hint)
-        {
-            if (hint is null)
-                return;
-
-            InternalAddHint(Assembly.GetCallingAssembly().FullName, hint);
         }
 
         /// <summary>
@@ -395,18 +383,6 @@ namespace HintServiceMeow.Core.Utilities
         }
 
         /// <summary>
-        /// Removes the specified hint from the calling assembly's group.
-        /// </summary>
-        /// <param name="hint">The hint to remove. Ignored if <see langword="null"/>.</param>
-        public void RemoveHint(AbstractHint? hint)
-        {
-            if (hint is null)
-                return;
-
-            InternalRemoveHint(Assembly.GetCallingAssembly().FullName, hint);
-        }
-
-        /// <summary>
         /// Removes a collection of hints from the calling assembly's group.
         /// </summary>
         /// <param name="hints">The hints to remove. Ignored if <see langword="null"/>.</param>
@@ -465,15 +441,6 @@ namespace HintServiceMeow.Core.Utilities
             if (id == string.Empty)
                 throw new ArgumentException("A empty string had been passed to RemoveHint");
 
-            InternalRemoveHint(Assembly.GetCallingAssembly().FullName, id);
-        }
-
-        /// <summary>
-        /// Removes the hint with the specified <see cref="Guid"/> from the calling assembly's group.
-        /// </summary>
-        /// <param name="id">The unique identifier of the hint to remove.</param>
-        public void RemoveHint(Guid id)
-        {
             InternalRemoveHint(Assembly.GetCallingAssembly().FullName, id);
         }
 
@@ -644,16 +611,13 @@ namespace HintServiceMeow.Core.Utilities
             ((IDisposable)updateScheduler).Dispose(); // Stop task scheduler's coroutine
 
             ((IDisposable)adapter).Dispose(); // Stop compatibility adaptor's coroutine
-
-            lock (PlayerDisplayListLock)
-                PlayerDisplayList.Remove(this);
         }
 
         /// <summary>
         /// Not thread safe.
         /// </summary>
         /// <param name="referenceHub">The owner of the PlayerDisplay to destroy.</param>
-        internal static void Destruct(ReferenceHub referenceHub)
+        internal static void Dispose(ReferenceHub referenceHub)
         {
             if (referenceHub is null)
                 throw new ArgumentNullException(nameof(referenceHub));

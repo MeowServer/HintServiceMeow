@@ -113,7 +113,7 @@
 #endif
         {
             PlayerUI.Destruct(ev.Player.ReferenceHub);
-            PlayerDisplay.Destruct(ev.Player.ReferenceHub);
+            PlayerDisplay.Dispose(ev.Player.ReferenceHub);
         }
     }
 }
