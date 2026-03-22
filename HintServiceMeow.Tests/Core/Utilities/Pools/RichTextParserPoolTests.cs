@@ -19,8 +19,8 @@ namespace HintServiceMeow.Tests.Core.Utilities.Pools
         {
             // Drain the singleton pool to ensure test isolation
             RichTextParserPool pool = RichTextParserPool.Instance;
-            ConcurrentQueue<RichTextParser> queue = ReflectionHelper.GetFieldValue<ConcurrentQueue<RichTextParser>>(pool, "richTextParserQueue");
-            while (queue.TryDequeue(out _)) { }
+            ConcurrentBag<RichTextParser> queue = ReflectionHelper.GetFieldValueFromParent<ConcurrentBag<RichTextParser>>(pool, "objectBag");
+            while (queue.TryTake(out _)) { }
         }
 
         #region Basic Rent/Return

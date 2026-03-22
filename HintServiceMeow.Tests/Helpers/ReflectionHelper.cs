@@ -17,6 +17,21 @@ namespace HintServiceMeow.Tests.Helpers
             return (T)field.GetValue(obj);
         }
 
+        public static T GetFieldValueFromParent<T>(object obj, string fieldName)
+        {
+            var type = obj.GetType();
+            while (type != null)
+            {
+                var field = type.GetField(
+                    fieldName,
+                    BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                if (field != null)
+                    return (T)field.GetValue(obj);
+                type = type.BaseType;
+            }
+            throw new ArgumentException($"Field '{fieldName}' not found on {obj.GetType().Name} or its parents");
+        }
+
         public static void SetFieldValue(object obj, string fieldName, object value)
         {
             var field = obj.GetType().GetField(
