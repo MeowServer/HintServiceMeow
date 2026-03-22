@@ -6,7 +6,7 @@ internal abstract class PoolBase<T> : IPool<T>
     private readonly ConcurrentBag<T> objectBag = new();
     private readonly int maxSize;
 
-    protected PoolBase(int maxSize = 50)
+    protected PoolBase(int maxSize = 20)
     {
         this.maxSize = maxSize;
     }
@@ -18,6 +18,9 @@ internal abstract class PoolBase<T> : IPool<T>
 
     public void Return(T item)
     {
+        if (item is null)
+            return;
+
         if (objectBag.Count < maxSize)
         {
             Reset(item);
