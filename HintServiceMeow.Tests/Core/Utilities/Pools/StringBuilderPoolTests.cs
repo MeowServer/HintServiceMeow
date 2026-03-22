@@ -17,7 +17,7 @@ namespace HintServiceMeow.Tests.Core.Utilities.Pools
         {
             // Drain the singleton pool to ensure test isolation
             var pool = StringBuilderPool.Instance;
-            var bag = ReflectionHelper.GetFieldValue<ConcurrentBag<StringBuilder>>(pool, "stringBuilderQueue");
+            var bag = ReflectionHelper.GetFieldValueFromParent<ConcurrentBag<StringBuilder>>(pool, "objectBag");
             while (bag.TryTake(out _)) { }
         }
 
