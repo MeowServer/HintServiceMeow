@@ -1,7 +1,5 @@
 namespace HintServiceMeow.Core.Interface
 {
-    using System;
-    using System.Collections.Generic;
     using HintServiceMeow.Core.Models.Hints;
 
     /// <summary>
@@ -60,20 +58,20 @@ namespace HintServiceMeow.Core.Interface
         /// </summary>
         /// <param name="id">The identifier to filter hints by.</param>
         /// <returns>An enumerable sequence of matching hints.</returns>
-        IEnumerable<AbstractHint> GetHints(string id);
+        AbstractHint[] GetHints(string id);
 
         /// <summary>
         /// Retrieves all hints currently registered on the player's display.
         /// </summary>
         /// <returns>An enumerable sequence of all registered hints.</returns>
-        IEnumerable<AbstractHint> GetHints();
+        AbstractHint[] GetHints();
 
         /// <summary>
         /// Forces an immediate display update.
         /// </summary>
-        /// <param name="useFastUpdate">
+        /// <param name="maxDelay">
         /// If <see langword="true"/>, performs a fast update; otherwise uses the normal update path.
         /// </param>
-        void ForceUpdate(bool useFastUpdate = false);
+        void ForceUpdate(float maxDelay = 0.3f);
     }
 }

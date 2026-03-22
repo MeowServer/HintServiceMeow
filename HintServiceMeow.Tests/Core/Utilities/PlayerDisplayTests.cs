@@ -94,7 +94,7 @@ namespace HintServiceMeow.Tests.Core.Utilities
 
             // Act
             display.ForceUpdate();
-            display.ForceUpdate(useFastUpdate: true);
+            display.ForceUpdate(0f);
 
             // Assert
             Assert.AreEqual(2, scheduler.Invokes.Count);

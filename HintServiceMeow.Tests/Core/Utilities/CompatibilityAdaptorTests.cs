@@ -38,7 +38,7 @@ public class CompatibilityAdaptorTests
         adaptor.ShowHint(new("asm", "any", 0));
 
         // Assert
-        Assert.AreEqual(0, display.InternalGetHints("CompatibilityAdaptor-asm").Count);
+        Assert.AreEqual(0, display.InternalGetHints("CompatibilityAdaptor-asm").Length);
     }
 
     [TestMethod]
@@ -54,7 +54,7 @@ public class CompatibilityAdaptorTests
         Thread.Sleep(50);
 
         // Assert
-        Assert.AreEqual(0, display.InternalGetHints("CompatibilityAdaptor-blocked").Count);
+        Assert.AreEqual(0, display.InternalGetHints("CompatibilityAdaptor-blocked").Length);
     }
 
     [TestMethod]
@@ -70,7 +70,7 @@ public class CompatibilityAdaptorTests
         Thread.Sleep(50);
 
         // Assert
-        Assert.AreEqual(0, display.InternalGetHints("CompatibilityAdaptor-asm").Count);
+        Assert.AreEqual(0, display.InternalGetHints("CompatibilityAdaptor-asm").Length);
     }
 
     private static CompatibilityAdaptor CreateAdaptor(out PlayerDisplay display)

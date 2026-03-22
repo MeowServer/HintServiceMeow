@@ -43,6 +43,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 #### Minor Changes
 - `AbstractHint::LineHeight` can be negative.
+- Replaced return type of `PlayerDisplay::GetHints` with `AbstractHint[]`. Use `float maxDelay` as the parameter of `PlayerDisplay::ForceUpdate`.
 
 ---
 
