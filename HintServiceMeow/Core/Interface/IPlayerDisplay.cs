@@ -1,5 +1,6 @@
 namespace HintServiceMeow.Core.Interface
 {
+    using System;
     using HintServiceMeow.Core.Models.Hints;
 
     /// <summary>
