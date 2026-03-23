@@ -90,9 +90,8 @@
 
         public static Transition Get(IAnimationCurve normalizedCurve, float duration = 0.5f)
         {
-            return new Transition()
+            return new Transition(normalizedCurve)
             {
-                curve = normalizedCurve,
                 easing = EasingType.Custom,
                 duration = duration,
             };
@@ -100,9 +99,8 @@
 
         public static Transition Get(EasingType type = EasingType.EaseInOut, float duration = 0.5f)
         {
-            return new Transition()
+            return new Transition(CurveFactory.BuildNormalized(type))
             {
-                curve = CurveFactory.BuildNormalized(type),
                 easing = type,
                 duration = duration,
             };

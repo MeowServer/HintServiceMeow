@@ -29,9 +29,12 @@
         private readonly IPool<RichTextParser> richTextParserPool; // Initialize in constructor
         private readonly ICoroutineRunner coroutineRunner; // Initialize in constructor
 
-        private readonly RichTextParserSetting settingTemplate = new RichTextParserSetting(TextMeshStyle.Default, [], [],
+        private readonly RichTextParserSetting settingTemplate = new RichTextParserSetting(
+            TextMeshStyle.Default,
+            [],
+            [],
             ["a", "allcaps", "alpha", "b", "color", "font", "font-weight", "gradient", "i", "lowercase", "mark", "noparse", "s", "smallcaps", "style", "u", "uppercase", "link"],
-            true);// Tags that does not affect the position of the hint are ignored
+            true); // Tags that does not affect the position of the hint are ignored
 
         private bool destructed; // To prevent multiple destruct calls
 

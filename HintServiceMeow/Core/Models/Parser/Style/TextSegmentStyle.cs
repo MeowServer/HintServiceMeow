@@ -313,5 +313,28 @@
                 && Font == other.Font
                 && FontWeight == other.FontWeight;
         }
+
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            var hash = new HashCode();
+            hash.Add(FontSize);
+            hash.Add(Color);
+            hash.Add(Alpha);
+            hash.Add(Bold);
+            hash.Add(Italic);
+            hash.Add(Underline);
+            hash.Add(Strikethrough);
+            hash.Add(Superscript);
+            hash.Add(Subscript);
+            hash.Add(VOffset);
+            hash.Add(Rotate);
+            hash.Add(CharSpace);
+            hash.Add(Monospace);
+            hash.Add(Mark);
+            hash.Add(Font);
+            hash.Add(FontWeight);
+            return hash.ToHashCode();
+        }
     }
 }

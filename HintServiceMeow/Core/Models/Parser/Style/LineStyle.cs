@@ -1,5 +1,6 @@
 ﻿namespace HintServiceMeow.Core.Models.Parser.Style
 {
+    using System;
     using HintServiceMeow.Core.Enum;
 
     /// <summary>
@@ -83,6 +84,12 @@
                 && MarginLeft == other.MarginLeft
                 && MarginRight == other.MarginRight
                 && MaxWidth == other.MaxWidth;
+        }
+
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Alignment, LineHeight, Indent, MarginLeft, MarginRight, MaxWidth);
         }
     }
 }

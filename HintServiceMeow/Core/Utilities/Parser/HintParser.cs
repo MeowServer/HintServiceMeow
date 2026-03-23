@@ -42,15 +42,18 @@
         private readonly HashSet<ValueTuple<float, float>> visited = new();
 
         // For hint parameter handling
-        private int parameterIndex = 0;
         private readonly List<IParameter> hintParameters = new(128);
+        private int parameterIndex = 0;
 
         // For animation
         private string formatString = "F1"; // 1 decimal place
         private bool useIntegral = false; // Use float or int for animated value
 
         // For ParseToRichText method
-        private RichTextParserSetting settingTemplate = new RichTextParserSetting(TextMeshStyle.Default, Array.Empty<Tuple<string, IParameter>>(), ["line-height"],
+        private RichTextParserSetting settingTemplate = new RichTextParserSetting(
+            TextMeshStyle.Default,
+            Array.Empty<Tuple<string, IParameter>>(),
+            ["line-height"],
             ["a", "allcaps", "alpha", "b", "color", "font", "font-weight", "gradient", "i", "lowercase", "mark", "noparse", "s", "smallcaps", "style", "u", "uppercase", "link"],
             true); // Tags that does not affect the size of the text are ignored.
 
@@ -416,7 +419,8 @@
 
         private void Clear()
         {
-            for (int i = 0; i < rentedHints.Count; i++)// Return rented hints to pool
+            // Return rented hints to pool
+            for (int i = 0; i < rentedHints.Count; i++)
             {
                 hintPool.Return(rentedHints[i]);
             }

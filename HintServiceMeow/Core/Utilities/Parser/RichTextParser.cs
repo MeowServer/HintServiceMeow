@@ -638,7 +638,7 @@
                     break;
 
                 case "indent":
-                    if (TryParseToPixels(value, currentStyle.GetActualSize(defaultStyle.CharStyle.FontSize), defaultStyle.Width, out float? indentVal))
+                    if (TryParseToPixels(value, currentStyle.GetActualSize(defaultStyle.CharStyle.FontSize), defaultStyle.Width, out float? indentVal) && indentVal.HasValue)
                         currentStyle.Indent.Push(indentVal.Value);
                     ClearLineStyleCache();
                     break;
@@ -650,7 +650,7 @@
                     break;
 
                 case "size":
-                    if (TryParseToPixels(value, currentStyle.GetActualSize(defaultStyle.CharStyle.FontSize), defaultStyle.CharStyle.FontSize, out float? sizeVal))
+                    if (TryParseToPixels(value, currentStyle.GetActualSize(defaultStyle.CharStyle.FontSize), defaultStyle.CharStyle.FontSize, out float? sizeVal) && sizeVal.HasValue)
                         currentStyle.FontSize.Push(sizeVal.Value);
                     ClearCharStyleCache();
                     break;

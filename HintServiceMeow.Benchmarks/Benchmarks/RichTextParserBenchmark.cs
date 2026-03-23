@@ -22,9 +22,9 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
     [CategoriesColumn]
     public class PhaseBenchmark
     {
-        private string testInput;
-        private RichTextParserSetting setting;
-        private RichTextParser parser;
+        private string testInput = null!;
+        private RichTextParserSetting setting = null!;
+        private RichTextParser parser = null!;
 
         // Sink fields — prevent JIT from optimizing away the entire call
         private int sink;
@@ -81,16 +81,16 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
     [MemoryDiagnoser]
     public class InputProfileBenchmark
     {
-        private string plainText;
-        private string tagHeavy;
-        private string longSingleLine;
-        private string manyShortLines;
-        private string nestedStyles;
-        private string colorHeavy;
-        private string realWorldMixed;
+        private string plainText = null!;
+        private string tagHeavy = null!;
+        private string longSingleLine = null!;
+        private string manyShortLines = null!;
+        private string nestedStyles = null!;
+        private string colorHeavy = null!;
+        private string realWorldMixed = null!;
 
-        private RichTextParserSetting setting;
-        private RichTextParser parser;
+        private RichTextParserSetting setting = null!;
+        private RichTextParser parser = null!;
         private int sink;
 
         [GlobalSetup]
@@ -290,8 +290,8 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
     [MemoryDiagnoser]
     public class AllocationBenchmark
     {
-        private RichTextParserSetting setting;
-        private RichTextParser parser;
+        private RichTextParserSetting setting = null!;
+        private RichTextParser parser = null!;
         private int sink;
 
         [GlobalSetup]
@@ -368,9 +368,9 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
         [Params(1, 5, 10, 50, 100)]
         public int Scale;
 
-        private string scaledInput;
-        private RichTextParserSetting setting;
-        private RichTextParser parser;
+        private string scaledInput = null!;
+        private RichTextParserSetting setting = null!;
+        private RichTextParser parser = null!;
         private int sink;
 
         [GlobalSetup]
@@ -410,10 +410,10 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
     [MemoryDiagnoser]
     public class IgnoreTagsBenchmark
     {
-        private string testInput;
-        private RichTextParserSetting settingNoIgnore;
-        private RichTextParserSetting settingWithIgnore;
-        private RichTextParser parser;
+        private string testInput = null!;
+        private RichTextParserSetting settingNoIgnore = null!;
+        private RichTextParserSetting settingWithIgnore = null!;
+        private RichTextParser parser = null!;
         private int sink;
 
         [GlobalSetup]
@@ -471,8 +471,8 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
     [MemoryDiagnoser]
     public class PoolEffectBenchmark
     {
-        private string testInput;
-        private RichTextParserSetting setting;
+        private string testInput = null!;
+        private RichTextParserSetting setting = null!;
         private int sink;
 
         [GlobalSetup]

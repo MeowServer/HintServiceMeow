@@ -17,7 +17,7 @@
         private volatile float xScreenEdge;
         private volatile float xyRatio;
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ScpslScreenResolution"/> class.

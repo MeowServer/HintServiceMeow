@@ -37,12 +37,12 @@ namespace HintServiceMeow.Benchmarks.Benchmarks
 
         public const float AspectRatio = 16f / 9f;
 
-        public List<Hint> hints;
-        public List<DynamicHint> dynamicHints;
-        public HintParserArgument hintArg;
-        public HintParserArgument hintOnlyArg;
-        public HintParserArgument dynamicHintOnlyArg;
-        public List<string> testRichTexts;
+        public List<Hint> hints = null!;
+        public List<DynamicHint> dynamicHints = null!;
+        public HintParserArgument hintArg = null!;
+        public HintParserArgument hintOnlyArg = null!;
+        public HintParserArgument dynamicHintOnlyArg = null!;
+        public List<string> testRichTexts = null!;
 
         // Use GlobalSetup instead of the constructor. BenchmarkDotNet calls this 
         // AFTER injecting the parameters but BEFORE the benchmark starts.
