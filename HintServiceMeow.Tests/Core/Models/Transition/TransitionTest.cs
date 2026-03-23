@@ -268,5 +268,18 @@
             // normalized=0.5, dif=-100, 100 + (-100 * 0.5) = 50
             Assert.AreEqual(50f, result, 0.01f);
         }
+
+        [TestMethod]
+        public void Get_WhenNoLoop_AddsExtraKeyframe()
+        {
+            var t = Transition.Get(new FakeCurve() { PostWrapMode = HintServiceMeow.Core.Enum.UnityAdaptor.HsmWrapMode.Once });
+
+            var curve = t.GetCurve(0f, 1f);
+            var keys = factory.LastBuildKeys!;
+
+            Assert.AreEqual(3, keys.Length, "Expected an extra keyframe to be added for Once wrap mode.");
+            Assert.AreEqual(99999f, keys[2].Time, 0.001f, "Expected extra keyframe to have a very large time value.");
+            Assert.AreEqual(1f, keys[2].Value, 0.001f, "Expected extra keyframe to have the end value.");
+        }
     }
 }
