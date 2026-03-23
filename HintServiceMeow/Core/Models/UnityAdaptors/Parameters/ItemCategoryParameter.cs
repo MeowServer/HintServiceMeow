@@ -5,12 +5,12 @@ namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
 
     public class ItemCategoryParameter : IParameter
     {
-        public ItemCategory Category { get; set; }
-
         public ItemCategoryParameter(ItemCategory category)
         {
             this.Category = category;
         }
+
+        public ItemCategory Category { get; set; }
 
         public HintParameter GetScpslHintParameter()
         {

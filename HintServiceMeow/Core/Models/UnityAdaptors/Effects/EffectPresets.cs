@@ -42,7 +42,7 @@ namespace HintServiceMeow.Core.Models.UnityAdaptors.Effects
             return new Interface.IEffect[]
             {
                 FadeIn(num, startScalar, 1f),
-                FadeOut(num, startScalar + durationScalar - num, 1f)
+                FadeOut(num, startScalar + durationScalar - num, 1f),
             };
         }
 

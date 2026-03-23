@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using HintServiceMeow.Core.Interface;
-using HintServiceMeow.Core.Models.Parser.Style;
-
-namespace HintServiceMeow.Core.Models.Arguments
+﻿namespace HintServiceMeow.Core.Models.Arguments
 {
+    using System;
+    using System.Collections.Generic;
+    using HintServiceMeow.Core.Interface;
+    using HintServiceMeow.Core.Models.Parser.Style;
+
     internal class RichTextParserSetting : IEquatable<RichTextParserSetting>
     {
-        public RichTextParserSetting(TextMeshStyle defaultStyle,
+        public RichTextParserSetting(
+            TextMeshStyle defaultStyle,
             Tuple<string, IParameter>[] parameters,
             string[] illegalTags,
             HashSet<string> ignoreTags,
@@ -32,7 +33,7 @@ namespace HintServiceMeow.Core.Models.Arguments
 
         public bool CloseUnclosedTags { get; set; }
 
-        public bool Equals(RichTextParserSetting other)
+        public bool Equals(RichTextParserSetting? other)
         {
             if (other is null)
                 return false;

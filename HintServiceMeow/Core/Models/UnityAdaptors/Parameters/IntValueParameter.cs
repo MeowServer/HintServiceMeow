@@ -5,12 +5,12 @@ namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
 
     public class IntValueParameter : IParameter
     {
-        public int Value { get; set; }
-
         public IntValueParameter(int value)
         {
             this.Value = value;
         }
+
+        public int Value { get; set; }
 
         public HintParameter GetScpslHintParameter()
         {

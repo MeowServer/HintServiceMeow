@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace HintServiceMeow.Core.Utilities.Parser
+﻿namespace HintServiceMeow.Core.Utilities.Parser
 {
+    using System;
+    using System.Collections.Generic;
+
     internal static class TagChecker
     {
         private static readonly HashSet<string> ValidTags = new(StringComparer.OrdinalIgnoreCase)
@@ -40,7 +40,7 @@ namespace HintServiceMeow.Core.Utilities.Parser
             return SelfClosingTags.Contains(tagName);
         }
 
-        public static string TryMatchValidTag(string rawText, int start, int length)
+        public static string? TryMatchValidTag(string rawText, int start, int length)
         {
             for (int i = 0; i < KnownTags.Length; i++)
             {

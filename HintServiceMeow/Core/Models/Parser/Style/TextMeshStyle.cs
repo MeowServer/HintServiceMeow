@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace HintServiceMeow.Core.Models.Parser.Style
+﻿namespace HintServiceMeow.Core.Models.Parser.Style
 {
+    using System;
+
     internal class TextMeshStyle : IEquatable<TextMeshStyle>
     {
         public TextMeshStyle(TextSegmentStyle charStyle, LineStyle lineStyle, float width, float height)
@@ -22,7 +22,7 @@ namespace HintServiceMeow.Core.Models.Parser.Style
 
         public float Height { get; set; }
 
-        public bool Equals(TextMeshStyle other)
+        public bool Equals(TextMeshStyle? other)
         {
             if (other is null)
                 return false;

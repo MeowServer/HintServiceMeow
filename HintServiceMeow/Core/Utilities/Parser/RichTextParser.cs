@@ -17,7 +17,7 @@
     /// </summary>
     internal class RichTextParser
     {
-        private static Cache<ValueTuple<string, RichTextParserSetting>, RichTextParserResult> parserCache = new Cache<ValueTuple<string, RichTextParserSetting>, RichTextParserResult>(200);
+        private static Cache<ValueTuple<string, RichTextParserSetting>, RichTextParserResult> parserCache = new Cache<(string, RichTextParserSetting), RichTextParserResult>(200);
 
         private object parserLock = new object();
 
@@ -38,8 +38,11 @@
         private HashSet<string> ignoreTags = [];
         private StringBuilder? sb;
 
-        public RichTextParserResult ParseText(string rawText, RichTextParserSetting setting)
+        public RichTextParserResult ParseText(string? rawText, RichTextParserSetting setting)
         {
+            if (rawText == null)
+                return new RichTextParserResult(Array.Empty<LineInfo>(), Array.Empty<IParameter>(), setting.ParameterIndex);
+
             if (parserCache.TryGet((rawText, setting), out RichTextParserResult cachedResult))
             {
                 return cachedResult;
@@ -109,6 +112,213 @@
             }
         }
 
+        #region Parsing Helpers
+
+        /// <summary>
+        /// Try to parse a <see cref="HintAlignment"/> from a tag value string.
+        /// Supported values: left, center, right, justified, flush.
+        /// </summary>
+        private static bool TryParseAlignment(string? value, out HintAlignment alignment)
+        {
+            alignment = default;
+
+            if (string.IsNullOrEmpty(value))
+                return false;
+
+            switch (value)
+            {
+                case "left":
+                    alignment = HintAlignment.Left;
+                    return true;
+                case "center":
+                    alignment = HintAlignment.Center;
+                    return true;
+                case "right":
+                    alignment = HintAlignment.Right;
+                    return true;
+                case "justified":
+                    alignment = HintAlignment.Justified;
+                    return true;
+                case "flush":
+                    alignment = HintAlignment.Flush;
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Try to parse a hex alpha value. Supports format: #XX (e.g., "#FF", "#80").
+        /// </summary>
+        private static bool TryParseAlpha(string? value, out byte alpha)
+        {
+            alpha = 255;
+
+            if (string.IsNullOrEmpty(value))
+                return false;
+
+            // Strip leading '#' if present
+            string hex = value!.StartsWith("#") ? value.Substring(1) : value;
+
+            if (hex.Length == 2)
+            {
+                return byte.TryParse(hex, System.Globalization.NumberStyles.HexNumber, null, out alpha);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Try to parse a <see cref="Color"/> from a tag value string.
+        /// Supports named colors (red, green, blue, etc.) and hex formats (#RGB, #RRGGBB, #RRGGBBAA).
+        /// </summary>
+        private static bool TryParseColor(string? value, out Color color)
+        {
+            color = default;
+
+            if (string.IsNullOrEmpty(value))
+                return false;
+
+            // Try named colors first
+            switch (value)
+            {
+                case "red": color = new Color(255, 0, 0, 255); return true;
+                case "green": color = new Color(0, 128, 0, 255); return true;
+                case "blue": color = new Color(0, 0, 255, 255); return true;
+                case "white": color = new Color(255, 255, 255, 255); return true;
+                case "black": color = new Color(0, 0, 0, 255); return true;
+                case "yellow": color = new Color(255, 255, 0, 255); return true;
+                case "cyan": color = new Color(0, 255, 255, 255); return true;
+                case "magenta": color = new Color(255, 0, 255, 255); return true;
+                case "orange": color = new Color(255, 165, 0, 255); return true;
+                case "purple": color = new Color(128, 0, 128, 255); return true;
+                case "grey":
+                case "gray": color = new Color(128, 128, 128, 255); return true;
+            }
+
+            // Try hex format
+            string hex = value!.StartsWith("#") ? value.Substring(1) : value;
+
+            try
+            {
+                byte r, g, b, a = 255;
+
+                if (hex.Length == 6) // RRGGBB
+                {
+                    r = byte.Parse(hex.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
+                    g = byte.Parse(hex.Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
+                    b = byte.Parse(hex.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
+                    color = new Color(r, g, b, a);
+                    return true;
+                }
+                else if (hex.Length == 8) // RRGGBBAA
+                {
+                    r = byte.Parse(hex.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
+                    g = byte.Parse(hex.Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
+                    b = byte.Parse(hex.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
+                    a = byte.Parse(hex.Substring(6, 2), System.Globalization.NumberStyles.HexNumber);
+                    color = new Color(r, g, b, a);
+                    return true;
+                }
+                else if (hex.Length == 3) // RGB shorthand
+                {
+                    r = byte.Parse(new string(hex[0], 2), System.Globalization.NumberStyles.HexNumber);
+                    g = byte.Parse(new string(hex[1], 2), System.Globalization.NumberStyles.HexNumber);
+                    b = byte.Parse(new string(hex[2], 2), System.Globalization.NumberStyles.HexNumber);
+                    color = new Color(r, g, b, a);
+                    return true;
+                }
+            }
+            catch
+            {
+                // Parse failed
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Try to parse a float value from a string, stripping any unit suffixes.
+        /// Used for tags whose value is always a plain number (e.g., rotate, font-weight).
+        /// </summary>
+        private static bool TryParseFloat(string? value, out float result)
+        {
+            result = 0f;
+
+            if (string.IsNullOrEmpty(value))
+                return false;
+
+            string trimmed = value!.Trim();
+
+            return float.TryParse(trimmed, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out result);
+        }
+
+        /// <summary>
+        /// Core method: parse a string like "12px", "1.5em", "50%", or "24" into
+        /// a <see cref="MeasuredValue"/> with the correct <see cref="MeasureUnit"/>.
+        /// </summary>
+        private static bool TryParseToMeasuredValue(string? value, out MeasuredValue result)
+        {
+            result = default;
+
+            if (string.IsNullOrEmpty(value))
+                return false;
+
+            float numericValue;
+            MeasureUnit unit;
+
+            if (value!.EndsWith("px"))
+            {
+                unit = MeasureUnit.Pixel;
+                value = value.Substring(0, value.Length - 2);
+            }
+            else if (value.EndsWith("em"))
+            {
+                unit = MeasureUnit.FontUnit;
+                value = value.Substring(0, value.Length - 2);
+            }
+            else if (value.EndsWith("%"))
+            {
+                unit = MeasureUnit.Percentage;
+                value = value.Substring(0, value.Length - 1);
+            }
+            else
+            {
+                // No unit suffix — default to pixels.
+                unit = MeasureUnit.Pixel;
+            }
+
+            if (!float.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out numericValue))
+                return false;
+
+            result = new MeasuredValue
+            {
+                Value = numericValue,
+                Unit = unit,
+            };
+            return true;
+        }
+
+        /// <summary>
+        /// Attempts to parse a measured value string and convert it to pixel units.
+        /// </summary>
+        /// <param name="value">The measured value to parse, such as a string representing a length or size. Can be null.</param>
+        /// <param name="fontSize">The font size, in pixels, used for relative unit conversions. Can be null if not applicable.</param>
+        /// <param name="targetValue">An optional target value, in pixels, used for certain relative conversions. Can be null if not required.</param>
+        /// <param name="result">When this method returns, contains the parsed value in pixels if the conversion succeeds; otherwise, null.</param>
+        /// <returns>true if the value was successfully parsed and converted to pixels; otherwise, false.</returns>
+        private static bool TryParseToPixels(string? value, float? fontSize, float? targetValue, out float? result)
+        {
+            result = 0f;
+
+            if (!TryParseToMeasuredValue(value, out MeasuredValue measured))
+                return false;
+
+            return measured.TryGetPixels(fontSize, targetValue, out result);
+        }
+
+        #endregion
+
         private void CloseUnclosedTag()
         {
             // NoParse must be closed first, otherwise subsequent closing tags would be treated as text
@@ -125,6 +335,7 @@
                 if (!illegalTags.Contains("align"))
                     sb!.Append("</align>");
             }
+
             currentStyle.Alignment.Clear();
 
             for (int i = 0; i < currentStyle.Color.Count; i++)
@@ -132,6 +343,7 @@
                 if (!illegalTags.Contains("color"))
                     sb!.Append("</color>");
             }
+
             currentStyle.Color.Clear();
 
             for (int i = 0; i < currentStyle.Indent.Count; i++)
@@ -139,6 +351,7 @@
                 if (!illegalTags.Contains("indent"))
                     sb!.Append("</indent>");
             }
+
             currentStyle.Indent.Clear();
 
             for (int i = 0; i < currentStyle.Mark.Count; i++)
@@ -146,6 +359,7 @@
                 if (!illegalTags.Contains("mark"))
                     sb!.Append("</mark>");
             }
+
             currentStyle.Mark.Clear();
 
             for (int i = 0; i < currentStyle.FontSize.Count; i++)
@@ -153,6 +367,7 @@
                 if (!illegalTags.Contains("size"))
                     sb!.Append("</size>");
             }
+
             currentStyle.FontSize.Clear();
 
             // ── Counter-based tags ────────────────────────────────────
@@ -161,6 +376,7 @@
                 if (!illegalTags.Contains("allcaps"))
                     sb!.Append("</allcaps>");
             }
+
             currentStyle.AllCaps = 0;
 
             for (int i = 0; i < currentStyle.Bold; i++)
@@ -168,6 +384,7 @@
                 if (!illegalTags.Contains("b"))
                     sb!.Append("</b>");
             }
+
             currentStyle.Bold = 0;
 
             for (int i = 0; i < currentStyle.Italic; i++)
@@ -175,6 +392,7 @@
                 if (!illegalTags.Contains("i"))
                     sb!.Append("</i>");
             }
+
             currentStyle.Italic = 0;
 
             for (int i = 0; i < currentStyle.Lowercase; i++)
@@ -182,6 +400,7 @@
                 if (!illegalTags.Contains("lowercase"))
                     sb!.Append("</lowercase>");
             }
+
             currentStyle.Lowercase = 0;
 
             for (int i = 0; i < currentStyle.Strikethrough; i++)
@@ -189,6 +408,7 @@
                 if (!illegalTags.Contains("s"))
                     sb!.Append("</s>");
             }
+
             currentStyle.Strikethrough = 0;
 
             for (int i = 0; i < currentStyle.Subscript; i++)
@@ -196,6 +416,7 @@
                 if (!illegalTags.Contains("sub"))
                     sb!.Append("</sub>");
             }
+
             currentStyle.Subscript = 0;
 
             for (int i = 0; i < currentStyle.Superscript; i++)
@@ -203,6 +424,7 @@
                 if (!illegalTags.Contains("sup"))
                     sb!.Append("</sup>");
             }
+
             currentStyle.Superscript = 0;
 
             for (int i = 0; i < currentStyle.Underline; i++)
@@ -210,6 +432,7 @@
                 if (!illegalTags.Contains("u"))
                     sb!.Append("</u>");
             }
+
             currentStyle.Underline = 0;
 
             for (int i = 0; i < currentStyle.Uppercase; i++)
@@ -217,6 +440,7 @@
                 if (!illegalTags.Contains("uppercase"))
                     sb!.Append("</uppercase>");
             }
+
             currentStyle.Uppercase = 0;
 
             // ── Single-value tags ─────────────────────────────────────
@@ -383,7 +607,7 @@
         private void HandleOpenTag(Token token)
         {
             if (currentStyle.NoParse
-                || ignoreTags.Contains(token.TagName))
+                || ignoreTags.Contains(token.TagName!))
             {
                 sb!.Append('<').Append(token.TagName);
                 if (!string.IsNullOrEmpty(token.TagValue))
@@ -401,7 +625,6 @@
             switch (tagName)
             {
                 /* ── Stack-based tags ────────────────────────────────────── */
-
                 case "align":
                     if (TryParseAlignment(value, out HintAlignment alignment))
                         currentStyle.Alignment.Push(alignment);
@@ -433,7 +656,6 @@
                     break;
 
                 /* ── Counter-based tags ──────────────────────────────────── */
-
                 case "allcaps":
                     currentStyle.AllCaps++;
                     ClearCharStyleCache();
@@ -474,7 +696,6 @@
                     break;
 
                 /* ── Single-value tags ───────────────────────────────────── */
-
                 case "cspace":
                     if (TryParseToPixels(value, currentStyle.GetActualSize(defaultStyle.CharStyle.FontSize), null, out float? cspaceVal))
                         currentStyle.CharSpace = cspaceVal;
@@ -551,7 +772,6 @@
                     break;
 
                 /* ── Boolean tags ────────────────────────────────────────── */
-
                 case "nobr":
                     currentStyle.NoBreak = true;
                     break;
@@ -587,7 +807,7 @@
         private void HandleCloseTag(Token token)
         {
             if ((currentStyle.NoParse && token.TagName != "noparse")
-                || ignoreTags.Contains(token.TagName))
+                || ignoreTags.Contains(token.TagName!))
             {
                 sb!.Append("</").Append(token.TagName).Append('>');
                 return;
@@ -598,7 +818,6 @@
             switch (tagName)
             {
                 // ── Stack-based tags ──────────────────────────────────────
-
                 case "align":
                     if (currentStyle.Alignment.Count > 0)
                         currentStyle.Alignment.Pop();
@@ -630,7 +849,6 @@
                     break;
 
                 // ── Counter-based tags ────────────────────────────────────
-
                 case "allcaps":
                     if (currentStyle.AllCaps > 0)
                         currentStyle.AllCaps--;
@@ -686,7 +904,6 @@
                     break;
 
                 // ── Single-value tags ─────────────────────────────────────
-
                 case "alpha":
                     currentStyle.Alpha = null; ClearCharStyleCache();
                     break;
@@ -741,7 +958,6 @@
                     break;
 
                 // ── Boolean tags ──────────────────────────────────────────
-
                 case "nobr":
                     currentStyle.NoBreak = false;
                     break;
@@ -760,13 +976,13 @@
             }
 
             if (!illegalTags.Contains(tagName))
-                sb.Append("</").Append(tagName).Append('>');
+                sb!.Append("</").Append(tagName).Append('>');
         }
 
         private void HandleSelfCloseTag(Token token)
         {
             if (currentStyle.NoParse
-                || ignoreTags.Contains(token.TagName))
+                || ignoreTags.Contains(token.TagName!))
             {
                 sb!.Append('<').Append(token.TagName);
                 if (!string.IsNullOrEmpty(token.TagValue))
@@ -827,213 +1043,6 @@
 
                 sb.Append('>');
             }
-        }
-
-        #endregion
-
-        #region Parsing Helpers
-
-        /// <summary>
-        /// Try to parse a <see cref="HintAlignment"/> from a tag value string.
-        /// Supported values: left, center, right, justified, flush.
-        /// </summary>
-        private static bool TryParseAlignment(string? value, out HintAlignment alignment)
-        {
-            alignment = default;
-
-            if (string.IsNullOrEmpty(value))
-                return false;
-
-            switch (value)
-            {
-                case "left":
-                    alignment = HintAlignment.Left;
-                    return true;
-                case "center":
-                    alignment = HintAlignment.Center;
-                    return true;
-                case "right":
-                    alignment = HintAlignment.Right;
-                    return true;
-                case "justified":
-                    alignment = HintAlignment.Justified;
-                    return true;
-                case "flush":
-                    alignment = HintAlignment.Flush;
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        /// <summary>
-        /// Try to parse a hex alpha value. Supports format: #XX (e.g., "#FF", "#80").
-        /// </summary>
-        private static bool TryParseAlpha(string? value, out byte alpha)
-        {
-            alpha = 255;
-
-            if (string.IsNullOrEmpty(value))
-                return false;
-
-            // Strip leading '#' if present
-            string hex = value!.StartsWith("#") ? value.Substring(1) : value;
-
-            if (hex.Length == 2)
-            {
-                return byte.TryParse(hex, System.Globalization.NumberStyles.HexNumber, null, out alpha);
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Try to parse a <see cref="Color"/> from a tag value string.
-        /// Supports named colors (red, green, blue, etc.) and hex formats (#RGB, #RRGGBB, #RRGGBBAA).
-        /// </summary>
-        private static bool TryParseColor(string? value, out Color color)
-        {
-            color = default;
-
-            if (string.IsNullOrEmpty(value))
-                return false;
-
-            // Try named colors first
-            switch (value)
-            {
-                case "red": color = new Color(255, 0, 0, 255); return true;
-                case "green": color = new Color(0, 128, 0, 255); return true;
-                case "blue": color = new Color(0, 0, 255, 255); return true;
-                case "white": color = new Color(255, 255, 255, 255); return true;
-                case "black": color = new Color(0, 0, 0, 255); return true;
-                case "yellow": color = new Color(255, 255, 0, 255); return true;
-                case "cyan": color = new Color(0, 255, 255, 255); return true;
-                case "magenta": color = new Color(255, 0, 255, 255); return true;
-                case "orange": color = new Color(255, 165, 0, 255); return true;
-                case "purple": color = new Color(128, 0, 128, 255); return true;
-                case "grey":
-                case "gray": color = new Color(128, 128, 128, 255); return true;
-            }
-
-            // Try hex format
-            string hex = value.StartsWith("#") ? value.Substring(1) : value;
-
-            try
-            {
-                byte r, g, b, a = 255;
-
-                if (hex.Length == 6) // RRGGBB
-                {
-                    r = byte.Parse(hex.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
-                    g = byte.Parse(hex.Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
-                    b = byte.Parse(hex.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
-                    color = new Color(r, g, b, a);
-                    return true;
-                }
-                else if (hex.Length == 8) // RRGGBBAA
-                {
-                    r = byte.Parse(hex.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
-                    g = byte.Parse(hex.Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
-                    b = byte.Parse(hex.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
-                    a = byte.Parse(hex.Substring(6, 2), System.Globalization.NumberStyles.HexNumber);
-                    color = new Color(r, g, b, a);
-                    return true;
-                }
-                else if (hex.Length == 3) // RGB shorthand
-                {
-                    r = byte.Parse(new string(hex[0], 2), System.Globalization.NumberStyles.HexNumber);
-                    g = byte.Parse(new string(hex[1], 2), System.Globalization.NumberStyles.HexNumber);
-                    b = byte.Parse(new string(hex[2], 2), System.Globalization.NumberStyles.HexNumber);
-                    color = new Color(r, g, b, a);
-                    return true;
-                }
-            }
-            catch
-            {
-                // Parse failed
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Try to parse a float value from a string, stripping any unit suffixes.
-        /// Used for tags whose value is always a plain number (e.g., rotate, font-weight).
-        /// </summary>
-        private static bool TryParseFloat(string? value, out float result)
-        {
-            result = 0f;
-
-            if (string.IsNullOrEmpty(value))
-                return false;
-
-            string trimmed = value.Trim();
-
-            return float.TryParse(trimmed, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out result);
-        }
-
-        /// <summary>
-        /// Core method: parse a string like "12px", "1.5em", "50%", or "24" into
-        /// a <see cref="MeasuredValue"/> with the correct <see cref="MeasureUnit"/>.
-        /// </summary>
-        private static bool TryParseToMeasuredValue(string value, out MeasuredValue result)
-        {
-            result = default;
-
-            if (string.IsNullOrEmpty(value))
-                return false;
-
-            float numericValue;
-            MeasureUnit unit;
-
-            if (value.EndsWith("px"))
-            {
-                unit = MeasureUnit.Pixel;
-                value = value.Substring(0, value.Length - 2);
-            }
-            else if (value.EndsWith("em"))
-            {
-                unit = MeasureUnit.FontUnit;
-                value = value.Substring(0, value.Length - 2);
-            }
-            else if (value.EndsWith("%"))
-            {
-                unit = MeasureUnit.Percentage;
-                value = value.Substring(0, value.Length - 1);
-            }
-            else
-            {
-                // No unit suffix — default to pixels.
-                unit = MeasureUnit.Pixel;
-            }
-
-            if (!float.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out numericValue))
-                return false;
-
-            result = new MeasuredValue
-            {
-                Value = numericValue,
-                Unit = unit,
-            };
-            return true;
-        }
-
-        /// <summary>
-        /// Attempts to parse a measured value string and convert it to pixel units.
-        /// </summary>
-        /// <param name="value">The measured value to parse, such as a string representing a length or size. Can be null.</param>
-        /// <param name="fontSize">The font size, in pixels, used for relative unit conversions. Can be null if not applicable.</param>
-        /// <param name="targetValue">An optional target value, in pixels, used for certain relative conversions. Can be null if not required.</param>
-        /// <param name="result">When this method returns, contains the parsed value in pixels if the conversion succeeds; otherwise, null.</param>
-        /// <returns>true if the value was successfully parsed and converted to pixels; otherwise, false.</returns>
-        private static bool TryParseToPixels(string? value, float? fontSize, float? targetValue, out float? result)
-        {
-            result = 0f;
-
-            if (!TryParseToMeasuredValue(value, out MeasuredValue measured))
-                return false;
-
-            return measured.TryGetPixels(fontSize, targetValue, out result);
         }
 
         #endregion

@@ -1,7 +1,7 @@
-﻿using HintServiceMeow.Core.Enum;
-
-namespace HintServiceMeow.Core.Models.Parser.ValueObject
+﻿namespace HintServiceMeow.Core.Models.Parser.ValueObject
 {
+    using HintServiceMeow.Core.Enum;
+
     internal struct MeasuredValue
     {
         public float Value;

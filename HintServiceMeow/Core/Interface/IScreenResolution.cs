@@ -1,7 +1,10 @@
-﻿using System.ComponentModel;
-
-namespace HintServiceMeow.Core.Interface
+﻿namespace HintServiceMeow.Core.Interface
 {
+    using System.ComponentModel;
+
+    /// <summary>
+    /// Represents a screen resolution's xy ratio.
+    /// </summary>
     public interface IScreenResolution : INotifyPropertyChanged
     {
         /// <summary>

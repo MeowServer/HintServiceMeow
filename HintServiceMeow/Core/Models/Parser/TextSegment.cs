@@ -1,7 +1,7 @@
-﻿using HintServiceMeow.Core.Models.Parser.Style;
-
-namespace HintServiceMeow.Core.Models.Parser
+﻿namespace HintServiceMeow.Core.Models.Parser
 {
+    using HintServiceMeow.Core.Models.Parser.Style;
+
     internal struct TextSegment
     {
         private string text;
@@ -18,19 +18,8 @@ namespace HintServiceMeow.Core.Models.Parser
 
         public TextSegmentStyle Style { get; set; }
 
-        public float Width
-        {
-            get
-            {
-                //if (CustomWidth.HasValue)
-                //    return CustomWidth.Value;
-
-                return width;
-            }
-        }
+        public float Width => width;
 
         public float Height => Style.GetHeight();
-
-        // public float? CustomWidth { get; set; } = null;
     }
 }

@@ -1,9 +1,16 @@
-﻿using HintServiceMeow.Core.Models.Parser.Style;
-
-namespace HintServiceMeow.Core.Models.Parser
+﻿namespace HintServiceMeow.Core.Models.Parser
 {
+    using HintServiceMeow.Core.Models.Parser.Style;
+
     internal struct LineInfo
     {
+        public LineInfo(TextSegment[] characterInfos, LineStyle style, string cleanText)
+        {
+            CharacterInfos = characterInfos;
+            Style = style;
+            CleanText = cleanText;
+        }
+
         public TextSegment[] CharacterInfos { get; }
 
         public LineStyle Style { get; }
@@ -42,13 +49,6 @@ namespace HintServiceMeow.Core.Models.Parser
 
                 return highestHeight;
             }
-        }
-
-        public LineInfo(TextSegment[] characterInfos, LineStyle style, string cleanText)
-        {
-            CharacterInfos = characterInfos;
-            Style = style;
-            CleanText = cleanText;
         }
     }
 }

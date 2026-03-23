@@ -8,7 +8,9 @@ namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
     public class TimespanParameter : IParameter
     {
         public double SourceTime { get; set; }
+
         public string Format { get; set; }
+
         public bool Negate { get; set; }
 
         public TimespanParameter(double sourceTime, string format, bool negate)

@@ -5,12 +5,12 @@ namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
 
     public class AmmoParameter : IParameter
     {
-        public byte Id { get; set; }
-
         public AmmoParameter(byte id)
         {
             this.Id = id;
         }
+
+        public byte Id { get; set; }
 
         public HintParameter GetScpslHintParameter()
         {

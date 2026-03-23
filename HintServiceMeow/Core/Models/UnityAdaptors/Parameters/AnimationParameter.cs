@@ -8,14 +8,6 @@ namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
 
     public class AnimationParameter : IParameter
     {
-        public double Offset { get; set; }
-
-        public IAnimationCurve Curve { get; set; }
-
-        public string Format { get; set; }
-
-        public bool Integral { get; set; }
-
         public AnimationParameter(double offset, IAnimationCurve curve, string format, bool integral)
         {
             this.Offset = offset;
@@ -24,9 +16,18 @@ namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
             this.Integral = integral;
         }
 
-        public AnimationParameter(IAnimationCurve curve, string format = "F1") : this(NetworkTimeCache.Time, curve, format, false)
+        public AnimationParameter(IAnimationCurve curve, string format = "F1")
+            : this(NetworkTimeCache.Time, curve, format, false)
         {
         }
+
+        public double Offset { get; set; }
+
+        public IAnimationCurve Curve { get; set; }
+
+        public string Format { get; set; }
+
+        public bool Integral { get; set; }
 
         public HintParameter GetScpslHintParameter()
         {

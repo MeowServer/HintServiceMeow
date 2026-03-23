@@ -5,14 +5,15 @@ namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
 
     public class FloatValueParameter : IParameter
     {
-        public float Value { get; set; }
-        public string Format { get; set; }
-
         public FloatValueParameter(float value, string format = "F2")
         {
             this.Value = value;
             this.Format = format;
         }
+
+        public float Value { get; set; }
+
+        public string Format { get; set; }
 
         public HintParameter GetScpslHintParameter()
         {

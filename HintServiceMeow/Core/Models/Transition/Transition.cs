@@ -12,8 +12,9 @@
         private IAnimationCurve curve;
         private EasingType easing;
 
-        private Transition()
+        private Transition(IAnimationCurve curve)
         {
+            this.curve = curve;
         }
 
         /// <summary> Gets or sets the duration of the transition in seconds. If value is below or equal to zero, it will be set to 0.001f to avoid issues.</summary>
@@ -65,7 +66,7 @@
             }
         }
 
-        public IAnimationCurve? NormalizedCurve
+        public IAnimationCurve NormalizedCurve
         {
             get
             {

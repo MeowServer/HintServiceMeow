@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using HintServiceMeow.Core.Interface;
-
-namespace HintServiceMeow.Core.Models
+﻿namespace HintServiceMeow.Core.Models
 {
+    using System;
+    using System.Collections;
+    using System.Collections.Generic;
+    using HintServiceMeow.Core.Interface;
+
     public class ParameterCollection : IEnumerable<Tuple<string, IParameter>>
     {
         private readonly object collectionLock = new object();
@@ -39,7 +39,8 @@ namespace HintServiceMeow.Core.Models
 
         public void RemoveParameter(string tagName) => RemoveAll(x => x.Item1 == tagName);
 
-        public void RemoveParameters<T>() where T : IParameter => RemoveAll(p => p.Item2 is T);
+        public void RemoveParameters<T>()
+            where T : IParameter => RemoveAll(p => p.Item2 is T);
 
         public Tuple<string, IParameter>[] ToArray()
         {

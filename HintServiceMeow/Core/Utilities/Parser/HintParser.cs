@@ -51,8 +51,7 @@
 
         // For ParseToRichText method
         private RichTextParserSetting settingTemplate = new RichTextParserSetting(TextMeshStyle.Default, Array.Empty<Tuple<string, IParameter>>(), ["line-height"],
-            ["a", "allcaps", "alpha", "b", "color", "font", "font-weight", "gradient",
-            "i", "lowercase", "mark", "noparse", "s", "smallcaps", "style", "u", "uppercase", "link"],
+            ["a", "allcaps", "alpha", "b", "color", "font", "font-weight", "gradient", "i", "lowercase", "mark", "noparse", "s", "smallcaps", "style", "u", "uppercase", "link"],
             true); // Tags that does not affect the size of the text are ignored.
 
         public HintParser(
@@ -62,7 +61,7 @@
             IPool<RichTextParser>? richTextParserPool = null,
             IPool<Hint>? hintPool = null)
         {
-            this.dynamicHintPositionCache = dynamicHintPositionCache ?? new Cache<Guid, ValueTuple<float, float>>(500);
+            this.dynamicHintPositionCache = dynamicHintPositionCache ?? new Cache<Guid, (float, float)>(500);
             this.coordinateTool = coordinateTool ?? new CoordinateTools();
             this.stringBuilderPool = stringBuilderPool ?? StringBuilderPool.Instance;
             this.richTextParserPool = richTextParserPool ?? RichTextParserPool.Instance;
@@ -186,7 +185,7 @@
 
             // Check target position before checking the cache
             float actualTargetX = GetActualX(dynamicHint.TargetX, xyRatio, HintAlignment.Center, dynamicHint.ResolutionOption);
-            ValueTuple<float, float> targetCoordinate = ValueTuple.Create(actualTargetX, dynamicHint.TargetY);
+            ValueTuple<float, float> targetCoordinate = (actualTargetX, dynamicHint.TargetY);
             TextArea targetArea = DynamicHintToArea(targetCoordinate);
 
             bool targetAreaAvailable = true;
@@ -269,13 +268,13 @@
                 }
 
                 if (tuple.Item2 < dynamicHint.BottomBoundary)
-                    queue.Enqueue(ValueTuple.Create(tuple.Item1, tuple.Item2 + 10));
+                    queue.Enqueue((tuple.Item1, tuple.Item2 + 10));
                 if (tuple.Item2 > dynamicHint.TopBoundary)
-                    queue.Enqueue(ValueTuple.Create(tuple.Item1, tuple.Item2 - 10));
+                    queue.Enqueue((tuple.Item1, tuple.Item2 - 10));
                 if (tuple.Item1 < dynamicHint.RightBoundary)
-                    queue.Enqueue(ValueTuple.Create(tuple.Item1 + 50, tuple.Item2));
+                    queue.Enqueue((tuple.Item1 + 50, tuple.Item2));
                 if (tuple.Item1 > dynamicHint.LeftBoundary)
-                    queue.Enqueue(ValueTuple.Create(tuple.Item1 - 50, tuple.Item2));
+                    queue.Enqueue((tuple.Item1 - 50, tuple.Item2));
             }
 
             // Failed to find a position, return according to DynamicHintStrategy
@@ -429,7 +428,8 @@
             hintParameters.Clear();
         }
 
-        private TransitionState? AddTransition(StringBuilder sb,
+        private TransitionState? AddTransition(
+            StringBuilder sb,
             float from,
             float to,
             Transition? transition,

@@ -5,12 +5,12 @@ namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
 
     public class ByteValueParameter : IParameter
     {
-        public byte Value { get; set; }
-
         public ByteValueParameter(byte value)
         {
             this.Value = value;
         }
+
+        public byte Value { get; set; }
 
         public HintParameter GetScpslHintParameter()
         {

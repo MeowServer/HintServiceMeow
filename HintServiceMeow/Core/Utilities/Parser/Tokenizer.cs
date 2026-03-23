@@ -122,9 +122,8 @@
             }
 
             // Cut out the tag ( without < and > )
-
             bool isCloseTag = rawText[tagStart] == '/';// Check if is close tag or open tag
-            string tagName, tagParameter = null;
+            string? tagName, tagParameter = null;
             if (isCloseTag) // Is close tag, remove the closing mark
             {
                 tagName = TagChecker.TryMatchValidTag(rawText, tagStart + 1, tagEnd - tagStart); // Skip first char(/) and cut out the tag name

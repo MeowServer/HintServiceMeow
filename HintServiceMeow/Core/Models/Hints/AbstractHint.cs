@@ -485,6 +485,7 @@ namespace HintServiceMeow.Core.Models.Hints
                 OnHintUpdated(nameof(Hide));
             }
         }
+
         /// <summary>
         /// Gets or sets the way the HintParser handle hint's position when the screen resolution changes.
         /// </summary>
@@ -520,7 +521,6 @@ namespace HintServiceMeow.Core.Models.Hints
                 OnHintUpdated(nameof(ResolutionOption));
             }
         }
-
 
         public ParameterCollection Parameters
         {

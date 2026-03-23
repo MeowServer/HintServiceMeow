@@ -18,10 +18,10 @@
     <PackageIcon>logo.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>hsm, scpsl, labapi, exiled</PackageTags>
-    <AssemblyVersion>5.5.0.0</AssemblyVersion>
-    <FileVersion>5.5.1.0</FileVersion>
+    <AssemblyVersion>6.0.0.0</AssemblyVersion>
+    <FileVersion>6.0.0.0</FileVersion>
     <Title>Hint Service Meow</Title>
-    <Version>5.5.1.0</Version>
+    <Version>6.0.0.0</Version>
     <Platforms>x64</Platforms>
   </PropertyGroup>
 
