@@ -15,12 +15,13 @@
         /// <param name="transition">The transition configuration.</param>
         /// <param name="fromValue">Value before the change.</param>
         /// <param name="toValue">Value after the change.</param>
-        public TransitionState(Transition transition, float fromValue, float toValue)
+        /// <param name="startTime">Optional start time. If null, uses current NetworkTimeCache.Time.</param>
+        public TransitionState(Transition transition, float fromValue, float toValue, double? startTime = null)
         {
             Transition = transition;
-            StartTime = NetworkTimeCache.Time;
             FromValue = fromValue;
             ToValue = toValue;
+            StartTime = startTime ?? NetworkTimeCache.Time;
         }
 
         /// <summary> Gets the transition configuration that created this state. </summary>

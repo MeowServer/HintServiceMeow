@@ -19,7 +19,7 @@ namespace HintServiceMeow.Core.Models.Hints
         private Transition? xCoordinateTransition = null;
         private Transition? yCoordinateTransition = null;
         private TransitionState? xCoordinateTransitionState = null;
-        private TransitionState? yCoordinateTransitionState = null;
+        private TransitionState? vOffsetTransitionState = null;
 
         #region Constructors
 
@@ -320,14 +320,19 @@ namespace HintServiceMeow.Core.Models.Hints
             }
         }
 
-        internal TransitionState? YCoordinateTransitionState
+        /// <summary>
+        /// Gets or sets the transition state of the VOffset.
+        /// </summary>
+        /// <remarks>This property is intended for internal use to track the transition state of the Y
+        /// coordinate. Access to this property is thread-safe.</remarks>
+        internal TransitionState? VOffsetTransitionState
         {
             get
             {
                 Lock.EnterReadLock();
                 try
                 {
-                    return yCoordinateTransitionState;
+                    return vOffsetTransitionState;
                 }
                 finally
                 {
@@ -340,7 +345,7 @@ namespace HintServiceMeow.Core.Models.Hints
                 Lock.EnterWriteLock();
                 try
                 {
-                    yCoordinateTransitionState = value;
+                    vOffsetTransitionState = value;
                 }
                 finally
                 {
@@ -361,26 +366,6 @@ namespace HintServiceMeow.Core.Models.Hints
                         return xCoordinate;
 
                     return xCoordinateTransitionState.CurrentValue;
-                }
-                finally
-                {
-                    Lock.ExitReadLock();
-                }
-            }
-        }
-
-        internal float CurrentYCoordinate
-        {
-            get
-            {
-                Lock.EnterReadLock();
-
-                try
-                {
-                    if (yCoordinateTransitionState is null)
-                        return yCoordinate;
-
-                    return yCoordinateTransitionState.CurrentValue;
                 }
                 finally
                 {
@@ -440,7 +425,7 @@ namespace HintServiceMeow.Core.Models.Hints
             this.xCoordinateTransition = dynamicHint.XCoordinateTransition;
             this.yCoordinateTransition = dynamicHint.YCoordinateTransition;
             this.xCoordinateTransitionState = dynamicHint.XTransitionState;
-            this.yCoordinateTransitionState = dynamicHint.YTransitionState;
+            this.vOffsetTransitionState = dynamicHint.YTransitionState;
 
             this.xCoordinate = x;
             this.yCoordinate = y;

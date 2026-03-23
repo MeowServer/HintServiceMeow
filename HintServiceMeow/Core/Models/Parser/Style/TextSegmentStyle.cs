@@ -41,8 +41,8 @@
             FontWeight = fontWeight;
         }
 
-        public static TextSegmentStyle Default { get; } = new TextSegmentStyle(
-            fontSize: 16,
+        public static TextSegmentStyle Default => new TextSegmentStyle(
+            fontSize: 40,
             color: new Color(255, 255, 255),
             alpha: null,
             bold: false,

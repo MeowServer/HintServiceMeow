@@ -6,6 +6,10 @@
 
     internal interface ICoordinateTools
     {
+        float GetYCoordinate(float vOffset);
+
+        float GetVOffset(float yCoordinate);
+
         float GetYCoordinate(Hint hint, HintVerticalAlign to);
 
         float GetYCoordinate(Hint hint, HintVerticalAlign from, HintVerticalAlign to);

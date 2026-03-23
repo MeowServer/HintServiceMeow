@@ -324,11 +324,24 @@
                 + hint.LineHeight;// Add extra line height on top of the first line so that the line height will not be calculated for the first line
         }
 
+        private float GetCurrentVOffset(Hint hint, HintVerticalAlign align)
+        {
+            float yCoordinate = hint.VOffsetTransitionState == null ?
+                hint.YCoordinate
+                : coordinateTool.GetYCoordinate(hint.VOffsetTransitionState.CurrentValue);
+
+            return 700
+                - coordinateTool.GetYCoordinate(yCoordinate, coordinateTool.GetTextHeight(hint), hint.YCoordinateAlign, HintVerticalAlign.Top)// Start at the top of the first line
+                + hint.LineHeight;// Add extra line height on top of the first line so that the line height will not be calculated for the first line
+        }
+
         private void ParseToRichText(Hint hint, StringBuilder messageBuilder, float xyRatio)
         {
             // Parse into line infos
             RichTextParser parser = richTextParserPool.Rent();
             settingTemplate.Parameters = hint.Parameters.ToArray();
+            settingTemplate.DefaultStyle.CharStyle.FontSize = hint.FontSize;
+            settingTemplate.DefaultStyle.LineStyle.Alignment = hint.Alignment;
             RichTextParserResult result = parser.ParseText(hint.Content.GetText() ?? string.Empty, settingTemplate);
             richTextParserPool.Return(parser);
 
@@ -342,34 +355,23 @@
                 return;
 
             // Add default size/alignment
-            if (hint.FontSizeTransition is not null)
-            {
-                IAnimationCurve curve = hint.FontSizeTransition.GetCurve(hint.CurrentFontSize, hint.FontSize);
-                messageBuilder.Append("<size=");
-                AddTag(messageBuilder, new AnimationParameter(NetworkTimeCache.Time, curve, formatString, useIntegral));
-                messageBuilder.Append('>');
-                hint.FontSizeTransitionState = new TransitionState(hint.FontSizeTransition, hint.CurrentFontSize, hint.FontSize);
-            }
-            else
-            {
-                messageBuilder.AppendFormat("<size={0}>", hint.FontSize);
-            }
+            messageBuilder.Append("<size=");
+            hint.FontSizeTransitionState = AddTransition(messageBuilder, hint.CurrentFontSize, hint.FontSize, hint.FontSizeTransition, hint.FontSizeTransitionState);
+            messageBuilder.Append('>');
 
-            if (hint.Alignment != HintAlignment.Center)
+            switch (hint.Alignment)
             {
-                switch (hint.Alignment)
-                {
-                    case HintAlignment.Left: messageBuilder.Append("<align=left>"); break;
-                    case HintAlignment.Right: messageBuilder.Append("<align=right>"); break;
-                }
+                case HintAlignment.Left: messageBuilder.Append("<align=left>"); break;
+                case HintAlignment.Right: messageBuilder.Append("<align=right>"); break;
             }
 
             // Get the bottom y coordinate of first line
             float vOffset = GetVOffset(hint, HintVerticalAlign.Top);
 
-            // Get the delta of y coordinate from the original position to the target position.
-            float yDelta = hint.YCoordinate - hint.CurrentYCoordinate;
-            float fromVOffset = vOffset + yDelta;
+            // Get the current v offset
+            float fromVOffset = GetCurrentVOffset(hint, HintVerticalAlign.Top);
+
+            bool coordinateTransitionStateAdded = false;
 
             for (int i = 0; i < result.LineInfos.Length; i++)
             {
@@ -381,41 +383,28 @@
 
                 // X coordinate
                 float actualXCoordinate = GetActualX(hint.XCoordinate, xyRatio, hint.Alignment, hint.ResolutionOption);
-                if (hint.XCoordinateTransition is not null)
-                {
-                    IAnimationCurve curve = hint.XCoordinateTransition.GetCurve(hint.CurrentXCoordinate, actualXCoordinate);
-                    messageBuilder.Append("<pos=");
-                    AddTag(messageBuilder, new AnimationParameter(NetworkTimeCache.Time, curve, formatString, useIntegral));
-                    messageBuilder.Append('>');
-                    hint.XCoordinateTransitionState = new TransitionState(hint.XCoordinateTransition, hint.CurrentXCoordinate, actualXCoordinate);
-                }
+                messageBuilder.Append("<pos=");
+                if (!coordinateTransitionStateAdded)// Only add transition state for the first line
+                    hint.XCoordinateTransitionState = AddTransition(messageBuilder, hint.CurrentXCoordinate, actualXCoordinate, hint.XCoordinateTransition, hint.XCoordinateTransitionState);
                 else
-                {
-                    if (actualXCoordinate != 0)
-                        messageBuilder.AppendFormat("<pos={0:0.#}>", actualXCoordinate);
-                }
+                    AddTransition(messageBuilder, hint.CurrentXCoordinate, actualXCoordinate, hint.XCoordinateTransition, hint.XCoordinateTransitionState);
+                messageBuilder.Append('>');
 
                 messageBuilder.Append("<line-height=0>"); // Make sure each line will not affect each other's position
 
                 // Y coordinate
-                if (hint.YCoordinateTransition is not null)
-                {
-                    IAnimationCurve curve = hint.YCoordinateTransition.GetCurve(fromVOffset, vOffset);
-                    messageBuilder.Append("<voffset=");
-                    AddTag(messageBuilder, new AnimationParameter(NetworkTimeCache.Time, curve, formatString, useIntegral));
-                    messageBuilder.Append('>');
-                    hint.YCoordinateTransitionState = new TransitionState(hint.YCoordinateTransition, hint.CurrentYCoordinate, hint.YCoordinate);
-                }
+                messageBuilder.Append("<voffset=");
+                if (!coordinateTransitionStateAdded)// Only add transition state for the first line
+                    hint.VOffsetTransitionState = AddTransition(messageBuilder, fromVOffset, vOffset, hint.YCoordinateTransition, hint.VOffsetTransitionState);
                 else
-                {
-                    if (vOffset != 0)
-                        messageBuilder.AppendFormat("<voffset={0:0.#}>", vOffset); // Y coordinate
-                }
+                    AddTransition(messageBuilder, fromVOffset, vOffset, hint.YCoordinateTransition, hint.VOffsetTransitionState);
+                messageBuilder.Append('>');
+
+                coordinateTransitionStateAdded = true;
 
                 messageBuilder.Append(result.LineInfos[i].CleanText); // Content
 
-                if (vOffset != 0)
-                    messageBuilder.Append("</voffset>"); // End Y coordinate
+                messageBuilder.Append("</voffset>"); // End Y coordinate
 
                 messageBuilder.AppendLine(); // Break line
             }
@@ -440,11 +429,36 @@
             hintParameters.Clear();
         }
 
-        private void AddTag(StringBuilder sb, IParameter hintParameter)
+        private TransitionState? AddTransition(StringBuilder sb,
+            float from,
+            float to,
+            Transition? transition,
+            TransitionState? transitionState)
         {
+            // If there's no transition, just return the target value
+            if (transition is null)
+            {
+                sb.Append(to.ToString(formatString));
+                return null;
+            }
+
+            // Check if previous transition state is aiming for same target value.
+            // If so, we believe that they are same transition. Keep the same transition.
+            double startTime = NetworkTimeCache.Time;
+            if (transitionState is not null
+                && transitionState.ToValue == to)
+            {
+                startTime = transitionState.StartTime;
+                from = transitionState.FromValue;
+            }
+
+            // If target value is different, start a new transition from current value.
+            IAnimationCurve curve = transition.GetCurve(from, to);
             sb.Append('{').Append(parameterIndex).Append('}');
             parameterIndex++;
-            hintParameters.Add(hintParameter);
+            hintParameters.Add(new AnimationParameter(startTime, curve, formatString, useIntegral));
+
+            return new TransitionState(transition, from, to, startTime);
         }
     }
 }

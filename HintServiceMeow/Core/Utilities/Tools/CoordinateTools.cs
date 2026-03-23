@@ -96,7 +96,10 @@
             if (hint == null)
                 throw new ArgumentNullException(nameof(hint), "Hint cannot be null.");
 
-            return GetCurrentYCoordinate(hint.CurrentYCoordinate, GetTextHeight(hint), from, to);
+            float yCoordinate = hint.VOffsetTransitionState == null ?
+                hint.YCoordinate : GetYCoordinate(hint.VOffsetTransitionState.CurrentValue);
+
+            return GetCurrentYCoordinate(yCoordinate, GetTextHeight(hint), from, to);
         }
 
         public float GetCurrentYCoordinate(float rawCurrentYCoordinate, float textHeight, HintVerticalAlign from, HintVerticalAlign to)
@@ -228,6 +231,16 @@
             richTextParserPool.Return(parser);
 
             return result.LineInfos;
+        }
+
+        public float GetYCoordinate(float vOffset)
+        {
+            return 700 - vOffset;
+        }
+
+        public float GetVOffset(float yCoordinate)
+        {
+            return 700 - yCoordinate;
         }
     }
 }

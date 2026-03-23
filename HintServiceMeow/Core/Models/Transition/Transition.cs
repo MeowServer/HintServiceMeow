@@ -87,7 +87,7 @@
 
         internal static IAnimationCurveFactory CurveFactory { get; set; } = new UnityAnimationCurveFactory();
 
-        public static Transition Get(IAnimationCurve normalizedCurve, float duration = 3f)
+        public static Transition Get(IAnimationCurve normalizedCurve, float duration = 0.5f)
         {
             return new Transition()
             {
@@ -97,7 +97,7 @@
             };
         }
 
-        public static Transition Get(EasingType type = EasingType.EaseInOut, float duration = 3f)
+        public static Transition Get(EasingType type = EasingType.EaseInOut, float duration = 0.5f)
         {
             return new Transition()
             {
@@ -118,16 +118,18 @@
                 float range = to - from;
                 HsmKeyFrame[] keys = curve.Keys;
 
-                int frameCount = keys.Length;
+                int frameCount = keys.Length + 1;
 
                 if (curve.PostWrapMode == Enum.UnityAdaptor.HsmWrapMode.Once)
                     frameCount += 1;
 
                 HsmKeyFrame[] scaled = new HsmKeyFrame[frameCount];
 
+                scaled[0] = new HsmKeyFrame(time: -999f, value: from, inTangent: 0f, outTangent: 0f);
+
                 for (int i = 0; i < keys.Length; i++)
                 {
-                    scaled[i] = new HsmKeyFrame(
+                    scaled[i + 1] = new HsmKeyFrame(
                         time: keys[i].Time * duration,
                         value: from + (keys[i].Value * range),
                         inTangent: keys[i].InTangent * range / duration,
@@ -136,7 +138,7 @@
 
                 // Add an super long keyframe to prevent loop from happening.
                 if (curve.PostWrapMode == Enum.UnityAdaptor.HsmWrapMode.Once)
-                    scaled[keys.Length] = new HsmKeyFrame(time: 99999f, value: to, inTangent: 0f, outTangent: 0f);
+                    scaled[frameCount - 1] = new HsmKeyFrame(time: 99999f, value: to, inTangent: 0f, outTangent: 0f);
 
                 IAnimationCurve result = CurveFactory.Build(scaled);
 
