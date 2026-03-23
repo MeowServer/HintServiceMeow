@@ -285,6 +285,7 @@ namespace HintServiceMeow.Core.Utilities
         /// Adds a collection of hints to this player's display under the calling assembly's group.
         /// </summary>
         /// <param name="hints">The hints to add. Ignored if <see langword="null"/>.</param>
+        [Obsolete("Use AddHint(params AbstractHint[]? hints) instead.")]
         public void AddHint(IEnumerable<AbstractHint>? hints)
         {
             if (hints is null)
@@ -386,6 +387,7 @@ namespace HintServiceMeow.Core.Utilities
         /// Removes a collection of hints from the calling assembly's group.
         /// </summary>
         /// <param name="hints">The hints to remove. Ignored if <see langword="null"/>.</param>
+        [Obsolete("Use RemoveHint(params AbstractHint[]? hints) instead")]
         public void RemoveHint(IEnumerable<AbstractHint>? hints)
         {
             if (hints is null)
@@ -442,6 +444,15 @@ namespace HintServiceMeow.Core.Utilities
                 throw new ArgumentException("A empty string had been passed to RemoveHint");
 
             InternalRemoveHint(Assembly.GetCallingAssembly().FullName, id);
+        }
+
+        /// <summary>
+        /// Removes the hint with specified guid.
+        /// </summary>
+        /// <param name="guid">The guid of the hint to remove.</param>
+        public void RemoveHint(Guid guid)
+        {
+            InternalRemoveHint(Assembly.GetCallingAssembly().FullName, guid);
         }
 
         /// <summary>
