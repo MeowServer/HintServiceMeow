@@ -41,13 +41,13 @@ namespace HintServiceMeow.Core.Interface
         /// Adds a hint to the player's display.
         /// </summary>
         /// <param name="hint">The hint to add.</param>
-        void AddHint(AbstractHint hint);
+        void AddHint(params AbstractHint[] hint);
 
         /// <summary>
         /// Removes a hint from the player's display.
         /// </summary>
         /// <param name="hint">The hint to remove.</param>
-        void RemoveHint(AbstractHint hint);
+        void RemoveHint(params AbstractHint[] hint);
 
         /// <summary>
         /// Removes all hints from the player's display.
