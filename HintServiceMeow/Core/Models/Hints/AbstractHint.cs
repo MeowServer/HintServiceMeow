@@ -25,7 +25,6 @@ namespace HintServiceMeow.Core.Models.Hints
 
         private HintSyncSpeed syncSpeed = HintSyncSpeed.Normal;
 
-        private float previousFontSize = 20f;
         private float fontSize = 20f;
         private Transition? fontSizeTransition = null;
         private TransitionState? fontSizeTransitionState = null;
@@ -229,7 +228,6 @@ namespace HintServiceMeow.Core.Models.Hints
                     if (fontSize == value)
                         return;
 
-                    previousFontSize = fontSize;
                     fontSize = value;
                 }
                 finally
@@ -589,22 +587,6 @@ namespace HintServiceMeow.Core.Models.Hints
             }
         }
 
-        internal float PreviousFontSize
-        {
-            get
-            {
-                Lock.EnterReadLock();
-                try
-                {
-                    return previousFontSize;
-                }
-                finally
-                {
-                    Lock.ExitReadLock();
-                }
-            }
-        }
-
         /// <summary>
         /// Gets the reader/writer lock used to synchronize access to this hint's fields.
         /// </summary>
@@ -630,7 +612,6 @@ namespace HintServiceMeow.Core.Models.Hints
         {
             this.id = copyFrom.Id;
             this.syncSpeed = copyFrom.SyncSpeed;
-            this.previousFontSize = copyFrom.PreviousFontSize;
             this.fontSize = copyFrom.FontSize;
             this.lineHeight = copyFrom.LineHeight;
             this.content = copyFrom.Content;

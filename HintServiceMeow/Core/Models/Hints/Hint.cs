@@ -12,9 +12,7 @@ namespace HintServiceMeow.Core.Models.Hints
         private HintVerticalAlign yCoordinateAlign = HintVerticalAlign.Middle;
 
         private float xCoordinate = 0;
-        private float previousXCoordinate = 0;
         private float yCoordinate = 700;
-        private float previousYCoordinate = 700;
 
         private Transition? xCoordinateTransition = null;
         private Transition? yCoordinateTransition = null;
@@ -42,29 +40,8 @@ namespace HintServiceMeow.Core.Models.Hints
             {
                 yCoordinate = hint.yCoordinate;
                 xCoordinate = hint.xCoordinate;
-                previousYCoordinate = hint.previousYCoordinate;
-                previousXCoordinate = hint.previousXCoordinate;
                 alignment = hint.alignment;
                 yCoordinateAlign = hint.yCoordinateAlign;
-            }
-            finally
-            {
-                Lock.ExitWriteLock();
-            }
-        }
-
-        internal Hint(DynamicHint hint, float x, float y)
-            : base(hint)
-        {
-            Lock.EnterWriteLock();
-            try
-            {
-                yCoordinate = y;
-                xCoordinate = x;
-                previousYCoordinate = y;
-                previousXCoordinate = x;
-                alignment = HintAlignment.Center;
-                yCoordinateAlign = HintVerticalAlign.Bottom;
             }
             finally
             {
@@ -375,44 +352,6 @@ namespace HintServiceMeow.Core.Models.Hints
         }
 
         /// <summary>
-        /// Gets the previous Y coordinate of the hint for animation purposes.
-        /// </summary>
-        internal float PreviousYCoordinate
-        {
-            get
-            {
-                Lock.EnterReadLock();
-                try
-                {
-                    return previousYCoordinate;
-                }
-                finally
-                {
-                    Lock.ExitReadLock();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets the previous X coordinate of the hint for animation purposes.
-        /// </summary>
-        internal float PreviousXCoordinate
-        {
-            get
-            {
-                Lock.EnterReadLock();
-                try
-                {
-                    return previousXCoordinate;
-                }
-                finally
-                {
-                    Lock.ExitReadLock();
-                }
-            }
-        }
-
-        /// <summary>
         /// Not thread safe. Should only be used when there's no other thread using it.
         /// </summary>
         /// <param name="dynamicHint">The dynamic hint to be transform.</param>
@@ -431,8 +370,10 @@ namespace HintServiceMeow.Core.Models.Hints
 
             this.xCoordinate = x;
             this.yCoordinate = y;
+            /*
             this.previousXCoordinate = dynamicHint.PreviousXCoordinate;
             this.previousYCoordinate = dynamicHint.PreviousYCoordinate;
+            */
             this.alignment = HintAlignment.Center;
             this.yCoordinateAlign = HintVerticalAlign.Bottom;
             this.ResolutionOption = ResolutionOption.None;

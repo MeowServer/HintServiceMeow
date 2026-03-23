@@ -17,8 +17,10 @@ namespace HintServiceMeow.Core.Models.Hints
         private float targetY = 700;
         private float targetX = 0;
 
+        /*
         private float previousXCoordinate = 0;
         private float previousYCoordinate = 700;
+        */
 
         private float topMargin = 5;
         private float bottomMargin = 5;
@@ -63,8 +65,10 @@ namespace HintServiceMeow.Core.Models.Hints
                 targetY = hint.targetY;
                 targetX = hint.targetX;
 
+                /*
                 previousYCoordinate = hint.previousYCoordinate;
                 previousXCoordinate = hint.previousXCoordinate;
+                */
 
                 topMargin = hint.topMargin;
                 bottomMargin = hint.bottomMargin;
@@ -81,80 +85,6 @@ namespace HintServiceMeow.Core.Models.Hints
         }
 
         #endregion
-
-        /// <summary>
-        /// Gets or sets the previous Y coordinate for animation purposes.
-        /// </summary>
-        public float PreviousYCoordinate
-        {
-            get
-            {
-                Lock.EnterReadLock();
-                try
-                {
-                    return previousYCoordinate;
-                }
-                finally
-                {
-                    Lock.ExitReadLock();
-                }
-            }
-
-            set
-            {
-                Lock.EnterWriteLock();
-                try
-                {
-                    if (previousYCoordinate.Equals(value))
-                        return;
-
-                    previousYCoordinate = value;
-                }
-                finally
-                {
-                    Lock.ExitWriteLock();
-                }
-
-                OnHintUpdated(nameof(PreviousYCoordinate));
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the previous X coordinate for animation purposes.
-        /// </summary>
-        public float PreviousXCoordinate
-        {
-            get
-            {
-                Lock.EnterReadLock();
-                try
-                {
-                    return previousXCoordinate;
-                }
-                finally
-                {
-                    Lock.ExitReadLock();
-                }
-            }
-
-            set
-            {
-                Lock.EnterWriteLock();
-                try
-                {
-                    if (previousXCoordinate.Equals(value))
-                        return;
-
-                    previousXCoordinate = value;
-                }
-                finally
-                {
-                    Lock.ExitWriteLock();
-                }
-
-                OnHintUpdated(nameof(PreviousXCoordinate));
-            }
-        }
 
         /// <summary>
         /// Gets or sets the top boundary of the dynamic hint.
