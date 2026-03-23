@@ -118,18 +118,16 @@
                 float range = to - from;
                 HsmKeyFrame[] keys = curve.Keys;
 
-                int frameCount = keys.Length + 1;
+                int frameCount = keys.Length;
 
                 if (curve.PostWrapMode == Enum.UnityAdaptor.HsmWrapMode.Once)
-                    frameCount += 1;
+                    frameCount += 1; // Prevent auto loop of scpsl
 
                 HsmKeyFrame[] scaled = new HsmKeyFrame[frameCount];
 
-                scaled[0] = new HsmKeyFrame(time: -999f, value: from, inTangent: 0f, outTangent: 0f);
-
                 for (int i = 0; i < keys.Length; i++)
                 {
-                    scaled[i + 1] = new HsmKeyFrame(
+                    scaled[i] = new HsmKeyFrame(
                         time: keys[i].Time * duration,
                         value: from + (keys[i].Value * range),
                         inTangent: keys[i].InTangent * range / duration,
