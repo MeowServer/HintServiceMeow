@@ -1,7 +1,6 @@
 namespace HintServiceMeow.Core.Models.Hints
 {
     using HintServiceMeow.Core.Enum;
-    using HintServiceMeow.Core.Models.Transition;
 
     /// <summary>
     /// Represents a hint that dynamically positions itself within defined boundaries on the player's screen,
@@ -26,10 +25,12 @@ namespace HintServiceMeow.Core.Models.Hints
         private float leftMargin = 100;
         private float rightMargin = 100;
 
+        /*
         private Transition? xCoordinateTransition = null;
         private Transition? yCoordinateTransition = null;
         private TransitionState? xCoordinateTransitionState = null;
         private TransitionState? yCoordinateTransitionState = null;
+        */
 
         private HintPriority priority = HintPriority.Medium;
         private DynamicHintStrategy strategy = DynamicHintStrategy.Hide;
@@ -525,6 +526,7 @@ namespace HintServiceMeow.Core.Models.Hints
             }
         }
 
+        /*
         public Transition XCoordinateTransition
         {
             get
@@ -592,6 +594,7 @@ namespace HintServiceMeow.Core.Models.Hints
                 OnHintUpdated(nameof(YCoordinateTransition));
             }
         }
+        */
 
         /// <summary>
         /// Gets or sets the priority of the hint, higher priority means the hint is less likely to be covered by other hint.
@@ -667,6 +670,7 @@ namespace HintServiceMeow.Core.Models.Hints
             }
         }
 
+        /*
         internal TransitionState? XTransitionState
         {
             get
@@ -724,5 +728,6 @@ namespace HintServiceMeow.Core.Models.Hints
                 }
             }
         }
+        */
     }
 }

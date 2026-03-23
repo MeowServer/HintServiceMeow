@@ -422,10 +422,12 @@ namespace HintServiceMeow.Core.Models.Hints
         {
             this.CopyFieldsFrom(dynamicHint);
 
+            /*
             this.xCoordinateTransition = dynamicHint.XCoordinateTransition;
             this.yCoordinateTransition = dynamicHint.YCoordinateTransition;
             this.xCoordinateTransitionState = dynamicHint.XTransitionState;
             this.vOffsetTransitionState = dynamicHint.YTransitionState;
+            */
 
             this.xCoordinate = x;
             this.yCoordinate = y;

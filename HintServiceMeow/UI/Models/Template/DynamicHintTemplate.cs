@@ -60,11 +60,13 @@ namespace HintServiceMeow.UI.Models.Template
             if (FontSizeTransition != null)
                 hint.FontSizeTransition = FontSizeTransition;
 
+            /*
             if (XCoordinateTransition != null)
                 hint.XCoordinateTransition = XCoordinateTransition;
 
             if (YCoordinateTransition != null)
                 hint.YCoordinateTransition = YCoordinateTransition;
+            */
         }
 
         // GetDynamicHint() is inherited from DynamicHintConfig and picks up this override automatically.
