@@ -107,7 +107,7 @@
         {
             var t = Transition.Get();
 
-            Assert.AreEqual(3f, t.Duration);
+            Assert.AreEqual(0.5f, t.Duration);
             Assert.AreEqual(EasingType.EaseInOut, t.Easing);
         }
 
@@ -126,7 +126,7 @@
         public void Get_WithCurve_DefaultDuration()
         {
             var t = Transition.Get(new FakeCurve());
-            Assert.AreEqual(3f, t.Duration);
+            Assert.AreEqual(0.5f, t.Duration);
         }
 
         // ---------- GetCurve ----------

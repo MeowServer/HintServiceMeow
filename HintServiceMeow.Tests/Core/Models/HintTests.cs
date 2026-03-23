@@ -115,6 +115,7 @@ public class HintTests
     }
 
     [TestMethod]
+    [Ignore("Previous values have been removed from hint classes.")]
     public void TransitionableProperties_WhenSet_RecordPreviousValues()
     {
         // Arrange
@@ -124,8 +125,11 @@ public class HintTests
         hint.YCoordinate = 20;
         hint.FontSize = 30;
         // Assert
+
+        /*
         Assert.AreEqual(0f, hint.PreviousXCoordinate);
         Assert.AreEqual(700f, hint.PreviousYCoordinate);
         Assert.AreEqual(20, hint.PreviousFontSize);
+        */
     }
 }

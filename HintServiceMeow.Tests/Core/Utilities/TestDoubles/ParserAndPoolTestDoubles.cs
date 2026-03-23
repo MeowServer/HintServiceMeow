@@ -91,4 +91,8 @@ internal sealed class StubCoordinateTools : ICoordinateTools
         => [new LineInfo([], LineStyle.Default, string.Empty)];
 
     public float GetEdgeOffset(float xyRatio, HintAlignment alignment) => 0f;
+
+    public float GetYCoordinate(float vOffset) => 700 - vOffset;
+
+    public float GetVOffset(float yCoordinate) => 700 - yCoordinate;
 }
