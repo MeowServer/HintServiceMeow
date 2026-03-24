@@ -109,7 +109,7 @@ namespace HintServiceMeow.Tests.Core.Utilities.Pools
 
         /// <summary>
         /// [BUG DETECTION] Return() does not call ClearStatus() on the parser.
-        /// Expected: After Return and Rent, parser style should be TextStyle.Normal.
+        /// Expected: After Return and Rent, parser style should be FontStyle.Normal.
         /// Actual: Style from previous use is retained.
         /// </summary>
         [TestMethod]
@@ -119,16 +119,16 @@ namespace HintServiceMeow.Tests.Core.Utilities.Pools
             // Arrange
             RichTextParserPool pool = RichTextParserPool.Instance;
             RichTextParser parser = pool.Rent();
-            ReflectionHelper.SetFieldValue(parser, "style", TextStyle.Bold);
+            ReflectionHelper.SetFieldValue(parser, "style", FontStyle.Bold);
 
             // Act
             pool.Return(parser);
             RichTextParser reused = pool.Rent();
 
             // Assert
-            TextStyle style = ReflectionHelper.GetFieldValue<TextStyle>(reused, "style");
+            FontStyle style = ReflectionHelper.GetFieldValue<FontStyle>(reused, "style");
             // If this PASSES (style == Normal), the bug is fixed.
-            Assert.AreEqual(TextStyle.Normal, style,
+            Assert.AreEqual(FontStyle.Normal, style,
                 "[BUG] Parser style field not cleared on Return — state leaks between uses");
         }
 

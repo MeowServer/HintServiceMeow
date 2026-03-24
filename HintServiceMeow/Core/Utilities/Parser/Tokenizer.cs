@@ -116,24 +116,31 @@
             // Cut out the tag
             int tagStart = index + 1;
             int tagEnd = rawText.IndexOf('>', tagStart) - 1;
-            if (tagEnd < 0) // No closing >
+
+            // No closing >
+            if (tagEnd < 0)
             {
                 return false;
             }
 
             // Cut out the tag ( without < and > )
-            bool isCloseTag = rawText[tagStart] == '/';// Check if is close tag or open tag
+            // Check if is close tag or open tag
+            bool isCloseTag = rawText[tagStart] == '/';
             string? tagName, tagParameter = null;
-            if (isCloseTag) // Is close tag, remove the closing mark
+
+            // Is close tag, remove the closing mark
+            if (isCloseTag)
             {
                 tagName = TagChecker.TryMatchValidTag(rawText, tagStart + 1, tagEnd - tagStart); // Skip first char(/) and cut out the tag name
             }
-            else // Is open tag, get the parameter if there is parameter
+            else
             {
+                // Is open tag, get the parameter if there is parameter
                 // Check if has value
                 int equalSignIndex = rawText.IndexOf('=', tagStart); // Find 1 equal sign after the start
 
-                if (equalSignIndex == -1 || equalSignIndex > tagEnd) // Not equal sign within the tag
+                // Not equal sign within the tag
+                if (equalSignIndex == -1 || equalSignIndex > tagEnd)
                 {
                     tagName = TagChecker.TryMatchValidTag(rawText, tagStart, tagEnd - tagStart + 1);
                 }
@@ -213,7 +220,6 @@
             }
 
             // TODO: Check if need to add StringHintParameter to replace original text when no matching parameter found.
-
             return false; // No matching parameter found, treat it as normal text
         }
 

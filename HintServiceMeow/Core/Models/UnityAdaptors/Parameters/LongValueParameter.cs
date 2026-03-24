@@ -5,12 +5,12 @@ namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
 
     public class LongValueParameter : IParameter
     {
-        public long Value { get; set; }
-
         public LongValueParameter(long value)
         {
             this.Value = value;
         }
+
+        public long Value { get; set; }
 
         public HintParameter GetScpslHintParameter()
         {

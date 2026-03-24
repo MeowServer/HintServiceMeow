@@ -84,5 +84,18 @@
                 && MarginRight == other.MarginRight
                 && MaxWidth == other.MaxWidth;
         }
+
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            int hash = 17;
+            hash = (hash * 31) + Alignment.GetHashCode();
+            hash = (hash * 31) + LineHeight.GetHashCode();
+            hash = (hash * 31) + Indent.GetHashCode();
+            hash = (hash * 31) + MarginLeft.GetHashCode();
+            hash = (hash * 31) + MarginRight.GetHashCode();
+            hash = (hash * 31) + MaxWidth.GetHashCode();
+            return hash;
+        }
     }
 }

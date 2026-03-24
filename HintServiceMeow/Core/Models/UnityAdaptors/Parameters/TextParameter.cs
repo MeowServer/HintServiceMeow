@@ -5,12 +5,12 @@ namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
 
     public class TextParameter : IParameter
     {
-        public string Value { get; set; }
-
         public TextParameter(string value)
         {
             this.Value = value;
         }
+
+        public string Value { get; set; }
 
         public HintParameter GetScpslHintParameter()
         {

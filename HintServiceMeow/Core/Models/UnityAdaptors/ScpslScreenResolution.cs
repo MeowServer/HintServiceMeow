@@ -1,4 +1,4 @@
-﻿namespace HintServiceMeow.Core.Models.UniryAdaptors
+namespace HintServiceMeow.Core.Models.UniryAdaptors
 {
     using System.Collections.Generic;
     using System.ComponentModel;
@@ -17,11 +17,9 @@
         private volatile float xScreenEdge;
         private volatile float xyRatio;
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ScpslScreenResolution"/> class.
-        /// Not Thread Safe. 
+        /// Not Thread Safe.
         /// </summary>
         /// <param name="referenceHub">The ReferenceHub instance that provides aspect ratio synchronization settings for the screen resolution.</param>
         public ScpslScreenResolution(ReferenceHub referenceHub)
@@ -48,20 +46,9 @@
             }
         }
 
+        public event PropertyChangedEventHandler? PropertyChanged;
+
         public float XyRatio => xyRatio;
-
-        private bool TryUpdate()
-        {
-            if (xScreenEdge != referenceHub!.aspectRatioSync.XScreenEdge)
-            {
-                xScreenEdge = referenceHub.aspectRatioSync.XScreenEdge;
-                xyRatio = Mathf.Tan(xScreenEdge * Mathf.Deg2Rad) / Mathf.Tan(yScreenEdge * Mathf.Deg2Rad);
-
-                return true;
-            }
-
-            return false;
-        }
 
         private static IEnumerator<float> CoroutineMethod()
         {
@@ -90,6 +77,19 @@
 
                 yield return Timing.WaitForSeconds(1f);
             }
+        }
+
+        private bool TryUpdate()
+        {
+            if (xScreenEdge != referenceHub!.aspectRatioSync.XScreenEdge)
+            {
+                xScreenEdge = referenceHub.aspectRatioSync.XScreenEdge;
+                xyRatio = Mathf.Tan(xScreenEdge * Mathf.Deg2Rad) / Mathf.Tan(yScreenEdge * Mathf.Deg2Rad);
+
+                return true;
+            }
+
+            return false;
         }
     }
 }

@@ -90,22 +90,18 @@
 
         public static Transition Get(IAnimationCurve normalizedCurve, float duration = 0.5f)
         {
-            return new Transition()
-            {
-                curve = normalizedCurve,
-                easing = EasingType.Custom,
-                duration = duration,
-            };
+            var t = new Transition(normalizedCurve);
+            t.easing = EasingType.Custom;
+            t.duration = duration;
+            return t;
         }
 
         public static Transition Get(EasingType type = EasingType.EaseInOut, float duration = 0.5f)
         {
-            return new Transition()
-            {
-                curve = CurveFactory.BuildNormalized(type),
-                easing = type,
-                duration = duration,
-            };
+            var t = new Transition(CurveFactory.BuildNormalized(type));
+            t.easing = type;
+            t.duration = duration;
+            return t;
         }
 
         internal IAnimationCurve GetCurve(float from, float to)

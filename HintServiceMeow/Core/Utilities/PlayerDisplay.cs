@@ -47,6 +47,17 @@ namespace HintServiceMeow.Core.Utilities
 
         private volatile bool isDisposed = false;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PlayerDisplay"/> class.
+        /// </summary>
+        /// <param name="playerContext">The player context associated with this display.</param>
+        /// <param name="displayHints">Optional pre-existing hint collection to use.</param>
+        /// <param name="updateScheduler">Optional custom task scheduler for updates.</param>
+        /// <param name="adaptor">Optional compatibility adaptor for legacy hint systems.</param>
+        /// <param name="hintParser">Optional custom hint parser.</param>
+        /// <param name="displayOutputs">Optional custom display output implementations.</param>
+        /// <param name="dispatcher">Optional main thread dispatcher.</param>
+        /// <param name="coroutineRunner">Optional coroutine runner for the update loop.</param>
         internal PlayerDisplay(
             IPlayerContext playerContext,
             HintCollection? displayHints = null,
@@ -648,6 +659,11 @@ namespace HintServiceMeow.Core.Utilities
             }
         }
 
+        /// <summary>
+        /// Adds a hint to this display and subscribes to its property change events.
+        /// </summary>
+        /// <param name="name">The assembly group name.</param>
+        /// <param name="hint">The hint to add.</param>
         internal void InternalAddHint(string name, AbstractHint hint)
         {
             hint.PropertyChanged += OnHintUpdate;
@@ -656,6 +672,11 @@ namespace HintServiceMeow.Core.Utilities
             hintCollection.AddHint(name, hint);
         }
 
+        /// <summary>
+        /// Removes the specified hint from this display and unsubscribes from its events.
+        /// </summary>
+        /// <param name="name">The assembly group name, or null to search all groups.</param>
+        /// <param name="hint">The hint to remove.</param>
         internal void InternalRemoveHint(string? name, AbstractHint hint)
         {
             hint.PropertyChanged -= OnHintUpdate;
@@ -664,6 +685,11 @@ namespace HintServiceMeow.Core.Utilities
             hintCollection.RemoveHint(name, hint);
         }
 
+        /// <summary>
+        /// Removes the hint with the specified GUID from this display.
+        /// </summary>
+        /// <param name="name">The assembly group name.</param>
+        /// <param name="guid">The GUID of the hint to remove.</param>
         internal void InternalRemoveHint(string name, Guid guid)
         {
             AbstractHint? hint = hintCollection.GetHints(name).FirstOrDefault(x => x.Guid.Equals(guid));
@@ -677,6 +703,11 @@ namespace HintServiceMeow.Core.Utilities
             hintCollection.RemoveHint(name, x => x.Guid.Equals(guid));
         }
 
+        /// <summary>
+        /// Removes all hints with the specified ID from this display.
+        /// </summary>
+        /// <param name="name">The assembly group name.</param>
+        /// <param name="id">The ID of the hints to remove.</param>
         internal void InternalRemoveHint(string name, string id)
         {
             IEnumerable<AbstractHint> removeList = hintCollection.GetHints(name).Where(predicate => predicate.Id == id);
@@ -690,6 +721,10 @@ namespace HintServiceMeow.Core.Utilities
             hintCollection.RemoveHint(name, x => x.Id.Equals(id));
         }
 
+        /// <summary>
+        /// Removes all hints in the specified assembly group from this display.
+        /// </summary>
+        /// <param name="name">The assembly group name.</param>
         internal void InternalClearHint(string name)
         {
             foreach (AbstractHint hint in hintCollection.GetHints(name).ToList())
@@ -701,16 +736,33 @@ namespace HintServiceMeow.Core.Utilities
             hintCollection.ClearHints(name);
         }
 
+        /// <summary>
+        /// Returns all hints in the specified assembly group.
+        /// </summary>
+        /// <param name="name">The assembly group name.</param>
+        /// <returns>An array of hints in the group.</returns>
         internal AbstractHint[] InternalGetHints(string name)
         {
             return hintCollection.GetHints(name);
         }
 
+        /// <summary>
+        /// Returns all hints in the specified assembly group that match the predicate.
+        /// </summary>
+        /// <param name="name">The assembly group name.</param>
+        /// <param name="predicate">A function to filter hints.</param>
+        /// <returns>An array of matching hints.</returns>
         internal AbstractHint[] InternalGetHints(string name, Func<AbstractHint, bool> predicate)
         {
             return hintCollection.GetHints(name, predicate);
         }
 
+        /// <summary>
+        /// Shows a hint via the compatibility adapter with the specified assembly name, content, and duration.
+        /// </summary>
+        /// <param name="assemblyName">The assembly name for grouping.</param>
+        /// <param name="content">The hint text content.</param>
+        /// <param name="duration">How long to display the hint in seconds.</param>
         internal void ShowCompatibilityHint(string assemblyName, string? content, float duration) => adapter.ShowHint(new CompatibilityAdaptorArg(assemblyName, content, duration));
 
         private IEnumerator<float> CoroutineMethod()
@@ -775,7 +827,7 @@ namespace HintServiceMeow.Core.Utilities
                 HintSyncSpeed.Normal => 0.3f,
                 HintSyncSpeed.Slow => 1f,
                 HintSyncSpeed.Slowest => 3f,
-                _ => throw new ArgumentOutOfRangeException()
+                _ => throw new ArgumentOutOfRangeException(),
             };
 
             ScheduleUpdate(maxWaitingTime, hint);

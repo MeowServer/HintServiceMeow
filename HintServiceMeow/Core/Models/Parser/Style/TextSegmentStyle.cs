@@ -313,5 +313,20 @@
                 && Font == other.Font
                 && FontWeight == other.FontWeight;
         }
+
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            int hash = 17;
+            hash = (hash * 31) + FontSize.GetHashCode();
+            hash = (hash * 31) + Color.GetHashCode();
+            hash = (hash * 31) + Alpha.GetHashCode();
+            hash = (hash * 31) + Bold.GetHashCode();
+            hash = (hash * 31) + Italic.GetHashCode();
+            hash = (hash * 31) + Underline.GetHashCode();
+            hash = (hash * 31) + Strikethrough.GetHashCode();
+            hash = (hash * 31) + Superscript.GetHashCode();
+            return hash;
+        }
     }
 }

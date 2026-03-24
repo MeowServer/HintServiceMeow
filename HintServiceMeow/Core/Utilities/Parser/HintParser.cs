@@ -23,7 +23,7 @@
         private const string PlaceholderTop = "<line-height=0><voffset=9999>P</voffset>";
         private const string PlaceholderBottom = "<line-height=0><voffset=-9999>P</voffset>";
 
-        private readonly ICache<Guid, ValueTuple<float, float>> dynamicHintPositionCache;
+        private readonly ICache<Guid, (float, float)> dynamicHintPositionCache;
         private readonly ICoordinateTools coordinateTool;
         private readonly IPool<StringBuilder> stringBuilderPool;
         private readonly IPool<RichTextParser> richTextParserPool;
@@ -38,24 +38,35 @@
         private readonly List<DynamicHint> dynamicHints = new(128);
 
         // For ParseToHint method
-        private readonly Queue<ValueTuple<float, float>> queue = new();
-        private readonly HashSet<ValueTuple<float, float>> visited = new();
+        private readonly Queue<(float, float)> queue = new();
+        private readonly HashSet<(float, float)> visited = new();
 
         // For hint parameter handling
-        private int parameterIndex = 0;
         private readonly List<IParameter> hintParameters = new(128);
+        private int parameterIndex = 0;
 
         // For animation
         private string formatString = "F1"; // 1 decimal place
         private bool useIntegral = false; // Use float or int for animated value
 
         // For ParseToRichText method
-        private RichTextParserSetting settingTemplate = new RichTextParserSetting(TextMeshStyle.Default, Array.Empty<Tuple<string, IParameter>>(), ["line-height"],
+        private RichTextParserSetting settingTemplate = new RichTextParserSetting(
+            TextMeshStyle.Default,
+            Array.Empty<Tuple<string, IParameter>>(),
+            ["line-height"],
             ["a", "allcaps", "alpha", "b", "color", "font", "font-weight", "gradient", "i", "lowercase", "mark", "noparse", "s", "smallcaps", "style", "u", "uppercase", "link"],
             true); // Tags that does not affect the size of the text are ignored.
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HintParser"/> class.
+        /// </summary>
+        /// <param name="dynamicHintPositionCache">Optional cache for dynamic hint positions.</param>
+        /// <param name="coordinateTool">Optional coordinate calculation tool.</param>
+        /// <param name="stringBuilderPool">Optional pool for StringBuilder instances.</param>
+        /// <param name="richTextParserPool">Optional pool for RichTextParser instances.</param>
+        /// <param name="hintPool">Optional pool for Hint instances.</param>
         public HintParser(
-            ICache<Guid, ValueTuple<float, float>>? dynamicHintPositionCache = null,
+            ICache<Guid, (float, float)>? dynamicHintPositionCache = null,
             ICoordinateTools? coordinateTool = null,
             IPool<StringBuilder>? stringBuilderPool = null,
             IPool<RichTextParser>? richTextParserPool = null,
@@ -68,6 +79,11 @@
             this.hintPool = hintPool ?? HintPool.Instance;
         }
 
+        /// <summary>
+        /// Parses the hint collection into a message result ready for display.
+        /// </summary>
+        /// <param name="arg">The argument containing the hint collection and screen layout parameters.</param>
+        /// <returns>A <see cref="HintParserResult"/> containing the rendered message and parameters.</returns>
         public HintParserResult ParseToMessage(HintParserArgument arg)
         {
             IReadOnlyList<IReadOnlyList<AbstractHint>> allGroups = arg.Collection.AllGroups;
@@ -416,7 +432,8 @@
 
         private void Clear()
         {
-            for (int i = 0; i < rentedHints.Count; i++)// Return rented hints to pool
+            // Return rented hints to pool
+            for (int i = 0; i < rentedHints.Count; i++)
             {
                 hintPool.Return(rentedHints[i]);
             }

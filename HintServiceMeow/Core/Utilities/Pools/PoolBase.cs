@@ -11,7 +11,7 @@ internal abstract class PoolBase<T> : IPool<T>
     private readonly int maxSize;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="PoolBase"/> class with the specified maximum pool size.
+    /// Initializes a new instance of the <see cref="PoolBase{T}"/> class with the specified maximum pool size.
     /// </summary>
     /// <param name="maxSize">The maximum number of items that the pool can contain. Must be greater than zero. The default value is 20.</param>
     protected PoolBase(int maxSize = 20)

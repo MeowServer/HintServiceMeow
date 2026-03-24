@@ -104,7 +104,7 @@
                 RichTextTokenType.CloseTag => $"Close(</{TagName}>)",
                 RichTextTokenType.SelfCloseTag => $"SelfClose(<{TagName}>)",
                 RichTextTokenType.LineBreak => "Newline",
-                _ => "Unknown"
+                _ => "Unknown",
             };
         }
     }

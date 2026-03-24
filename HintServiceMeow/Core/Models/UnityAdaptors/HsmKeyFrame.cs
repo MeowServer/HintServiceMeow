@@ -1,6 +1,6 @@
 ﻿namespace HintServiceMeow.Core.Models.UnityAdaptors
 {
-    public record HsmKeyFrame
+    public class HsmKeyFrame
     {
         public HsmKeyFrame(float time, float value, float inTangent = 0, float outTangent = 0)
         {

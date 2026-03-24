@@ -5,6 +5,9 @@
     using System.Threading.Tasks;
     using HintServiceMeow.Core.Utilities.Tools;
 
+    /// <summary>
+    /// Executes an asynchronous action on a recurring interval, with support for pausing and disposal.
+    /// </summary>
     internal class PeriodicRunner : IDisposable
     {
         private readonly CancellationTokenSource cts = new();
@@ -34,12 +37,22 @@
         /// </summary>
         public Task CurrentTask => loopTask;
 
+        /// <summary>
+        /// Creates and starts a new <see cref="PeriodicRunner"/> that repeatedly invokes the specified action.
+        /// </summary>
+        /// <param name="actionAsync">The async action to invoke periodically.</param>
+        /// <param name="interval">The minimum interval between invocations.</param>
+        /// <param name="runImmediately">Whether to run the action immediately on start.</param>
+        /// <returns>A running <see cref="PeriodicRunner"/> instance.</returns>
         public static PeriodicRunner Start(
             Func<Task> actionAsync,
             TimeSpan interval,
             bool runImmediately = false)
             => new(actionAsync, interval, runImmediately);
 
+        /// <summary>
+        /// Pauses periodic execution until <see cref="Resume"/> is called.
+        /// </summary>
         public void Pause()
         {
             lock (pauseLock)
@@ -48,6 +61,9 @@
             }
         }
 
+        /// <summary>
+        /// Resumes periodic execution after a call to <see cref="Pause"/>.
+        /// </summary>
         public void Resume()
         {
             lock (pauseLock)
@@ -56,6 +72,7 @@
             }
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             cts.Cancel();

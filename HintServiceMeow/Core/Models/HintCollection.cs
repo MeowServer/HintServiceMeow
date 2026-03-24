@@ -127,6 +127,11 @@ namespace HintServiceMeow.Core.Models
             }
         }
 
+        /// <summary>
+        /// Adds a hint to the collection under the specified assembly group.
+        /// </summary>
+        /// <param name="assemblyName">The name of the assembly group to add the hint to.</param>
+        /// <param name="hint">The hint to add.</param>
         internal void AddHint(string assemblyName, AbstractHint hint)
         {
             lock (collectionLock)
@@ -143,6 +148,13 @@ namespace HintServiceMeow.Core.Models
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, hint));
         }
 
+        /// <summary>
+        /// Removes the specified hint from the collection.
+        /// If <paramref name="assemblyName"/> is null, the hint is removed from all groups.
+        /// </summary>
+        /// <param name="assemblyName">The assembly group to search in, or null to search all groups.</param>
+        /// <param name="hint">The hint to remove.</param>
+        /// <returns>true if the hint was found and removed; otherwise false.</returns>
         internal bool RemoveHint(string? assemblyName, AbstractHint hint)
         {
             bool success = false;
@@ -203,6 +215,13 @@ namespace HintServiceMeow.Core.Models
             return success;
         }
 
+        /// <summary>
+        /// Removes all hints satisfying the predicate from the collection.
+        /// If <paramref name="assemblyName"/> is null, hints are removed from all groups.
+        /// </summary>
+        /// <param name="assemblyName">The assembly group to search in, or null to search all groups.</param>
+        /// <param name="predicate">A function that returns true for hints to remove.</param>
+        /// <returns>A list of hints that were removed.</returns>
         internal List<AbstractHint> RemoveHint(string? assemblyName, Func<AbstractHint, bool> predicate)
         {
             List<AbstractHint> updatedHints = [];
@@ -277,6 +296,10 @@ namespace HintServiceMeow.Core.Models
             return updatedHints;
         }
 
+        /// <summary>
+        /// Clears all hints from the specified assembly group, or from all groups if null.
+        /// </summary>
+        /// <param name="assemblyName">The assembly group to clear, or null to clear all groups.</param>
         internal void ClearHints(string? assemblyName)
         {
             lock (collectionLock)

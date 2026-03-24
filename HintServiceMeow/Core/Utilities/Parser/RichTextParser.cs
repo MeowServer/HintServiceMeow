@@ -17,7 +17,7 @@
     /// </summary>
     internal class RichTextParser
     {
-        private static Cache<ValueTuple<string, RichTextParserSetting>, RichTextParserResult> parserCache = new Cache<(string, RichTextParserSetting), RichTextParserResult>(200);
+        private static Cache<(string, RichTextParserSetting), RichTextParserResult> parserCache = new Cache<(string, RichTextParserSetting), RichTextParserResult>(200);
 
         private object parserLock = new object();
 
@@ -38,6 +38,12 @@
         private HashSet<string> ignoreTags = [];
         private StringBuilder? sb;
 
+        /// <summary>
+        /// Parses raw text containing Unity Rich Text tags and returns the layout result.
+        /// </summary>
+        /// <param name="rawText">The raw text to parse, which may contain Rich Text tags. Can be null.</param>
+        /// <param name="setting">The parser settings including default style, parameters, and tag filters.</param>
+        /// <returns>A <see cref="RichTextParserResult"/> containing line layout information and resolved parameters.</returns>
         public RichTextParserResult ParseText(string? rawText, RichTextParserSetting setting)
         {
             if (rawText == null)
@@ -203,7 +209,8 @@
             {
                 byte r, g, b, a = 255;
 
-                if (hex.Length == 6) // RRGGBB
+                // RRGGBB
+                if (hex.Length == 6)
                 {
                     r = byte.Parse(hex.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
                     g = byte.Parse(hex.Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
@@ -211,7 +218,9 @@
                     color = new Color(r, g, b, a);
                     return true;
                 }
-                else if (hex.Length == 8) // RRGGBBAA
+
+                // RRGGBBAA
+                else if (hex.Length == 8)
                 {
                     r = byte.Parse(hex.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
                     g = byte.Parse(hex.Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
@@ -220,7 +229,9 @@
                     color = new Color(r, g, b, a);
                     return true;
                 }
-                else if (hex.Length == 3) // RGB shorthand
+
+                // RGB shorthand
+                else if (hex.Length == 3)
                 {
                     r = byte.Parse(new string(hex[0], 2), System.Globalization.NumberStyles.HexNumber);
                     g = byte.Parse(new string(hex[1], 2), System.Globalization.NumberStyles.HexNumber);
@@ -639,7 +650,7 @@
 
                 case "indent":
                     if (TryParseToPixels(value, currentStyle.GetActualSize(defaultStyle.CharStyle.FontSize), defaultStyle.Width, out float? indentVal))
-                        currentStyle.Indent.Push(indentVal.Value);
+                        currentStyle.Indent.Push(indentVal!.Value);
                     ClearLineStyleCache();
                     break;
 
@@ -651,7 +662,7 @@
 
                 case "size":
                     if (TryParseToPixels(value, currentStyle.GetActualSize(defaultStyle.CharStyle.FontSize), defaultStyle.CharStyle.FontSize, out float? sizeVal))
-                        currentStyle.FontSize.Push(sizeVal.Value);
+                        currentStyle.FontSize.Push(sizeVal!.Value);
                     ClearCharStyleCache();
                     break;
 
@@ -1291,7 +1302,9 @@
 
                 HintAlignment alignment = Alignment.Count > 0 ? Alignment.Peek() : defaultStyle.LineStyle.Alignment;
                 float actualIndent;
-                if (Indent.Count == 0 && LineIndent == null) // Default value
+
+                // Default value
+                if (Indent.Count == 0 && LineIndent == null)
                 {
                     actualIndent = defaultStyle.LineStyle.Indent;
                 }

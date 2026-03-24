@@ -24,7 +24,7 @@
                 WrapMode.PingPong => HsmWrapMode.PingPong,
                 WrapMode.Default => HsmWrapMode.Default,
                 WrapMode.ClampForever => HsmWrapMode.Once,
-                _ => throw new System.ArgumentOutOfRangeException(nameof(rm), $"Unexpected WrapMode value: {rm}")
+                _ => throw new System.ArgumentOutOfRangeException(nameof(rm), $"Unexpected WrapMode value: {rm}"),
             };
         }
 
@@ -41,7 +41,7 @@
                 HsmWrapMode.Loop => WrapMode.Loop,
                 HsmWrapMode.PingPong => WrapMode.PingPong,
                 HsmWrapMode.Default => WrapMode.Default,
-                _ => throw new System.ArgumentOutOfRangeException(nameof(rm), $"Unexpected HsmWrapMode value: {rm}")
+                _ => throw new System.ArgumentOutOfRangeException(nameof(rm), $"Unexpected HsmWrapMode value: {rm}"),
             };
         }
     }

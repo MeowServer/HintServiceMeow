@@ -5,12 +5,12 @@ namespace HintServiceMeow.Core.Models.UnityAdaptors.Parameters
 
     public class ShortValueParameter : IParameter
     {
-        public short Value { get; set; }
-
         public ShortValueParameter(short value)
         {
             this.Value = value;
         }
+
+        public short Value { get; set; }
 
         public HintParameter GetScpslHintParameter()
         {

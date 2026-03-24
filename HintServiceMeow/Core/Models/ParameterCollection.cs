@@ -10,7 +10,9 @@
         private readonly object collectionLock = new object();
         private readonly List<Tuple<string, IParameter>> list = new(4);
 
-        public ParameterCollection() { }
+        public ParameterCollection()
+        {
+        }
 
         public ParameterCollection(ParameterCollection other)
         {

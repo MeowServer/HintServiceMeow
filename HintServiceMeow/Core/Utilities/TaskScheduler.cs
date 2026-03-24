@@ -7,6 +7,9 @@
     using HintServiceMeow.Core.Interface;
     using HintServiceMeow.Core.Utilities.Tools;
 
+    /// <summary>
+    /// Schedules and throttles task execution based on a configurable tick rate and minimum interval.
+    /// </summary>
     internal class TaskScheduler : ITaskScheduler
     {
         private readonly ReaderWriterLockSlim schedulerLock = new();
@@ -20,6 +23,10 @@
         private TimeSpan elapsed; // Time elapsed since last action, does not include the time when the scheduler is paused.
         private bool paused;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TaskScheduler"/> class.
+        /// </summary>
+        /// <param name="tickRate">The number of ticks per second used to poll for due actions.</param>
         public TaskScheduler(int tickRate = 30)
         {
             interval = TimeSpan.FromSeconds(0);
@@ -29,8 +36,14 @@
             runner = PeriodicRunner.Start(PeriodicRunnerMethod, TimeSpan.FromSeconds(1.0 / tickRate));
         }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether the task should be retried on each tick until it returns true.
+        /// </summary>
         public bool InvokeUntilSuccess { get; set; }
 
+        /// <summary>
+        /// Gets a value indicating whether the scheduler is currently paused.
+        /// </summary>
         public bool IsPaused => paused;
 
         /// <summary>
@@ -71,6 +84,9 @@
             }
         }
 
+        /// <summary>
+        /// Gets or sets the minimum time that must elapse between two consecutive action invocations.
+        /// </summary>
         public TimeSpan MinInterval
         {
             get
@@ -103,6 +119,9 @@
             }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether the scheduler has waited long enough to invoke the next action.
+        /// </summary>
         public bool IsReadyForNextAction => Elapsed >= interval;
 
         private DateTime ScheduledActionTime
@@ -278,6 +297,9 @@
             }
         }
 
+        /// <summary>
+        /// Pauses the scheduler so that elapsed time stops accumulating and no actions are invoked.
+        /// </summary>
         public void Pause()
         {
             schedulerLock.EnterWriteLock();
@@ -296,6 +318,9 @@
             }
         }
 
+        /// <summary>
+        /// Resumes the scheduler after a call to <see cref="Pause"/>.
+        /// </summary>
         public void Resume()
         {
             schedulerLock.EnterWriteLock();
