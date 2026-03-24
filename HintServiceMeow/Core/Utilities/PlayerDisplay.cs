@@ -306,6 +306,9 @@ namespace HintServiceMeow.Core.Utilities
 
             foreach (AbstractHint hint in hints)
             {
+                if (hint is null)
+                    continue;
+
                 InternalAddHint(groupName, hint);
             }
         }
@@ -322,6 +325,9 @@ namespace HintServiceMeow.Core.Utilities
             string groupName = Assembly.GetCallingAssembly().FullName;
             foreach (AbstractHint hint in hints)
             {
+                if (hint is null)
+                    continue;
+
                 InternalAddHint(groupName, hint);
             }
         }
