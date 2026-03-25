@@ -12,6 +12,45 @@
 
 ---
 
+## [6.0.0]
+### Добавлено
+#### Переходы
+- Поддержка анимации и параметров подсказок в `Hint` и `DynamicHint`.
+- `AbstractHint::FontSizeTransition`, `Hint::XCoordianteTransition`, `Hint::YCoordianteTransition`, `DynamicHint::XCoordianteTransition`, `DynamicHint::YCoordianteTransition`.
+- Классы `Transition` и `TransitionState`.
+#### Конфигурация и шаблоны подсказок
+- Конфигурации и шаблоны для `Hint` и `DynamicHint`. Config можно использовать для YAML-сериализации, а шаблоны — для быстрого создания подсказок с одинаковыми свойствами.
+- Классы `AbstractHintTemplate`, `DynamicHintConfig`, `DynamicHintPositionConfig`, `DynamicHintTempalte`, `HintConfig`, `HintPositionConfig` и `HintTemplate`.
+#### Больше расширений
+- Добавлены полные методы расширения для классов Player как Exiled, так и LabAPI.
+- Добавлены перегрузки AddHint для поддержки одновременного добавления нескольких подсказок через IEnumerable или массивы params.
+- Добавлены методы расширения игрока для получения подсказок (GetHint, TryGetHint, GetHints), удаления (RemoveHint, RemoveHints) и временного отображения (ShowHint, ShowHints).
+- Добавлены методы расширения игрока для CommonHint (подсказка предмета, подсказка карты, подсказка роли и другие подсказки).
+#### Помощник Rich-тегов
+- Добавлен класс `RichTag` и методы расширения для удобного создания rich text Unity.
+- Добавлены расширения для `string` и `StringBuilder` для более удобного написания rich text.
+- Добавлен оператор / для применения тега к экземпляру `string`.
+#### Адаптация разрешения
+- Добавлена адаптация к различным размерам экрана.
+- Добавлено `AbstractHint::ResolutionOption`.
+
+### Изменено
+#### Улучшенный RichTextParser
+- Переписан RichTextParser для повышения совместимости с тегами.
+- Добавлены модельные классы `LineStyle`, `TextMeshStyle`, `TextSegmentStyle`, `Color`, `MeasuredValue`, `LineInfo`, `TextSegment`, `Token`, `RichTextParserResult`, `RichTextParserSetting`.
+- Добавлены утилитные классы `TagChecker`, `Tokenizer`.
+- Переписан `RichTextParser`.
+
+#### Улучшенный CommonHint
+- Удалён избыточный API.
+- Добавлено автоматическое расширение.
+
+#### Незначительные изменения
+- `AbstractHint::LineHeight` теперь может быть отрицательным.
+- Заменён тип возвращаемого значения `PlayerDisplay::GetHints` на `AbstractHint[]`. Используется `float maxDelay` в качестве параметра `PlayerDisplay::ForceUpdate`.
+
+---
+
 ## [5.5.1]
 
 ### Исправлено

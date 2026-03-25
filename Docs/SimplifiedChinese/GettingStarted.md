@@ -93,6 +93,81 @@ ui.CommonHint.ShowItemHint("钥匙卡", "用于开门");
 ui.CommonHint.ShowOtherHint("服务器正在启动！");
 ```
 ---
+使用 `ResolutionOption` 适配不同的屏幕分辨率。
+```CSharp
+// ResolutionOption.Offset 会根据玩家的屏幕分辨率自动将左/右对齐的提示推向屏幕边缘。
+Hint resolutionHint = new Hint
+{
+    Text = "Adapted to screen edge",
+    Alignment = HintAlignment.Left,
+    YCoordinate = 400,
+    ResolutionOption = ResolutionOption.Offset // 这是默认值。设置为 ResolutionOption.None 可禁用此功能。
+};
+
+playerDisplay.AddHint(resolutionHint);
+
+```
+---
+使用 `RichTag` 辅助工具轻松应用 Unity 富文本标签。
+```CSharp
+// 使用 / 运算符或 UseTag() 扩展方法为文本包裹富文本标签
+string colored = "Hello" / ColorTag.Red; // 结果: <color=#FF0000>Hello</color>
+string bold = "World".UseTag(BoldTag.Bold); // 结果: <b>World</b>
+string styled = "Fancy".UseTag(ColorTag.Get("#FF8800"), BoldTag.Bold, SizeTag.Get(30)); // 组合多个标签
+
+Hint richHint = new Hint
+{
+    Text = colored + " " + bold + "\n" + styled,
+    YCoordinate = 500,
+};
+
+playerDisplay.AddHint(richHint);
+
+```
+---
+使用 `Transition` 为提示属性变化添加动画效果。
+```CSharp
+// Transition 会在指定时间内平滑地动画化属性变化
+Hint animatedHint = new Hint
+{
+    Text = "I move smoothly!",
+    YCoordinate = 600,
+    FontSize = 20,
+    YCoordinateTransition = Transition.Get(EasingType.EaseInOut, duration: 1f), // 在 1 秒内动画化 Y 位置变化
+    FontSizeTransition = Transition.Get(EasingType.EaseOut, duration: 0.5f), // 在 0.5 秒内动画化字体大小变化
+};
+
+playerDisplay.AddHint(animatedHint);
+
+// 当你更改属性时，过渡效果会平滑地进行动画
+animatedHint.YCoordinate = 200; // 在 1 秒内从 600 平滑移动到 200
+animatedHint.FontSize = 40; // 在 0.5 秒内从 20 平滑增长到 40
+
+```
+---
+使用 `HintTemplate` 快速创建具有预设属性的提示。
+```CSharp
+// HintTemplate 是一个用于创建具有预定义属性的提示的蓝图
+HintTemplate template = new HintTemplate
+{
+    FontSize = 25,
+    YCoordinate = 700,
+    Alignment = HintAlignment.Right,
+    FontSizeTransition = Transition.Get(EasingType.EaseInOut, 0.5f),
+};
+
+// 使用 GetHint() 从模板创建新提示
+Hint hintFromTemplate = template.GetHint();
+hintFromTemplate.Text = "Created from template";
+playerDisplay.AddHint(hintFromTemplate);
+
+// 或使用 Apply() 将模板应用到现有提示
+Hint existingHint = new Hint { Text = "Existing hint" };
+template.Apply(existingHint); // 应用 FontSize、YCoordinate、Alignment 和 FontSizeTransition
+playerDisplay.AddHint(existingHint);
+
+```
+---
 上述代码块将创建如下所示的 UI：
 ![提示视图](Images/GettingStartedExample.jpg)
 标注版：

@@ -12,6 +12,45 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ---
 
+## [6.0.0]
+### Adicionado
+#### Transição
+- Suporte a animação e parâmetros de hint em `Hint` e `DynamicHint`.
+- `AbstractHint::FontSizeTransition`, `Hint::XCoordianteTransition`, `Hint::YCoordianteTransition`, `DynamicHint::XCoordianteTransition`, `DynamicHint::YCoordianteTransition`.
+- Classes `Transition` e `TransitionState`.
+#### Configuração e Template de Hint
+- Configurações e templates para `Hint` e `DynamicHint`. Config pode ser usado para serialização YAML, enquanto template pode ser usado para replicar rapidamente hints com as mesmas propriedades.
+- Classes `AbstractHintTemplate`, `DynamicHintConfig`, `DynamicHintPositionConfig`, `DynamicHintTempalte`, `HintConfig`, `HintPositionConfig` e `HintTemplate`.
+#### Mais extensões
+- Adicionados métodos de extensão abrangentes para classes Player tanto do Exiled quanto do LabAPI.
+- Adicionadas sobrecargas de AddHint para suportar adição de múltiplas hints simultaneamente via IEnumerable ou arrays params.
+- Adicionados métodos de extensão de jogador para recuperação de hints (GetHint, TryGetHint, GetHints), remoção (RemoveHint, RemoveHints) e exibição por tempo limitado (ShowHint, ShowHints).
+- Adicionados métodos de extensão de jogador para CommonHint (hint de item, hint de mapa, hint de função e outras hints).
+#### Auxiliar de Tags Rich Text
+- Adicionada classe `RichTag` e métodos de extensão para ajudar na construção de rich text do Unity.
+- Adicionadas extensões para `string` e `StringBuilder` para uma experiência mais conveniente de escrita de rich text.
+- Adicionado operador / para aplicar uma tag a uma instância de `string`.
+#### Adaptação de Resolução
+- Adicionada adaptação para diferentes tamanhos de tela.
+- Adicionado `AbstractHint::ResolutionOption`.
+
+### Alterado
+#### RichTextParser Melhorado
+- Reescrito RichTextParser para aumentar a compatibilidade com tags.
+- Adicionadas classes de modelo `LineStyle`, `TextMeshStyle`, `TextSegmentStyle`, `Color`, `MeasuredValue`, `LineInfo`, `TextSegment`, `Token`, `RichTextParserResult`, `RichTextParserSetting`.
+- Adicionadas classes utilitárias `TagChecker`, `Tokenizer`.
+- Reescrito `RichTextParser`.
+
+#### CommonHint Melhorado
+- Removida API redundante.
+- Adicionada expansão automática.
+
+#### Alterações Menores
+- `AbstractHint::LineHeight` pode ser negativo.
+- Substituído o tipo de retorno de `PlayerDisplay::GetHints` por `AbstractHint[]`. Uso de `float maxDelay` como parâmetro de `PlayerDisplay::ForceUpdate`.
+
+---
+
 ## [5.5.1]
 
 ### Corrigido

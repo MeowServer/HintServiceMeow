@@ -93,6 +93,81 @@ ui.CommonHint.ShowItemHint("Keycard", "Used to open doors");
 ui.CommonHint.ShowOtherHint("The server is starting!");
 ```
 ---
+Use `ResolutionOption` to adapt hints for different screen resolutions.
+```CSharp
+// ResolutionOption.Offset automatically pushes left/right aligned hints toward the screen edge based on the player's screen resolution.
+Hint resolutionHint = new Hint
+{
+    Text = "Adapted to screen edge",
+    Alignment = HintAlignment.Left,
+    YCoordinate = 400,
+    ResolutionOption = ResolutionOption.Offset // This is the default value. Set to ResolutionOption.None to disable.
+};
+
+playerDisplay.AddHint(resolutionHint);
+
+```
+---
+Use `RichTag` helpers to easily apply Unity rich text tags.
+```CSharp
+// Use the / operator or UseTag() extension to wrap text with rich text tags
+string colored = "Hello" / ColorTag.Red; // Result: <color=#FF0000>Hello</color>
+string bold = "World".UseTag(BoldTag.Bold); // Result: <b>World</b>
+string styled = "Fancy".UseTag(ColorTag.Get("#FF8800"), BoldTag.Bold, SizeTag.Get(30)); // Combine multiple tags
+
+Hint richHint = new Hint
+{
+    Text = colored + " " + bold + "\n" + styled,
+    YCoordinate = 500,
+};
+
+playerDisplay.AddHint(richHint);
+
+```
+---
+Use `Transition` to animate hint property changes.
+```CSharp
+// Transition smoothly animates property changes over a duration
+Hint animatedHint = new Hint
+{
+    Text = "I move smoothly!",
+    YCoordinate = 600,
+    FontSize = 20,
+    YCoordinateTransition = Transition.Get(EasingType.EaseInOut, duration: 1f), // Animate Y position changes over 1 second
+    FontSizeTransition = Transition.Get(EasingType.EaseOut, duration: 0.5f), // Animate font size changes over 0.5 seconds
+};
+
+playerDisplay.AddHint(animatedHint);
+
+// When you change the property, the transition animates it smoothly
+animatedHint.YCoordinate = 200; // Smoothly moves from 600 to 200 over 1 second
+animatedHint.FontSize = 40; // Smoothly grows from 20 to 40 over 0.5 seconds
+
+```
+---
+Use `HintTemplate` to quickly create hints with preset properties.
+```CSharp
+// HintTemplate is a blueprint for creating hints with predefined properties
+HintTemplate template = new HintTemplate
+{
+    FontSize = 25,
+    YCoordinate = 700,
+    Alignment = HintAlignment.Right,
+    FontSizeTransition = Transition.Get(EasingType.EaseInOut, 0.5f),
+};
+
+// Use GetHint() to create a new hint from the template
+Hint hintFromTemplate = template.GetHint();
+hintFromTemplate.Text = "Created from template";
+playerDisplay.AddHint(hintFromTemplate);
+
+// Or use Apply() to apply the template to an existing hint
+Hint existingHint = new Hint { Text = "Existing hint" };
+template.Apply(existingHint); // Applies FontSize, YCoordinate, Alignment, and FontSizeTransition
+playerDisplay.AddHint(existingHint);
+
+```
+---
 The above code blocks will create an UI like this:
 ![Hint view](Images/GettingStartedExample.jpg)
 Labeled:

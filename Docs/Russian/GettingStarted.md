@@ -93,6 +93,81 @@ ui.CommonHint.ShowItemHint("Карта доступа", "Используетс�
 ui.CommonHint.ShowOtherHint("Сервер запускается!");
 ```
 ---
+Используйте `ResolutionOption` для адаптации подсказок к различным разрешениям экрана.
+```CSharp
+// ResolutionOption.Offset автоматически сдвигает подсказки с выравниванием по левому/правому краю к краю экрана на основе разрешения экрана игрока.
+Hint resolutionHint = new Hint
+{
+    Text = "Adapted to screen edge",
+    Alignment = HintAlignment.Left,
+    YCoordinate = 400,
+    ResolutionOption = ResolutionOption.Offset // Это значение по умолчанию. Установите ResolutionOption.None для отключения.
+};
+
+playerDisplay.AddHint(resolutionHint);
+
+```
+---
+Используйте вспомогательные `RichTag` для удобного применения тегов форматирования Unity.
+```CSharp
+// Используйте оператор / или расширение UseTag() для оборачивания текста тегами rich text
+string colored = "Hello" / ColorTag.Red; // Результат: <color=#FF0000>Hello</color>
+string bold = "World".UseTag(BoldTag.Bold); // Результат: <b>World</b>
+string styled = "Fancy".UseTag(ColorTag.Get("#FF8800"), BoldTag.Bold, SizeTag.Get(30)); // Комбинирование нескольких тегов
+
+Hint richHint = new Hint
+{
+    Text = colored + " " + bold + "\n" + styled,
+    YCoordinate = 500,
+};
+
+playerDisplay.AddHint(richHint);
+
+```
+---
+Используйте `Transition` для анимации изменений свойств подсказок.
+```CSharp
+// Transition плавно анимирует изменения свойств в течение указанного времени
+Hint animatedHint = new Hint
+{
+    Text = "I move smoothly!",
+    YCoordinate = 600,
+    FontSize = 20,
+    YCoordinateTransition = Transition.Get(EasingType.EaseInOut, duration: 1f), // Анимация изменения позиции Y в течение 1 секунды
+    FontSizeTransition = Transition.Get(EasingType.EaseOut, duration: 0.5f), // Анимация изменения размера шрифта в течение 0,5 секунд
+};
+
+playerDisplay.AddHint(animatedHint);
+
+// При изменении свойства переход анимирует его плавно
+animatedHint.YCoordinate = 200; // Плавно перемещается с 600 до 200 за 1 секунду
+animatedHint.FontSize = 40; // Плавно увеличивается с 20 до 40 за 0,5 секунды
+
+```
+---
+Используйте `HintTemplate` для быстрого создания подсказок с предустановленными свойствами.
+```CSharp
+// HintTemplate — это шаблон для создания подсказок с предопределёнными свойствами
+HintTemplate template = new HintTemplate
+{
+    FontSize = 25,
+    YCoordinate = 700,
+    Alignment = HintAlignment.Right,
+    FontSizeTransition = Transition.Get(EasingType.EaseInOut, 0.5f),
+};
+
+// Используйте GetHint() для создания новой подсказки из шаблона
+Hint hintFromTemplate = template.GetHint();
+hintFromTemplate.Text = "Created from template";
+playerDisplay.AddHint(hintFromTemplate);
+
+// Или используйте Apply() для применения шаблона к существующей подсказке
+Hint existingHint = new Hint { Text = "Existing hint" };
+template.Apply(existingHint); // Применяет FontSize, YCoordinate, Alignment и FontSizeTransition
+playerDisplay.AddHint(existingHint);
+
+```
+---
 Приведённые выше блоки кода создадут такой интерфейс:
 ![Вид подсказки](Images/GettingStartedExample.jpg)
 С метками:

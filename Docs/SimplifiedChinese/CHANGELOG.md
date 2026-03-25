@@ -12,6 +12,45 @@
 
 ---
 
+## [6.0.0]
+### 新增
+#### Transition
+- `Hint` 和 `DynamicHint` 中的动画和提示参数支持。
+- `AbstractHint::FontSizeTransition`、`Hint::XCoordianteTransition`、`Hint::YCoordianteTransition`、`DynamicHint::XCoordianteTransition`、`DynamicHint::YCoordianteTransition`。
+- `Transition` 和 `TransitionState` 类。
+#### Hint Config 和 Template
+- `Hint` 和 `DynamicHint` 的配置和模板。Config 可用于 YAML 序列化，而 Template 可用于快速复制具有相同属性的提示。
+- `AbstractHintTemplate`、`DynamicHintConfig`、`DynamicHintPositionConfig`、`DynamicHintTempalte`、`HintConfig`、`HintPositionConfig` 和 `HintTemplate` 类。
+#### 更多扩展方法
+- 为 Exiled 和 LabAPI 的 Player 类添加了全面的扩展方法。
+- 添加了 AddHint 重载，支持通过 IEnumerable 或 params 数组同时添加多个提示。
+- 添加了提示检索（GetHint、TryGetHint、GetHints）、移除（RemoveHint、RemoveHints）和限时显示（ShowHint、ShowHints）的玩家扩展方法。
+- 添加了 CommonHint（物品提示、地图提示、角色提示和其他提示）的玩家扩展方法。
+#### Rich Tag 辅助工具
+- 添加了 `RichTag` 类和扩展方法，帮助构建 Unity 富文本。
+- 为 `string` 和 `StringBuilder` 添加了扩展方法，提供更便捷的富文本编写体验。
+- 添加了 / 运算符，用于将标签应用到 `string` 实例。
+#### 分辨率适配
+- 添加了对不同屏幕尺寸的适配。
+- 添加了 `AbstractHint::ResolutionOption`。
+
+### 更改
+#### 更好的 RichTextParser
+- 重写了 RichTextParser 以提高标签兼容性。
+- 添加了 `LineStyle`、`TextMeshStyle`、`TextSegmentStyle`、`Color`、`MeasuredValue`、`LineInfo`、`TextSegment`、`Token`、`RichTextParserResult`、`RichTextParserSetting` 模型类。
+- 添加了 `TagChecker`、`Tokenizer` 实用工具类。
+- 重写了 `RichTextParser`。
+
+#### 更好的 CommonHint
+- 移除了冗余 API。
+- 添加了自动扩展。
+
+#### 次要更改
+- `AbstractHint::LineHeight` 可以为负值。
+- 将 `PlayerDisplay::GetHints` 的返回类型替换为 `AbstractHint[]`。使用 `float maxDelay` 作为 `PlayerDisplay::ForceUpdate` 的参数。
+
+---
+
 # [5.5.1]
 ### 修复
 - 修复了由 Instance 属性引起的 Exiled 配置加载错误。

@@ -27,6 +27,22 @@
     - [AbstractHintContent](#abstracthintcontent)
     - [StringContent](#stringcontent)
     - [AutoContent](#autocontent)
+  - [过渡动画](#过渡动画)
+    - [Transition 类](#transition-类)
+    - [EasingType 枚举](#easingtype-枚举)
+    - [Hint 过渡属性](#hint-过渡属性)
+  - [富文本标签助手](#富文本标签助手)
+    - [RichTag 基类](#richtag-基类)
+    - [具体标签](#具体标签)
+    - [字符串扩展](#字符串扩展)
+  - [分辨率适配](#分辨率适配)
+  - [模板](#模板)
+    - [AbstractHintTemplate](#abstracthinttemplate-1)
+    - [HintConfig](#hintconfig)
+    - [HintTemplate](#hinttemplate)
+    - [DynamicHintConfig](#dynamichintconfig)
+    - [DynamicHintTemplate](#dynamichinttemplate)
+    - [仅位置配置](#仅位置配置)
 
 ---
 
@@ -480,5 +496,480 @@ hint.AutoText = (ev) =>
     return $"时间：{DateTime.Now:HH:mm:ss}";
 };
 ```
+
+---
+
+## 过渡动画
+
+过渡动画在提示属性发生变化时提供平滑的动画插值。属性不再直接跳变到新值，而是通过可配置的持续时间和缓动函数逐渐过渡。
+
+### Transition 类
+
+> 命名空间：`HintServiceMeow.Core.Models.Transition`
+
+定义属性变化应如何进行动画。
+
+**属性：**
+
+| 属性 | 类型 | 描述 |
+|------|------|------|
+| Duration | `float` | 动画持续时间（秒）。最小值：`0.001`。默认值：`0.5` |
+| Easing | `EasingType` | 用于插值的缓动函数。默认值：`EaseInOut` |
+| NormalizedCurve | `IAnimationCurve` | 自定义动画曲线（0–1 归一化）。当 `Easing` 为 `Custom` 时使用 |
+
+**静态工厂方法：**
+
+| 方法 | 参数 | 返回值 | 描述 |
+|------|------|--------|------|
+| Get | `EasingType type = EaseInOut, float duration = 0.5f` | `Transition` | 创建使用内置缓动的过渡 |
+| Get | `IAnimationCurve normalizedCurve, float duration = 0.5f` | `Transition` | 创建使用自定义曲线的过渡 |
+
+**使用示例：**
+
+```csharp
+// 使用内置缓动创建过渡
+var smooth = Transition.Get(EasingType.EaseInOut, duration: 1f);
+var quickFade = Transition.Get(EasingType.EaseOut, duration: 0.3f);
+var linear = Transition.Get(EasingType.Linear, duration: 2f);
+
+// 分配给提示属性
+hint.YCoordinateTransition = smooth;
+hint.FontSizeTransition = quickFade;
+```
+
+---
+
+### EasingType 枚举
+
+> 命名空间：`HintServiceMeow.Core.Enum`
+
+定义插值曲线形状。
+
+| 值 | 描述 |
+|----|------|
+| `Linear` | 从开始到结束匀速 |
+| `EaseIn` | 开始慢，向末尾加速 |
+| `EaseOut` | 开始快，向末尾减速 |
+| `EaseInOut` | 开始和结束都慢，中间最快 |
+| `Custom` | 使用 `Transition.NormalizedCurve` 自定义曲线 |
+
+---
+
+### Hint 过渡属性
+
+这些属性可用于提示类型以启用动画过渡：
+
+**`Hint` 上的属性**（除 [AbstractHint](#abstracthint) 属性之外）：
+
+| 属性 | 类型 | 描述 |
+|------|------|------|
+| FontSizeTransition | `Transition?` | 当 `FontSize` 更改时应用的过渡。默认值：`null`（无动画） |
+| XCoordinateTransition | `Transition?` | 当 `XCoordinate` 更改时应用的过渡。默认值：`null` |
+| YCoordinateTransition | `Transition?` | 当 `YCoordinate` 更改时应用的过渡。默认值：`null` |
+
+**`DynamicHint` 上的属性：**
+
+| 属性 | 类型 | 描述 |
+|------|------|------|
+| FontSizeTransition | `Transition?` | 当 `FontSize` 更改时应用的过渡。默认值：`null`（无动画） |
+
+> 注意：`DynamicHint` 不支持 `XCoordinateTransition` 或 `YCoordinateTransition`，因为其位置是自动管理的。
+
+**使用示例：**
+
+```csharp
+var hint = new Hint
+{
+    Text = "动画提示",
+    YCoordinate = 100,
+    FontSize = 20,
+    YCoordinateTransition = Transition.Get(EasingType.EaseInOut, 1f),
+    FontSizeTransition = Transition.Get(EasingType.EaseOut, 0.5f),
+};
+
+playerDisplay.AddHint(hint);
+
+// 之后更改属性——过渡会平滑地进行动画
+hint.YCoordinate = 800; // 在 1 秒内平滑移动
+hint.FontSize = 40;     // 在 0.5 秒内平滑增长
+```
+
+---
+
+## 富文本标签助手
+
+富文本标签助手为构建 Unity TextMeshPro 富文本标记提供类型安全的流式 API。您可以使用标签对象和运算符，而无需编写 `<color=#FF0000>text</color>` 这样的原始标签。
+
+### RichTag 基类
+
+> 命名空间：`HintServiceMeow.UI.Models`
+
+所有富文本标签包装器的抽象基类。
+
+**属性：**
+
+| 属性 | 类型 | 描述 |
+|------|------|------|
+| OpenTag | `string`（只读） | 开始标签语法（例如 `<color=#FF0000>`） |
+| CloseTag | `string`（只读） | 结束标签语法（例如 `</color>`） |
+
+**方法：**
+
+| 方法 | 参数 | 返回值 | 描述 |
+|------|------|--------|------|
+| Apply | `string str` | `string` | 用开始和结束标签包裹文本 |
+
+**运算符：**
+
+| 运算符 | 用法 | 描述 |
+|--------|------|------|
+| `/` | `"text" / tag` | `tag.Apply("text")` 的简写 |
+
+**使用示例：**
+
+```csharp
+// 使用 / 运算符
+string red = "Hello" / ColorTag.Red; // <color=#FF0000>Hello</color>
+
+// 使用 Apply()
+string bold = BoldTag.Bold.Apply("World"); // <b>World</b>
+```
+
+---
+
+### 具体标签
+
+> 命名空间：`HintServiceMeow.UI.Models.RichTags`
+
+所有具体标签类都继承自 [RichTag](#richtag-基类)。固定行为的标签使用单例模式；参数化标签使用工厂方法。
+
+**样式标签：**
+
+| 标签类 | 访问器 | 输出示例 |
+|--------|--------|----------|
+| `BoldTag` | `BoldTag.Bold` | `<b>text</b>` |
+| `ItalicsTag` | `ItalicsTag.Italics` | `<i>text</i>` |
+| `UnderlineTag` | `UnderlineTag.Underline` | `<u>text</u>` |
+| `StrikethroughTag` | `StrikethroughTag.Strikethrough` | `<s>text</s>` |
+
+**大小写标签：**
+
+| 标签类 | 访问器 | 输出示例 |
+|--------|--------|----------|
+| `AllcapsTag` | `AllcapsTag.Allcaps` | `<allcaps>text</allcaps>` |
+| `LowercaseTag` | `LowercaseTag.Lowercase` | `<lowercase>text</lowercase>` |
+| `SmallcapTag` | `SmallcapTag.Smallcap` | `<smallcaps>text</smallcaps>` |
+
+**颜色和大小标签：**
+
+| 标签类 | 工厂/访问器 | 描述 |
+|--------|-------------|------|
+| `ColorTag` | `ColorTag.Red`、`.Green`、`.Blue`、`.White`、`.Black`、`.Yellow`、`.Orange`、`.Purple`、`.Cyan`、`.Magenta`、`.Grey` | 预设颜色单例 |
+| `ColorTag` | `ColorTag.Get(string value)` | 十六进制（`"#FF0000"`）或命名颜色（`"red"`） |
+| `ColorTag` | `ColorTag.Get(byte r, byte g, byte b)` | RGB 值 |
+| `SizeTag` | `SizeTag.Get(int pixel)` | 像素绝对大小 |
+| `SizeTag` | `SizeTag.Get(string value)` | 带单位的大小（`"150%"`、`"1.5em"`） |
+
+**间距标签：**
+
+| 标签类 | 工厂 | 描述 |
+|--------|------|------|
+| `SpaceTag` | `SpaceTag.Get(string)` | 水平间距 |
+| `CSpaceTag` | `CSpaceTag.Get(string)` | 字符间距 |
+| `MSpaceTag` | `MSpaceTag.Get(string)` | 等宽宽度 |
+| `IndentTag` | `IndentTag.Get(string)` | 首行缩进 |
+| `LineIndentTag` | `LineIndentTag.Get(string)` | 全行缩进 |
+| `LineHeightTag` | `LineHeightTag.Get(string)` | 行高 |
+
+**位置标签：**
+
+| 标签类 | 工厂 | 描述 |
+|--------|------|------|
+| `PosTag` | `PosTag.Get(string)` | 水平位置 |
+| `MarginTag` | `MarginTag.Get(string)` | 文本边距 |
+| `VOffsetTag` | `VOffsetTag.Get(string)` | 垂直偏移 |
+| `RotateTag` | `RotateTag.Get(string)` | 文本旋转 |
+| `WidthTag` | `WidthTag.Get(string)` | 文本区域宽度 |
+| `AlignTag` | `AlignTag.Get(string)` | 文本对齐 |
+
+**字体和外观标签：**
+
+| 标签类 | 工厂 | 描述 |
+|--------|------|------|
+| `FontTag` | `FontTag.Get(string)` | 字体族 |
+| `FontWeightTag` | `FontWeightTag.Get(string)` | 字体粗细 |
+| `AlphaTag` | `AlphaTag.Get(string)` | 文本不透明度 |
+| `MarkTag` | `MarkTag.Get(string)` | 文本高亮/背景颜色 |
+| `GradientTag` | `GradientTag.Get(string)` | 颜色渐变 |
+
+**特殊标签：**
+
+| 标签类 | 访问器/工厂 | 描述 |
+|--------|-------------|------|
+| `NoParseTag` | `NoParseTag.NoParse` | 防止内部文本被解析为富文本 |
+| `NoBRTag` | `NoBRTag.NoBR` | 防止标签内文本换行 |
+| `BreakTag` | `BreakTag.Break` | 插入换行符 |
+| `LinkTag` | `LinkTag.Get(string)` | 创建链接 ID |
+| `HyperlinkTag` | `HyperlinkTag.Get(string)` | 创建超链接 |
+| `SpriteTag` | `SpriteTag.Get(string)` | 插入精灵图 |
+
+---
+
+### 字符串扩展
+
+> 命名空间：`HintServiceMeow.UI.Extension`
+
+用于便捷标签应用的 `string` 扩展方法。
+
+| 方法 | 参数 | 返回值 | 描述 |
+|------|------|--------|------|
+| UseTag | `this string str, RichTag tag` | `string` | 将单个标签应用于字符串 |
+| UseTag | `this string str, params RichTag[] tags` | `string` | 应用多个标签（最外层优先） |
+
+**使用示例：**
+
+```csharp
+// 单个标签
+string red = "Hello".UseTag(ColorTag.Red);
+
+// 多个标签——从最外层到最内层应用
+string styled = "Fancy".UseTag(ColorTag.Get("#FF8800"), BoldTag.Bold, SizeTag.Get(30));
+// 结果: <color=#FF8800><b><size=30>Fancy</size></b></color>
+
+// 使用 / 运算符
+string quick = "Quick" / ColorTag.Blue / BoldTag.Bold;
+// 结果: <b><color=#0000FF>Quick</color></b>
+```
+
+---
+
+## 分辨率适配
+
+分辨率适配根据玩家的屏幕宽高比自动调整提示的定位，确保提示在不同屏幕尺寸上正确显示。
+
+> 命名空间：`HintServiceMeow.Core.Enum`
+
+### ResolutionOption 枚举
+
+| 值 | 描述 |
+|----|------|
+| `None` | 不进行分辨率适配。提示使用原始坐标值 |
+| `Offset` | 根据玩家的屏幕 XY 比例将左/右对齐的提示推向屏幕边缘 |
+
+### AbstractHint 属性
+
+| 属性 | 类型 | 描述 |
+|------|------|------|
+| ResolutionOption | `ResolutionOption` | 控制提示如何适配不同的屏幕分辨率。默认值：`Offset` |
+
+当设置为 `Offset` 时，系统会监控每个玩家的屏幕分辨率，并调整左/右对齐提示的 `XCoordinate`，使其无论宽高比如何都能一致地显示在屏幕边缘。
+
+**使用示例：**
+
+```csharp
+// 分辨率适配默认启用（Offset）
+var hint = new Hint
+{
+    Text = "始终在边缘",
+    Alignment = HintAlignment.Left,
+    YCoordinate = 400,
+    // ResolutionOption = ResolutionOption.Offset  // 这已经是默认值
+};
+
+// 如需固定定位，禁用分辨率适配
+var fixedHint = new Hint
+{
+    Text = "固定位置",
+    Alignment = HintAlignment.Left,
+    YCoordinate = 400,
+    ResolutionOption = ResolutionOption.None
+};
+```
+
+---
+
+## 模板
+
+模板为创建和配置提示提供蓝图模式。它们支持可空属性——只有非空值才会被应用，使定义部分配置变得简单。Config 类支持 YAML 序列化以用于外部配置，而 Template 类添加了标记为 `[YamlIgnore]` 的仅代码属性。
+
+> 命名空间：`HintServiceMeow.UI.Models.Template`
+
+### 类层次结构
+
+```
+AbstractHintTemplate
+├── HintConfig
+│   └── HintTemplate
+└── DynamicHintConfig
+    └── DynamicHintTemplate
+
+HintPositionConfig（独立，仅位置）
+DynamicHintPositionConfig（独立，仅位置）
+```
+
+---
+
+### AbstractHintTemplate
+
+所有提示模板的基类。所有属性都是可空的——调用 `Apply()` 时只有非空值会被应用。
+
+**属性：**
+
+| 属性 | 类型 | 描述 |
+|------|------|------|
+| SyncSpeed | `HintSyncSpeed?` | 更新优先级 |
+| FontSize | `int?` | 文本字体大小 |
+| LineHeight | `float?` | 行间额外垂直间距 |
+| Text | `string?` | 静态文本内容 |
+
+---
+
+### HintConfig
+
+> 继承自：[AbstractHintTemplate](#abstracthinttemplate-1)
+
+用于固定位置提示的 YAML 可序列化配置。
+
+**属性（除 AbstractHintTemplate 之外）：**
+
+| 属性 | 类型 | 描述 |
+|------|------|------|
+| XCoordinate | `float?` | 水平偏移量 |
+| YCoordinate | `float?` | 垂直位置 |
+| Alignment | `HintAlignment?` | 文本对齐方式 |
+| YCoordinateAlign | `HintVerticalAlign?` | Y 坐标与文本的对齐方式 |
+
+**方法：**
+
+| 方法 | 参数 | 返回值 | 描述 |
+|------|------|--------|------|
+| Apply | `Hint hint` | `void` | 将所有非空属性应用到提示 |
+| GetHint | — | `Hint` | 创建一个应用了所有非空属性的新 `Hint` |
+
+---
+
+### HintTemplate
+
+> 继承自：[HintConfig](#hintconfig)
+
+带有额外仅代码属性的完整模板。标记为 `[YamlIgnore]` 的属性不会被序列化。
+
+**属性（除 HintConfig 之外）：**
+
+| 属性 | 类型 | 可序列化 | 描述 |
+|------|------|----------|------|
+| Id | `string?` | 是 | 逻辑标识符 |
+| Hide | `bool?` | 是 | 可见性 |
+| AutoText | `AutoContent.TextUpdateHandler?` | 否 | 动态文本处理器 |
+| Content | `AbstractHintContent?` | 否 | 内容提供者 |
+| FontSizeTransition | `Transition?` | 否 | 字体大小动画 |
+| XCoordinateTransition | `Transition?` | 否 | X 坐标动画 |
+| YCoordinateTransition | `Transition?` | 否 | Y 坐标动画 |
+
+**使用示例：**
+
+```csharp
+// 创建模板作为蓝图
+var template = new HintTemplate
+{
+    FontSize = 25,
+    YCoordinate = 700,
+    Alignment = HintAlignment.Right,
+    FontSizeTransition = Transition.Get(EasingType.EaseInOut, 0.5f),
+};
+
+// 从模板创建新提示
+Hint hint = template.GetHint();
+hint.Text = "从模板创建";
+playerDisplay.AddHint(hint);
+
+// 或将模板应用到现有提示
+var existing = new Hint { Text = "已有提示" };
+template.Apply(existing); // 只应用非空属性
+```
+
+---
+
+### DynamicHintConfig
+
+> 继承自：[AbstractHintTemplate](#abstracthinttemplate-1)
+
+用于自动定位提示的 YAML 可序列化配置。
+
+**属性（除 AbstractHintTemplate 之外）：**
+
+| 属性 | 类型 | 描述 |
+|------|------|------|
+| TopBoundary | `float?` | 放置的上边界 |
+| BottomBoundary | `float?` | 放置的下边界 |
+| LeftBoundary | `float?` | 放置的左边界 |
+| RightBoundary | `float?` | 放置的右边界 |
+| TargetX | `float?` | 首选水平位置 |
+| TargetY | `float?` | 首选垂直位置 |
+| TopMargin | `float?` | 上方额外空间 |
+| BottomMargin | `float?` | 下方额外空间 |
+| LeftMargin | `float?` | 左侧额外空间 |
+| RightMargin | `float?` | 右侧额外空间 |
+| Priority | `HintPriority?` | 排列优先级 |
+| Strategy | `DynamicHintStrategy?` | 无可用空间时的行为 |
+
+**方法：**
+
+| 方法 | 参数 | 返回值 | 描述 |
+|------|------|--------|------|
+| Apply | `DynamicHint hint` | `void` | 将所有非空属性应用到提示 |
+| GetDynamicHint | — | `DynamicHint` | 创建一个应用了所有非空属性的新 `DynamicHint` |
+
+---
+
+### DynamicHintTemplate
+
+> 继承自：[DynamicHintConfig](#dynamichintconfig)
+
+带有额外仅代码属性的动态提示完整模板。
+
+**属性（除 DynamicHintConfig 之外）：**
+
+| 属性 | 类型 | 可序列化 | 描述 |
+|------|------|----------|------|
+| Id | `string?` | 是 | 逻辑标识符 |
+| Hide | `bool?` | 是 | 可见性 |
+| AutoText | `AutoContent.TextUpdateHandler?` | 否 | 动态文本处理器 |
+| Content | `AbstractHintContent?` | 否 | 内容提供者 |
+| FontSizeTransition | `Transition?` | 否 | 字体大小动画 |
+
+---
+
+### 仅位置配置
+
+这些轻量级配置类仅包含位置相关属性。它们**不**继承自 `AbstractHintTemplate`。
+
+**HintPositionConfig：**
+
+| 属性 | 类型 | 描述 |
+|------|------|------|
+| XCoordinate | `float?` | 水平偏移量 |
+| YCoordinate | `float?` | 垂直位置 |
+| Alignment | `HintAlignment?` | 文本对齐方式 |
+| YCoordinateAlign | `HintVerticalAlign?` | Y 坐标与文本的对齐方式 |
+
+方法：`Apply(Hint)`、`GetHint()`
+
+**DynamicHintPositionConfig：**
+
+| 属性 | 类型 | 描述 |
+|------|------|------|
+| TopBoundary | `float?` | 上边界 |
+| BottomBoundary | `float?` | 下边界 |
+| LeftBoundary | `float?` | 左边界 |
+| RightBoundary | `float?` | 右边界 |
+| TargetX | `float?` | 首选水平位置 |
+| TargetY | `float?` | 首选垂直位置 |
+| TopMargin | `float?` | 上方额外空间 |
+| BottomMargin | `float?` | 下方额外空间 |
+| LeftMargin | `float?` | 左侧额外空间 |
+| RightMargin | `float?` | 右侧额外空间 |
+
+方法：`Apply(DynamicHint)`、`GetHint()`
 
 点击[此处](/Docs/SimplifiedChinese/README.md)返回 README

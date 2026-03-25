@@ -27,6 +27,22 @@
     - [AbstractHintContent](#abstracthintcontent)
     - [StringContent](#stringcontent)
     - [AutoContent](#autocontent)
+  - [Переходы](#переходы)
+    - [Класс Transition](#класс-transition)
+    - [Перечисление EasingType](#перечисление-easingtype)
+    - [Свойства перехода подсказок](#свойства-перехода-подсказок)
+  - [Помощник Rich-тегов](#помощник-rich-тегов)
+    - [Базовый класс RichTag](#базовый-класс-richtag)
+    - [Конкретные теги](#конкретные-теги)
+    - [Расширения строк](#расширения-строк)
+  - [Адаптация разрешения](#адаптация-разрешения)
+  - [Шаблоны](#шаблоны)
+    - [AbstractHintTemplate](#abstracthinttemplate-1)
+    - [HintConfig](#hintconfig)
+    - [HintTemplate](#hinttemplate)
+    - [DynamicHintConfig](#dynamichintconfig)
+    - [DynamicHintTemplate](#dynamichinttemplate)
+    - [Конфигурации только позиции](#конфигурации-только-позиции)
 
 ---
 
@@ -480,5 +496,480 @@ hint.AutoText = (ev) =>
     return $"Время: {DateTime.Now:HH:mm:ss}";
 };
 ```
+
+---
+
+## Переходы
+
+Переходы обеспечивают плавную анимированную интерполяцию при изменении свойств подсказок. Вместо мгновенного перехода к новому значению, свойство постепенно изменяется в течение настраиваемой продолжительности с использованием функции сглаживания.
+
+### Класс Transition
+
+> Пространство имён: `HintServiceMeow.Core.Models.Transition`
+
+Определяет, как должно анимироваться изменение свойства.
+
+**Свойства:**
+
+| Свойство | Тип | Описание |
+|----------|-----|----------|
+| Duration | `float` | Продолжительность анимации в секундах. Минимум: `0.001`. По умолчанию: `0.5` |
+| Easing | `EasingType` | Функция сглаживания для интерполяции. По умолчанию: `EaseInOut` |
+| NormalizedCurve | `IAnimationCurve` | Пользовательская кривая анимации (нормализованная 0–1). Используется когда `Easing` установлен как `Custom` |
+
+**Статические фабричные методы:**
+
+| Метод | Параметры | Возвращает | Описание |
+|-------|-----------|------------|----------|
+| Get | `EasingType type = EaseInOut, float duration = 0.5f` | `Transition` | Создаёт переход со встроенным сглаживанием |
+| Get | `IAnimationCurve normalizedCurve, float duration = 0.5f` | `Transition` | Создаёт переход с пользовательской кривой |
+
+**Пример использования:**
+
+```csharp
+// Создание переходов со встроенным сглаживанием
+var smooth = Transition.Get(EasingType.EaseInOut, duration: 1f);
+var quickFade = Transition.Get(EasingType.EaseOut, duration: 0.3f);
+var linear = Transition.Get(EasingType.Linear, duration: 2f);
+
+// Назначение свойствам подсказки
+hint.YCoordinateTransition = smooth;
+hint.FontSizeTransition = quickFade;
+```
+
+---
+
+### Перечисление EasingType
+
+> Пространство имён: `HintServiceMeow.Core.Enum`
+
+Определяет форму кривой интерполяции.
+
+| Значение | Описание |
+|----------|----------|
+| `Linear` | Постоянная скорость от начала до конца |
+| `EaseIn` | Начинается медленно, ускоряется к концу |
+| `EaseOut` | Начинается быстро, замедляется к концу |
+| `EaseInOut` | Начинается и заканчивается медленно, максимальная скорость в середине |
+| `Custom` | Использует `Transition.NormalizedCurve` для пользовательской кривой |
+
+---
+
+### Свойства перехода подсказок
+
+Эти свойства доступны для типов подсказок для включения анимированных переходов:
+
+**В `Hint`** (в дополнение к свойствам [AbstractHint](#abstracthint)):
+
+| Свойство | Тип | Описание |
+|----------|-----|----------|
+| FontSizeTransition | `Transition?` | Переход при изменении `FontSize`. По умолчанию: `null` (без анимации) |
+| XCoordinateTransition | `Transition?` | Переход при изменении `XCoordinate`. По умолчанию: `null` |
+| YCoordinateTransition | `Transition?` | Переход при изменении `YCoordinate`. По умолчанию: `null` |
+
+**В `DynamicHint`:**
+
+| Свойство | Тип | Описание |
+|----------|-----|----------|
+| FontSizeTransition | `Transition?` | Переход при изменении `FontSize`. По умолчанию: `null` (без анимации) |
+
+> Примечание: `DynamicHint` не поддерживает `XCoordinateTransition` или `YCoordinateTransition`, поскольку его позиция управляется автоматически.
+
+**Пример использования:**
+
+```csharp
+var hint = new Hint
+{
+    Text = "Анимированная подсказка",
+    YCoordinate = 100,
+    FontSize = 20,
+    YCoordinateTransition = Transition.Get(EasingType.EaseInOut, 1f),
+    FontSizeTransition = Transition.Get(EasingType.EaseOut, 0.5f),
+};
+
+playerDisplay.AddHint(hint);
+
+// Позже измените свойства — переходы анимируют их плавно
+hint.YCoordinate = 800; // Плавно перемещается в течение 1 секунды
+hint.FontSize = 40;     // Плавно увеличивается в течение 0,5 секунд
+```
+
+---
+
+## Помощник Rich-тегов
+
+Помощник Rich-тегов предоставляет типобезопасный fluent API для создания разметки Unity TextMeshPro rich text. Вместо написания необработанных тегов вроде `<color=#FF0000>text</color>`, вы можете использовать объекты тегов и операторы.
+
+### Базовый класс RichTag
+
+> Пространство имён: `HintServiceMeow.UI.Models`
+
+Абстрактный базовый класс для всех обёрток rich text тегов.
+
+**Свойства:**
+
+| Свойство | Тип | Описание |
+|----------|-----|----------|
+| OpenTag | `string` (только чтение) | Синтаксис открывающего тега (например, `<color=#FF0000>`) |
+| CloseTag | `string` (только чтение) | Синтаксис закрывающего тега (например, `</color>`) |
+
+**Методы:**
+
+| Метод | Параметры | Возвращает | Описание |
+|-------|-----------|------------|----------|
+| Apply | `string str` | `string` | Оборачивает текст открывающим и закрывающим тегами |
+
+**Оператор:**
+
+| Оператор | Использование | Описание |
+|----------|---------------|----------|
+| `/` | `"text" / tag` | Сокращение для `tag.Apply("text")` |
+
+**Пример использования:**
+
+```csharp
+// Использование оператора /
+string red = "Hello" / ColorTag.Red; // <color=#FF0000>Hello</color>
+
+// Использование Apply()
+string bold = BoldTag.Bold.Apply("World"); // <b>World</b>
+```
+
+---
+
+### Конкретные теги
+
+> Пространство имён: `HintServiceMeow.UI.Models.RichTags`
+
+Все конкретные классы тегов наследуются от [RichTag](#базовый-класс-richtag). Теги с фиксированным поведением используют паттерн одиночки; параметризированные теги используют фабричные методы.
+
+**Теги стиля:**
+
+| Класс тега | Аксессор | Пример вывода |
+|------------|----------|---------------|
+| `BoldTag` | `BoldTag.Bold` | `<b>text</b>` |
+| `ItalicsTag` | `ItalicsTag.Italics` | `<i>text</i>` |
+| `UnderlineTag` | `UnderlineTag.Underline` | `<u>text</u>` |
+| `StrikethroughTag` | `StrikethroughTag.Strikethrough` | `<s>text</s>` |
+
+**Теги регистра:**
+
+| Класс тега | Аксессор | Пример вывода |
+|------------|----------|---------------|
+| `AllcapsTag` | `AllcapsTag.Allcaps` | `<allcaps>text</allcaps>` |
+| `LowercaseTag` | `LowercaseTag.Lowercase` | `<lowercase>text</lowercase>` |
+| `SmallcapTag` | `SmallcapTag.Smallcap` | `<smallcaps>text</smallcaps>` |
+
+**Теги цвета и размера:**
+
+| Класс тега | Фабрика / Аксессор | Описание |
+|------------|-------------------|----------|
+| `ColorTag` | `ColorTag.Red`, `.Green`, `.Blue`, `.White`, `.Black`, `.Yellow`, `.Orange`, `.Purple`, `.Cyan`, `.Magenta`, `.Grey` | Предустановленные цвета-одиночки |
+| `ColorTag` | `ColorTag.Get(string value)` | Hex (`"#FF0000"`) или именованный цвет (`"red"`) |
+| `ColorTag` | `ColorTag.Get(byte r, byte g, byte b)` | Значения RGB |
+| `SizeTag` | `SizeTag.Get(int pixel)` | Абсолютный размер в пикселях |
+| `SizeTag` | `SizeTag.Get(string value)` | Размер с единицей (`"150%"`, `"1.5em"`) |
+
+**Теги интервалов:**
+
+| Класс тега | Фабрика | Описание |
+|------------|---------|----------|
+| `SpaceTag` | `SpaceTag.Get(string)` | Горизонтальный интервал |
+| `CSpaceTag` | `CSpaceTag.Get(string)` | Межсимвольный интервал |
+| `MSpaceTag` | `MSpaceTag.Get(string)` | Моноширинная ширина |
+| `IndentTag` | `IndentTag.Get(string)` | Отступ первой строки |
+| `LineIndentTag` | `LineIndentTag.Get(string)` | Отступ всех строк |
+| `LineHeightTag` | `LineHeightTag.Get(string)` | Высота строки |
+
+**Теги позиции:**
+
+| Класс тега | Фабрика | Описание |
+|------------|---------|----------|
+| `PosTag` | `PosTag.Get(string)` | Горизонтальная позиция |
+| `MarginTag` | `MarginTag.Get(string)` | Отступ текста |
+| `VOffsetTag` | `VOffsetTag.Get(string)` | Вертикальное смещение |
+| `RotateTag` | `RotateTag.Get(string)` | Поворот текста |
+| `WidthTag` | `WidthTag.Get(string)` | Ширина текстовой области |
+| `AlignTag` | `AlignTag.Get(string)` | Выравнивание текста |
+
+**Теги шрифта и внешнего вида:**
+
+| Класс тега | Фабрика | Описание |
+|------------|---------|----------|
+| `FontTag` | `FontTag.Get(string)` | Семейство шрифтов |
+| `FontWeightTag` | `FontWeightTag.Get(string)` | Насыщенность шрифта |
+| `AlphaTag` | `AlphaTag.Get(string)` | Непрозрачность текста |
+| `MarkTag` | `MarkTag.Get(string)` | Цвет выделения/фона текста |
+| `GradientTag` | `GradientTag.Get(string)` | Цветовой градиент |
+
+**Специальные теги:**
+
+| Класс тега | Аксессор / Фабрика | Описание |
+|------------|-------------------|----------|
+| `NoParseTag` | `NoParseTag.NoParse` | Предотвращает разбор внутреннего текста как rich text |
+| `NoBRTag` | `NoBRTag.NoBR` | Предотвращает перенос строки внутри помеченного текста |
+| `BreakTag` | `BreakTag.Break` | Вставляет перенос строки |
+| `LinkTag` | `LinkTag.Get(string)` | Создаёт ID ссылки |
+| `HyperlinkTag` | `HyperlinkTag.Get(string)` | Создаёт гиперссылку |
+| `SpriteTag` | `SpriteTag.Get(string)` | Вставляет спрайт |
+
+---
+
+### Расширения строк
+
+> Пространство имён: `HintServiceMeow.UI.Extension`
+
+Методы расширения для `string` для удобного применения тегов.
+
+| Метод | Параметры | Возвращает | Описание |
+|-------|-----------|------------|----------|
+| UseTag | `this string str, RichTag tag` | `string` | Применяет один тег к строке |
+| UseTag | `this string str, params RichTag[] tags` | `string` | Применяет несколько тегов (самый внешний первым) |
+
+**Пример использования:**
+
+```csharp
+// Один тег
+string red = "Hello".UseTag(ColorTag.Red);
+
+// Несколько тегов — применяются от внешнего к внутреннему
+string styled = "Fancy".UseTag(ColorTag.Get("#FF8800"), BoldTag.Bold, SizeTag.Get(30));
+// Результат: <color=#FF8800><b><size=30>Fancy</size></b></color>
+
+// Использование оператора /
+string quick = "Quick" / ColorTag.Blue / BoldTag.Bold;
+// Результат: <b><color=#0000FF>Quick</color></b>
+```
+
+---
+
+## Адаптация разрешения
+
+Адаптация разрешения автоматически корректирует позиционирование подсказок на основе соотношения сторон экрана игрока, обеспечивая корректное отображение подсказок на экранах разных размеров.
+
+> Пространство имён: `HintServiceMeow.Core.Enum`
+
+### Перечисление ResolutionOption
+
+| Значение | Описание |
+|----------|----------|
+| `None` | Без адаптации разрешения. Подсказки используют необработанные значения координат |
+| `Offset` | Сдвигает подсказки с выравниванием по левому/правому краю к краю экрана на основе соотношения XY экрана игрока |
+
+### Свойство AbstractHint
+
+| Свойство | Тип | Описание |
+|----------|-----|----------|
+| ResolutionOption | `ResolutionOption` | Управляет адаптацией подсказки к различным разрешениям экрана. По умолчанию: `Offset` |
+
+При значении `Offset` система отслеживает разрешение экрана каждого игрока и корректирует `XCoordinate` подсказок с выравниванием по левому/правому краю, чтобы они отображались последовательно у края экрана независимо от соотношения сторон.
+
+**Пример использования:**
+
+```csharp
+// Адаптация разрешения включена по умолчанию (Offset)
+var hint = new Hint
+{
+    Text = "Всегда у края",
+    Alignment = HintAlignment.Left,
+    YCoordinate = 400,
+    // ResolutionOption = ResolutionOption.Offset  // Это уже значение по умолчанию
+};
+
+// Отключите адаптацию разрешения для фиксированного позиционирования
+var fixedHint = new Hint
+{
+    Text = "Фиксированная позиция",
+    Alignment = HintAlignment.Left,
+    YCoordinate = 400,
+    ResolutionOption = ResolutionOption.None
+};
+```
+
+---
+
+## Шаблоны
+
+Шаблоны предоставляют паттерн blueprint для создания и настройки подсказок. Они поддерживают nullable-свойства — применяются только ненулевые значения, что упрощает определение частичных конфигураций. Классы Config поддерживают YAML-сериализацию для внешней конфигурации, а классы Template добавляют свойства только для кода, помеченные `[YamlIgnore]`.
+
+> Пространство имён: `HintServiceMeow.UI.Models.Template`
+
+### Иерархия классов
+
+```
+AbstractHintTemplate
+├── HintConfig
+│   └── HintTemplate
+└── DynamicHintConfig
+    └── DynamicHintTemplate
+
+HintPositionConfig (самостоятельный, только позиция)
+DynamicHintPositionConfig (самостоятельный, только позиция)
+```
+
+---
+
+### AbstractHintTemplate
+
+Базовый класс для всех шаблонов подсказок. Все свойства nullable — при вызове `Apply()` применяются только ненулевые значения.
+
+**Свойства:**
+
+| Свойство | Тип | Описание |
+|----------|-----|----------|
+| SyncSpeed | `HintSyncSpeed?` | Приоритет обновления |
+| FontSize | `int?` | Размер шрифта текста |
+| LineHeight | `float?` | Дополнительный вертикальный интервал между строками |
+| Text | `string?` | Статическое текстовое содержимое |
+
+---
+
+### HintConfig
+
+> Расширяет: [AbstractHintTemplate](#abstracthinttemplate-1)
+
+YAML-сериализуемая конфигурация для подсказок с фиксированной позицией.
+
+**Свойства (в дополнение к AbstractHintTemplate):**
+
+| Свойство | Тип | Описание |
+|----------|-----|----------|
+| XCoordinate | `float?` | Горизонтальное смещение |
+| YCoordinate | `float?` | Вертикальная позиция |
+| Alignment | `HintAlignment?` | Выравнивание текста |
+| YCoordinateAlign | `HintVerticalAlign?` | Как координата Y выравнивается относительно текста |
+
+**Методы:**
+
+| Метод | Параметры | Возвращает | Описание |
+|-------|-----------|------------|----------|
+| Apply | `Hint hint` | `void` | Применяет все ненулевые свойства к подсказке |
+| GetHint | — | `Hint` | Создаёт новый `Hint` с применёнными ненулевыми свойствами |
+
+---
+
+### HintTemplate
+
+> Расширяет: [HintConfig](#hintconfig)
+
+Полный шаблон с дополнительными свойствами только для кода. Свойства, помеченные `[YamlIgnore]`, не сериализуются.
+
+**Свойства (в дополнение к HintConfig):**
+
+| Свойство | Тип | Сериализуемо | Описание |
+|----------|-----|--------------|----------|
+| Id | `string?` | Да | Логический идентификатор |
+| Hide | `bool?` | Да | Видимость |
+| AutoText | `AutoContent.TextUpdateHandler?` | Нет | Обработчик динамического текста |
+| Content | `AbstractHintContent?` | Нет | Провайдер содержимого |
+| FontSizeTransition | `Transition?` | Нет | Анимация размера шрифта |
+| XCoordinateTransition | `Transition?` | Нет | Анимация координаты X |
+| YCoordinateTransition | `Transition?` | Нет | Анимация координаты Y |
+
+**Пример использования:**
+
+```csharp
+// Создание шаблона как blueprint
+var template = new HintTemplate
+{
+    FontSize = 25,
+    YCoordinate = 700,
+    Alignment = HintAlignment.Right,
+    FontSizeTransition = Transition.Get(EasingType.EaseInOut, 0.5f),
+};
+
+// Создание новой подсказки из шаблона
+Hint hint = template.GetHint();
+hint.Text = "Создана из шаблона";
+playerDisplay.AddHint(hint);
+
+// Или применение шаблона к существующей подсказке
+var existing = new Hint { Text = "Существующая" };
+template.Apply(existing); // Применяет только ненулевые свойства
+```
+
+---
+
+### DynamicHintConfig
+
+> Расширяет: [AbstractHintTemplate](#abstracthinttemplate-1)
+
+YAML-сериализуемая конфигурация для автоматически позиционируемых подсказок.
+
+**Свойства (в дополнение к AbstractHintTemplate):**
+
+| Свойство | Тип | Описание |
+|----------|-----|----------|
+| TopBoundary | `float?` | Верхняя граница для размещения |
+| BottomBoundary | `float?` | Нижняя граница для размещения |
+| LeftBoundary | `float?` | Левая граница для размещения |
+| RightBoundary | `float?` | Правая граница для размещения |
+| TargetX | `float?` | Предпочтительная горизонтальная позиция |
+| TargetY | `float?` | Предпочтительная вертикальная позиция |
+| TopMargin | `float?` | Дополнительное пространство сверху |
+| BottomMargin | `float?` | Дополнительное пространство снизу |
+| LeftMargin | `float?` | Дополнительное пространство слева |
+| RightMargin | `float?` | Дополнительное пространство справа |
+| Priority | `HintPriority?` | Приоритет расстановки |
+| Strategy | `DynamicHintStrategy?` | Поведение при отсутствии доступного места |
+
+**Методы:**
+
+| Метод | Параметры | Возвращает | Описание |
+|-------|-----------|------------|----------|
+| Apply | `DynamicHint hint` | `void` | Применяет все ненулевые свойства к подсказке |
+| GetDynamicHint | — | `DynamicHint` | Создаёт новый `DynamicHint` с применёнными ненулевыми свойствами |
+
+---
+
+### DynamicHintTemplate
+
+> Расширяет: [DynamicHintConfig](#dynamichintconfig)
+
+Полный шаблон для динамических подсказок с дополнительными свойствами только для кода.
+
+**Свойства (в дополнение к DynamicHintConfig):**
+
+| Свойство | Тип | Сериализуемо | Описание |
+|----------|-----|--------------|----------|
+| Id | `string?` | Да | Логический идентификатор |
+| Hide | `bool?` | Да | Видимость |
+| AutoText | `AutoContent.TextUpdateHandler?` | Нет | Обработчик динамического текста |
+| Content | `AbstractHintContent?` | Нет | Провайдер содержимого |
+| FontSizeTransition | `Transition?` | Нет | Анимация размера шрифта |
+
+---
+
+### Конфигурации только позиции
+
+Эти облегчённые классы конфигурации содержат только свойства, связанные с позицией. Они **не** наследуются от `AbstractHintTemplate`.
+
+**HintPositionConfig:**
+
+| Свойство | Тип | Описание |
+|----------|-----|----------|
+| XCoordinate | `float?` | Горизонтальное смещение |
+| YCoordinate | `float?` | Вертикальная позиция |
+| Alignment | `HintAlignment?` | Выравнивание текста |
+| YCoordinateAlign | `HintVerticalAlign?` | Как координата Y выравнивается относительно текста |
+
+Методы: `Apply(Hint)`, `GetHint()`
+
+**DynamicHintPositionConfig:**
+
+| Свойство | Тип | Описание |
+|----------|-----|----------|
+| TopBoundary | `float?` | Верхняя граница |
+| BottomBoundary | `float?` | Нижняя граница |
+| LeftBoundary | `float?` | Левая граница |
+| RightBoundary | `float?` | Правая граница |
+| TargetX | `float?` | Предпочтительная горизонтальная позиция |
+| TargetY | `float?` | Предпочтительная вертикальная позиция |
+| TopMargin | `float?` | Дополнительное пространство сверху |
+| BottomMargin | `float?` | Дополнительное пространство снизу |
+| LeftMargin | `float?` | Дополнительное пространство слева |
+| RightMargin | `float?` | Дополнительное пространство справа |
+
+Методы: `Apply(DynamicHint)`, `GetHint()`
 
 Нажмите [здесь](/Docs/Russian/README.md), чтобы вернуться к README
