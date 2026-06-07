@@ -18,7 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Northwood.LabAPI" Version="1.0.2" IncludeAssets="compile" PrivateAssets="all" />
+    <PackageReference Include="Northwood.LabAPI" Version="1.1.7" IncludeAssets="compile" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

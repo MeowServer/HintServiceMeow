@@ -30,24 +30,23 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Northwood.LabAPI" Version="1.1.5" IncludeAssets="compile" PrivateAssets="all" />
+    <PackageReference Include="Northwood.LabAPI" Version="1.1.7" IncludeAssets="compile" PrivateAssets="all" />
     <PackageReference Include="Lib.Harmony" Version="2.4.2" IncludeAssets="compile" PrivateAssets="all" />
     <PackageReference Include="YamlDotNet" Version="16.3.0" IncludeAssets="compile" PrivateAssets="all" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.507" IncludeAssets="All" PrivateAssets="All" />
+    <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>..\Dependencies\Assembly-CSharp.dll</HintPath>
-    </Reference>
+    <Reference Include="Assembly-CSharp" HintPath="$(SL_REFERENCES)\Assembly-CSharp.dll" Publicize="true"/>
     <Reference Include="Assembly-CSharp-firstpass">
-      <HintPath>..\Dependencies\Assembly-CSharp-firstpass.dll</HintPath>
+      <HintPath>$(sl_references)\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
-    <Reference Include="CommandSystem.Core" HintPath="..\Dependencies\CommandSystem.Core.dll" Private="False" />
+    <Reference Include="CommandSystem.Core" HintPath="$(sl_references)\CommandSystem.Core.dll" Private="False" />
     <Reference Include="Exiled.API" HintPath="..\Dependencies\Exiled.API.dll" Private="False" />
     <Reference Include="Exiled.Events" HintPath="..\Dependencies\Exiled.Events.dll" Private="False" />
-    <Reference Include="Mirror" HintPath="..\Dependencies\Mirror.dll" Private="False" />
-    <Reference Include="UnityEngine.CoreModule" HintPath="..\Dependencies\UnityEngine.CoreModule.dll" Private="False" />
+    <Reference Include="Mirror" HintPath="$(sl_references)\Mirror.dll" Private="False" />
+    <Reference Include="UnityEngine.CoreModule" HintPath="$(sl_references)\UnityEngine.CoreModule.dll" Private="False" />
     <Reference Include="System.IO.Compression" Private="False" />
   </ItemGroup>
 
@@ -65,5 +64,7 @@
       <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
-
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy &quot;$(TargetPath)&quot; &quot;%appdata%\SCP Secret Laboratory\LabAPI\plugins\global&quot; /y"/>
+  </Target>
 </Project>

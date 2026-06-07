@@ -7,6 +7,7 @@ namespace HintServiceMeow.Core.Utilities
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
+    using global::Hints;
     using HintServiceMeow.Core.Enum;
     using HintServiceMeow.Core.Extension;
     using HintServiceMeow.Core.Interface;
@@ -769,7 +770,8 @@ namespace HintServiceMeow.Core.Utilities
         /// <param name="assemblyName">The assembly name for grouping.</param>
         /// <param name="content">The hint text content.</param>
         /// <param name="duration">How long to display the hint in seconds.</param>
-        internal void ShowCompatibilityHint(string assemblyName, string? content, float duration) => adapter.ShowHint(new CompatibilityAdaptorArg(assemblyName, content, duration));
+        /// <param name="parameters">The native hint parameters (e.g. keybinds, item icons) referenced by placeholders in <paramref name="content"/>, if any.</param>
+        internal void ShowCompatibilityHint(string assemblyName, string? content, float duration, IReadOnlyList<HintParameter>? parameters = null) => adapter.ShowHint(new CompatibilityAdaptorArg(assemblyName, content, duration, parameters));
 
         private IEnumerator<float> CoroutineMethod()
         {

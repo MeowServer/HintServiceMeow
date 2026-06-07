@@ -1,7 +1,6 @@
 ﻿namespace HintServiceMeow.Core.Utilities.Patch
 {
     using System;
-    using System.Linq.Expressions;
     using System.Reflection;
     using Hints;
     using HintServiceMeow.Core.Extension;
@@ -11,8 +10,6 @@
 
     internal static class Patches
     {
-        private static readonly Func<TextHint, string> TextGetter = (Func<TextHint, string>)GetTextGetter();
-
 #pragma warning disable SA1313
         public static bool HintDisplayPatch(ref Hint hint, ref HintDisplay __instance)
         {
@@ -24,9 +21,10 @@
                 if (hint is TextHint textHint && ReferenceHub.TryGetHubNetID(__instance.connectionToClient.identity.netId, out ReferenceHub referenceHub))
                 {
                     string assemblyName = Assembly.GetCallingAssembly().FullName;
-                    string content = TextGetter(textHint);
+                    string content = textHint.Text;
+                    HintParameter[] parameters = textHint.Parameters;
                     float duration = textHint.DurationScalar;
-                    PlayerDisplay.Get(referenceHub).ShowCompatibilityHint(assemblyName, content, duration);
+                    PlayerDisplay.Get(referenceHub).ShowCompatibilityHint(assemblyName, content, duration, parameters);
                 }
             }
             catch (Exception ex)
@@ -73,6 +71,25 @@
 
             return false;
         }
+        
+        public static bool SendHintPatch3(ref string text,  ref HintParameter[] parameters, ref HintEffect[] effects, ref float duration, ref Player __instance)
+        {
+            try
+            {
+                if (!Plugin.Instance.Config.UseHintCompatibilityAdapter)
+                    return false;
+
+                string assemblyName = Assembly.GetCallingAssembly().FullName;
+                __instance.GetPlayerDisplay().ShowCompatibilityHint(assemblyName, text, duration, parameters);
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Error(ex);
+            }
+
+            return false;
+        }
+        
 #pragma warning restore IDE0060 // Remove unused parameter
 
 #if EXILED
@@ -116,25 +133,5 @@
             return false;
         }
 #endif
-
-        private static Delegate GetTextGetter()
-        {
-            var prop = typeof(TextHint).GetProperty(
-                        "Text",
-                        BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-            if (prop == null)
-                throw new MissingMemberException(typeof(TextHint).FullName, "Text");
-
-            var getMethod = prop.GetGetMethod(nonPublic: true);
-            if (getMethod == null)
-                throw new InvalidOperationException($"Property 'Text' has no getter.");
-
-            var objParam = Expression.Parameter(typeof(TextHint), "obj");
-            var call = Expression.Call(objParam, getMethod);
-            var body = Expression.Convert(call, typeof(string));
-
-            return Expression.Lambda<Func<TextHint, string>>(body, objParam).Compile();
-        }
     }
 }

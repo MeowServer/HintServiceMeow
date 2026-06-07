@@ -1,4 +1,6 @@
-﻿namespace HintServiceMeow.Core.Utilities
+﻿using Hints;
+
+namespace HintServiceMeow.Core.Utilities
 {
     using System;
     using System.Collections.Generic;
@@ -10,6 +12,7 @@
     using HintServiceMeow.Core.Models.Hints;
     using HintServiceMeow.Core.Models.Parser;
     using HintServiceMeow.Core.Models.Parser.Style;
+    using HintServiceMeow.Core.Models.UnityAdaptors.Parameters;
     using HintServiceMeow.Core.Utilities.Parser;
     using HintServiceMeow.Core.Utilities.Pools;
     using HintServiceMeow.Core.Utilities.Tools;
@@ -72,6 +75,7 @@
             string assemblyName = ev.AssemblyName;
             string content = ev.Content ?? string.Empty;
             float duration = Math.Min(ev.Duration, float.MaxValue - 1f);
+            IReadOnlyList<HintParameter>? parameters = ev.Parameters;
 
             // Record the assembly that is using the compatibility adaptor
             RegisteredAssemblies.Add(assemblyName);
@@ -110,15 +114,18 @@
             DateTime expireTime = DateTime.Now.AddSeconds(Math.Min(duration, 5f)); // Wait for at most 5 second and at least the duration
 
             // Start new remove action, remove after the Duration
-            _ = InternalShowHint(internalAssemblyName, content, expireTime);
+            _ = InternalShowHint(internalAssemblyName, content, parameters, expireTime);
         }
 
-        private async Task InternalShowHint(string internalAssemblyName, string content, DateTime expireTime)
+        private async Task InternalShowHint(string internalAssemblyName, string content, IReadOnlyList<HintParameter>? parameters, DateTime expireTime)
         {
             try
             {
+                // Hints carrying native parameters (e.g. timers, animated values) hold per-call dynamic data, so they must not be cached/reused by content alone
+                bool hasParameters = parameters is not null && parameters.Count > 0;
+
                 // Check if the hint is already cached
-                if (HintCache.TryGet(content, out IReadOnlyList<Hint> cachedHintList))
+                if (!hasParameters && HintCache.TryGet(content, out IReadOnlyList<Hint> cachedHintList))
                 {
                     ReplaceHint(internalAssemblyName, cachedHintList);
                     return;
@@ -126,11 +133,14 @@
 
                 // Parse the content to hints
                 IReadOnlyList<Hint> hintList = await ConcurrentTaskDispatcher.Instance.
-                    Enqueue(() => Task.FromResult(ParseRichTextToHints(content)))
+                    Enqueue(() => Task.FromResult(ParseRichTextToHints(content, parameters)))
                     .ConfigureAwait(false);
 
-                // Add result to cache
-                HintCache.Add(content, hintList);
+                if (!hasParameters)
+                {
+                    // Add result to cache
+                    HintCache.Add(content, hintList);
+                }
 
                 // Update if the content is not outdated
                 if (DateTime.Now < expireTime)
@@ -154,7 +164,7 @@
             playerDisplay.ForceUpdate();// Since all the CompatibilityAdaptor hint is not synced, we need to force update
         }
 
-        private IReadOnlyList<Hint> ParseRichTextToHints(string content)
+        private IReadOnlyList<Hint> ParseRichTextToHints(string content, IReadOnlyList<HintParameter>? nativeParameters)
         {
             RichTextParser parser = richTextParserPool.Rent();
             LineInfo[] lineInfoList = parser.ParseText(content, settingTemplate).LineInfos;
@@ -165,6 +175,13 @@
                 return new List<Hint>();
             }
 
+            // The original content keeps its "{0}", "{1}", ... placeholders intact (parsing above ignores them, since settingTemplate
+            // registers no parameters). Register the native parameters here using their original index as tag name, so that the main
+            // hint pipeline (which re-parses each hint's Text using its own Parameters collection) can resolve those placeholders.
+            Tuple<string, IParameter>[] parameterTags = nativeParameters is not null && nativeParameters.Count > 0
+                ? BuildParameterTags(nativeParameters)
+                : Array.Empty<Tuple<string, IParameter>>();
+
             float totalHeight = lineInfoList.Sum(x => x.Height);
             float accumulatedHeight = 0f;
             List<Hint> result = new(lineInfoList.Length);
@@ -174,7 +191,7 @@
                 // If not empty line, then add hint
                 if (!string.IsNullOrEmpty(lineInfo.CleanText.Trim()) && !lineInfo.CharacterInfos.IsEmpty())
                 {
-                    result.Add(new Hint
+                    Hint hint = new Hint
                     {
                         Text = lineInfo.CleanText,
                         YCoordinate = 700 - (totalHeight / 2) + lineInfo.Height + accumulatedHeight,
@@ -182,13 +199,28 @@
                         Alignment = lineInfo.Style.Alignment,
                         FontSize = (int)lineInfo.CharacterInfos.First().Style.FontSize,
                         SyncSpeed = HintSyncSpeed.UnSync, // To make sure that when the compatibility adaptor is clearing the previous hint, the player display will not be updated
-                    });
+                    };
+
+                    for (int i = 0; i < parameterTags.Length; i++)
+                        hint.Parameters.Add(parameterTags[i].Item1, parameterTags[i].Item2);
+
+                    result.Add(hint);
                 }
 
                 accumulatedHeight += lineInfo.Height;
             }
 
             return result.AsReadOnly();
+        }
+
+        private static Tuple<string, IParameter>[] BuildParameterTags(IReadOnlyList<HintParameter> nativeParameters)
+        {
+            Tuple<string, IParameter>[] tags = new Tuple<string, IParameter>[nativeParameters.Count];
+
+            for (int i = 0; i < nativeParameters.Count; i++)
+                tags[i] = Tuple.Create<string, IParameter>(i.ToString(), new RawHintParameter(nativeParameters[i]));
+
+            return tags;
         }
     }
 }
