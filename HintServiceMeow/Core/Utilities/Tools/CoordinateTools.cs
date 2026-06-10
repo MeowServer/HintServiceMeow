@@ -149,7 +149,7 @@
                 case HintAlignment.Left:
                     return -(xyRatio * 540) + 600;// (-(xyRatio - (4f / 3f)) * 240f / (4f / 9f)) - 120f; // 4/3 => 120, 16/9 => 360
                 case HintAlignment.Right:
-                    return 0; // Cannot push thorugh the right edge, otherwise the hint will be cut off by auto line-wrapping. So just align to the right edge.
+                    return (xyRatio * 540) - 600; // Mirror of the left offset so right-aligned hints reach the right screen edge symmetrically. // 4/3 => 120, 16/9 => 360
                 case HintAlignment.Center:
                     return 0;
                 default:

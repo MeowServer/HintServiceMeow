@@ -257,6 +257,23 @@ public class RichTextParserTests
             $"Input: \"{input}\"\nLast line (after trailing newline) must be empty." + Dump(result));
     }
 
+    [TestMethod]
+    public void ParseText_BlankLineBetweenParagraphs_KeepsLineHeight()
+    {
+        // A blank line (no characters) must still occupy a full line of vertical space,
+        // otherwise paragraphs separated by a blank line collapse and run together.
+        const string input = "A\n\nB";
+        float expectedHeight = TextMeshStyle.Default.CharStyle.GetHeight();
+        var result = NewParser().ParseText(input, DefaultSetting());
+
+        Assert.AreEqual(3, result.LineInfos.Length,
+            $"Input: \"{input}\"\nExpected 3 lines (text, blank, text)." + Dump(result));
+        Assert.AreEqual(0, result.LineInfos[1].CharacterInfos.Length,
+            $"Input: \"{input}\"\nMiddle line must be empty." + Dump(result));
+        Assert.AreEqual(expectedHeight, result.LineInfos[1].Height, 0.001f,
+            $"Input: \"{input}\"\nBlank line must keep a full line height ({expectedHeight}), got {result.LineInfos[1].Height}." + Dump(result));
+    }
+
     // ═════════════════════════════════════════════════════════════════════════
     // Section 3 – CleanText correctness  (BUG-2 regressions)
     // ═════════════════════════════════════════════════════════════════════════

@@ -33,10 +33,13 @@ public class CoordinateToolsTests
         CoordinateTools tool = new();
 
         Assert.AreEqual(0, tool.GetEdgeOffset(0, HintAlignment.Center));
-        Assert.AreEqual(0, tool.GetEdgeOffset(0, HintAlignment.Right));
 
         Assert.AreEqual(-360f, tool.GetEdgeOffset(16f / 9f, HintAlignment.Left));
         Assert.AreEqual(-120f, tool.GetEdgeOffset(4f / 3f, HintAlignment.Left));
+
+        // Right is the mirror of Left so right-aligned hints reach the right screen edge symmetrically.
+        Assert.AreEqual(360f, tool.GetEdgeOffset(16f / 9f, HintAlignment.Right));
+        Assert.AreEqual(120f, tool.GetEdgeOffset(4f / 3f, HintAlignment.Right));
     }
 
     [TestMethod]

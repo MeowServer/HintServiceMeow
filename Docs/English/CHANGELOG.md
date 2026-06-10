@@ -45,6 +45,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `AbstractHint::LineHeight` can be negative.
 - Replaced return type of `PlayerDisplay::GetHints` with `AbstractHint[]`. Use `float maxDelay` as the parameter of `PlayerDisplay::ForceUpdate`.
 
+### Fixed
+- Compatibility (foreign) hints without an explicit `<size>` tag are no longer oversized; they now use the same default font size (`20`) as a normal `Hint`.
+- Blank lines (e.g. paragraph breaks in multi-line content or files) now keep a full line of vertical space instead of collapsing, so lines no longer run together.
+- Right-aligned hints with `ResolutionOption.Offset` now reach the right screen edge symmetrically with left-aligned hints.
+- Compatibility hints now align like a normal left/right alignment (to the canvas edge) by default instead of being pushed to the screen edge. Set `CompatibilityHintAlignToScreenEdge` to `true` to restore edge-pushing.
+
 ---
 
 ## [5.5.1]
