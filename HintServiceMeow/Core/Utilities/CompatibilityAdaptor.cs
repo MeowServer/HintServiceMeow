@@ -188,9 +188,9 @@ namespace HintServiceMeow.Core.Utilities
             // The original content keeps its "{0}", "{1}", ... placeholders intact (parsing above ignores them, since settingTemplate
             // registers no parameters). Register the native parameters here using their original index as tag name, so that the main
             // hint pipeline (which re-parses each hint's Text using its own Parameters collection) can resolve those placeholders.
-            Tuple<string, IParameter>[] parameterTags = nativeParameters is not null && nativeParameters.Count > 0
+            (string Tag, IParameter Parameter)[] parameterTags = nativeParameters is not null && nativeParameters.Count > 0
                 ? BuildParameterTags(nativeParameters)
-                : Array.Empty<Tuple<string, IParameter>>();
+                : Array.Empty<(string, IParameter)>();
 
             // By default foreign hints align like a normal left/right alignment (to the canvas edge) instead of
             // being pushed to the physical screen edge. Server owners can opt back into edge-pushing via config.
@@ -219,7 +219,7 @@ namespace HintServiceMeow.Core.Utilities
                     };
 
                     for (int i = 0; i < parameterTags.Length; i++)
-                        hint.Parameters.Add(parameterTags[i].Item1, parameterTags[i].Item2);
+                        hint.Parameters.Add(parameterTags[i].Tag, parameterTags[i].Parameter);
 
                     result.Add(hint);
                 }
@@ -230,12 +230,12 @@ namespace HintServiceMeow.Core.Utilities
             return result.AsReadOnly();
         }
 
-        private static Tuple<string, IParameter>[] BuildParameterTags(IReadOnlyList<HintParameter> nativeParameters)
+        private static (string Tag, IParameter Parameter)[] BuildParameterTags(IReadOnlyList<HintParameter> nativeParameters)
         {
-            Tuple<string, IParameter>[] tags = new Tuple<string, IParameter>[nativeParameters.Count];
+            (string Tag, IParameter Parameter)[] tags = new (string, IParameter)[nativeParameters.Count];
 
             for (int i = 0; i < nativeParameters.Count; i++)
-                tags[i] = Tuple.Create<string, IParameter>(i.ToString(), new RawHintParameter(nativeParameters[i]));
+                tags[i] = (i.ToString(), new RawHintParameter(nativeParameters[i]));
 
             return tags;
         }
