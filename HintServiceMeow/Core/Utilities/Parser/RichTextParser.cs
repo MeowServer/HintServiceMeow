@@ -1080,7 +1080,7 @@
                 lineStyle = lineStyleNonAutoWrappedCache;
             }
 
-            lineInfos.Add(new LineInfo(currentLineChars.ToArray(), lineStyle, sb!.ToString()));
+            lineInfos.Add(new LineInfo(currentLineChars.ToArray(), lineStyle, sb!.ToString(), defaultStyle.CharStyle.GetHeight()));
 
             currentLineChars.Clear();
             sb.Clear();

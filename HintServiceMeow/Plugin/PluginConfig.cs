@@ -45,6 +45,12 @@ namespace HintServiceMeow.Plugin
         };
 
         /// <summary>
+        /// Gets or sets a value indicating whether left/right-aligned compatibility (foreign) hints are pushed all the way to the screen edge.
+        /// </summary>
+        [Description("Whether left/right-aligned compatibility (foreign) hints are pushed all the way to the screen edge. When false, they align like a normal left/right alignment (to the canvas edge) instead of being pushed to the physical screen edge.")]
+        public bool CompatibilityHintAlignToScreenEdge { get; set; } = false;
+
+        /// <summary>
         /// Gets or sets the default display time in seconds for an item hint with a description.
         /// </summary>
         [Description("The default time (in seconds) to show an Item hint. 'Short' means the hint has a title but no description.")]

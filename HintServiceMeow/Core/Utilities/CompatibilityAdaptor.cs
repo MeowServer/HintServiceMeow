@@ -24,6 +24,12 @@ namespace HintServiceMeow.Core.Utilities
     /// </summary>
     internal class CompatibilityAdaptor : ICompatibilityAdaptor
     {
+        // The default font size used for foreign hints that do not specify a <size> tag.
+        // Matches the default font size of a normal HSM Hint (AbstractHint.FontSize) so that a foreign
+        // ShowHint("text") renders at the same size as new Hint { Text = "text" } instead of the parser's
+        // raw default (which is larger and made compatibility hints appear bigger than expected).
+        private const float DefaultCompatibilityFontSize = 20f;
+
         internal static readonly HashSet<string> RegisteredAssemblies = new(); // All assemblies that used compatibility adaptor
         private static readonly ICache<string, IReadOnlyList<Hint>> HintCache = new Cache<string, IReadOnlyList<Hint>>(500);
 
@@ -49,6 +55,10 @@ namespace HintServiceMeow.Core.Utilities
             this.playerDisplay = playerDisplay ?? throw new ArgumentNullException(nameof(playerDisplay));
             this.richTextParserPool = richTextParserPool ?? RichTextParserPool.Instance;
             this.coroutineRunner = coroutineRunner ?? new UnityCoroutineRunner();
+
+            // Foreign hints inherit the parser's default font size unless they specify a <size> tag.
+            // Align that default with a normal HSM hint so compatibility hints are not oversized.
+            this.settingTemplate.DefaultStyle.CharStyle.FontSize = DefaultCompatibilityFontSize;
         }
 
         /// <inheritdoc/>
@@ -182,6 +192,12 @@ namespace HintServiceMeow.Core.Utilities
                 ? BuildParameterTags(nativeParameters)
                 : Array.Empty<Tuple<string, IParameter>>();
 
+            // By default foreign hints align like a normal left/right alignment (to the canvas edge) instead of
+            // being pushed to the physical screen edge. Server owners can opt back into edge-pushing via config.
+            ResolutionOption resolutionOption = Plugin.Instance.Config.CompatibilityHintAlignToScreenEdge
+                ? ResolutionOption.Offset
+                : ResolutionOption.None;
+
             float totalHeight = lineInfoList.Sum(x => x.Height);
             float accumulatedHeight = 0f;
             List<Hint> result = new(lineInfoList.Length);
@@ -199,6 +215,7 @@ namespace HintServiceMeow.Core.Utilities
                         Alignment = lineInfo.Style.Alignment,
                         FontSize = (int)lineInfo.CharacterInfos.First().Style.FontSize,
                         SyncSpeed = HintSyncSpeed.UnSync, // To make sure that when the compatibility adaptor is clearing the previous hint, the player display will not be updated
+                        ResolutionOption = resolutionOption,
                     };
 
                     for (int i = 0; i < parameterTags.Length; i++)
