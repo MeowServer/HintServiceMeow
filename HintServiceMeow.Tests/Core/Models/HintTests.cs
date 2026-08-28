@@ -22,6 +22,7 @@ public class HintTests
         Assert.AreEqual(HintAlignment.Center, hint.Alignment);
         Assert.AreEqual(HintVerticalAlign.Middle, hint.YCoordinateAlign);
         Assert.AreEqual(20, hint.FontSize);
+        Assert.IsFalse(hint.PreserveCase);
     }
 
     [TestMethod]
@@ -35,6 +36,7 @@ public class HintTests
             YCoordinate = 34,
             Alignment = HintAlignment.Left,
             YCoordinateAlign = HintVerticalAlign.Top,
+            PreserveCase = true,
             Text = "text"
         };
 
@@ -47,6 +49,7 @@ public class HintTests
         Assert.AreEqual(source.YCoordinate, copy.YCoordinate);
         Assert.AreEqual(source.Alignment, copy.Alignment);
         Assert.AreEqual(source.Text, copy.Text);
+        Assert.AreEqual(source.PreserveCase, copy.PreserveCase);
     }
 
     [TestMethod]
@@ -62,11 +65,13 @@ public class HintTests
         // Act
         hint.XCoordinate = 10;
         hint.YCoordinate = 20;
+        hint.PreserveCase = true;
 
         // Assert
         CollectionAssert.Contains(props, "XCoordinate");
         CollectionAssert.Contains(props, "YCoordinate");
-        Assert.AreEqual(2, analyser.OnUpdateCallCount);
+        CollectionAssert.Contains(props, "PreserveCase");
+        Assert.AreEqual(3, analyser.OnUpdateCallCount);
     }
 
     [TestMethod]
@@ -112,5 +117,18 @@ public class HintTests
 
         // Assert
         Assert.AreEqual(2, changed); // set + new content update only
+    }
+
+    [TestMethod]
+    public void ResetFields_WhenHintReturnsToPool_ClearsPreserveCase()
+    {
+        // Arrange
+        Hint hint = new() { PreserveCase = true };
+
+        // Act
+        hint.ResetFields();
+
+        // Assert
+        Assert.IsFalse(hint.PreserveCase);
     }
 }

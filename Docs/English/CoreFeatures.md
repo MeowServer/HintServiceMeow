@@ -52,6 +52,7 @@ When creating any kind of hint, the properties listed below are always available
 | Content | `AbstractHintContent` | The content provider for this hint. Default: `StringContent("")` |
 | Text | `string?` | Shortcut to get/set static text. Setting this replaces `Content` with a new `StringContent` |
 | AutoText | `AutoContent.TextUpdateHandler?` | Shortcut to get/set a dynamic text delegate. Setting this replaces `Content` with a new `AutoContent` |
+| PreserveCase | `bool` | Preserve mixed-case text instead of the game's default small-caps hint rendering. Default: `false` |
 | Hide | `bool` | Whether the hint is hidden. Default: `false` |
 
 **Usage Example:**
@@ -60,8 +61,11 @@ When creating any kind of hint, the properties listed below are always available
 // Properties auto-sync to the player's screen
 hint.Text = "Updated text";
 hint.FontSize = 30;
+hint.PreserveCase = true;
 // No additional method calls needed
 ```
+
+`PreserveCase` only changes the text sent for measurement and rendering; it does not mutate `Text` or `Content`. Existing `<lowercase>`, `<uppercase>`, `<allcaps>`, and `<smallcaps>` regions remain authoritative. Content inside `<noparse>` is not rewritten because injected tags would be displayed literally there.
 
 ---
 

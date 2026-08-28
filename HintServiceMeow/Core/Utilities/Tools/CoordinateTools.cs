@@ -102,7 +102,7 @@
             if (hint == null)
                 throw new ArgumentNullException(nameof(hint), "Hint cannot be null.");
 
-            return GetTextWidth(hint.Content.GetText(), hint.FontSize);
+            return GetTextWidth(HintTextFormatter.GetText(hint), hint.FontSize);
         }
 
         public float GetTextWidth(string? text, int fontSize, HintAlignment align = HintAlignment.Center)
@@ -124,7 +124,7 @@
             if (hint == null)
                 throw new ArgumentNullException(nameof(hint), "Hint cannot be null.");
 
-            return GetTextHeight(hint.Content.GetText(), hint.FontSize, hint.LineHeight);
+            return GetTextHeight(HintTextFormatter.GetText(hint), hint.FontSize, hint.LineHeight);
         }
 
         public float GetTextHeight(string? text, int fontSize, float lineHeight)

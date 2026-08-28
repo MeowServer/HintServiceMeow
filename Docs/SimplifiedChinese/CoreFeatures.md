@@ -52,6 +52,7 @@
 | Content | `AbstractHintContent` | 此提示的内容提供者。默认值：`StringContent("")` |
 | Text | `string?` | 获取/设置静态文本的快捷方式。设置此属性会用新的 `StringContent` 替换 `Content` |
 | AutoText | `AutoContent.TextUpdateHandler?` | 获取/设置动态文本委托的快捷方式。设置此属性会用新的 `AutoContent` 替换 `Content` |
+| PreserveCase | `bool` | 保留大小写混排文本，而不使用游戏提示默认的小型大写字母渲染。默认值：`false` |
 | Hide | `bool` | 提示是否隐藏。默认值：`false` |
 
 **使用示例：**
@@ -60,8 +61,11 @@
 // 属性自动同步到玩家屏幕
 hint.Text = "更新后的文字";
 hint.FontSize = 30;
+hint.PreserveCase = true;
 // 无需额外的方法调用
 ```
+
+`PreserveCase` 只会更改用于测量和渲染的文本，不会修改 `Text` 或 `Content`。已有的 `<lowercase>`、`<uppercase>`、`<allcaps>` 和 `<smallcaps>` 区域仍然优先。`<noparse>` 内的内容不会被改写，因为插入的标签会在该区域内显示为普通文本。
 
 ---
 

@@ -55,6 +55,21 @@ public class CoordinateToolsTests
     }
 
     [TestMethod]
+    public void GetTextHeight_WhenPreserveCaseIsEnabled_MeasuresTransformedText()
+    {
+        // Arrange
+        CoordinateTools tools = new();
+        Hint hint = new() { Text = "a", FontSize = 20, PreserveCase = true };
+
+        // Act
+        float hintHeight = tools.GetTextHeight(hint);
+        float explicitlyLowercaseHeight = tools.GetTextHeight("<lowercase>a</lowercase>", 20, 0);
+
+        // Assert
+        Assert.AreEqual(explicitlyLowercaseHeight, hintHeight);
+    }
+
+    [TestMethod]
     public void GetLineInfos_WhenParsingCompletes_ReturnsParserToPool()
     {
         // Arrange

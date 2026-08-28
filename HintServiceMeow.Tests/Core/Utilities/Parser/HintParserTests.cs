@@ -50,6 +50,27 @@ public class HintParserTests
     }
 
     [TestMethod]
+    public void ParseToMessage_WhenPreserveCaseChanges_KeepsLegacyDefaultAndSeparatesCachedOutput()
+    {
+        // Arrange
+        HintCollection collection = new();
+        Hint hint = new() { Text = "Hello" };
+        collection.AddHint("a", hint);
+
+        HintParser parser = new();
+
+        // Act
+        string legacyMessage = parser.ParseToMessage(collection);
+        hint.PreserveCase = true;
+        string preservedMessage = parser.ParseToMessage(collection);
+
+        // Assert
+        StringAssert.Contains(legacyMessage, "Hello");
+        Assert.IsFalse(legacyMessage.Contains("<lowercase>"));
+        StringAssert.Contains(preservedMessage, "H<lowercase>ello</lowercase>");
+    }
+
+    [TestMethod]
     public void ParseToMessage_WhenMultipleHints_SortsByVisualBottomPosition()
     {
         // Arrange
