@@ -294,7 +294,7 @@
         private void ParseToRichText(Hint hint, StringBuilder messageBuilder)
         {
             // Remove illegal tags
-            string text = RemoveIllegalTags(hint.Content.GetText() ?? string.Empty);
+            string text = RemoveIllegalTags(HintTextFormatter.GetText(hint));
 
             // Parse into line infos
             RichTextParser parser = richTextParserPool.Rent();

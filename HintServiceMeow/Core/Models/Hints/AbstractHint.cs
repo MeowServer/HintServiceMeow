@@ -30,6 +30,8 @@ namespace HintServiceMeow.Core.Models.Hints
 
         private AbstractHintContent content = new StringContent(string.Empty);
 
+        private bool preserveCase;
+
         private bool hide;
 
         #region Constructors
@@ -55,6 +57,7 @@ namespace HintServiceMeow.Core.Models.Hints
                 fontSize = hint.fontSize;
                 lineHeight = hint.lineHeight;
                 content = hint.content;
+                preserveCase = hint.preserveCase;
                 hide = hint.hide;
             }
             finally
@@ -406,6 +409,45 @@ namespace HintServiceMeow.Core.Models.Hints
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether the original letter casing should be preserved
+        /// instead of using the game's default small-caps hint rendering.
+        /// Explicit rich-text case tags take precedence. The default value is <see langword="false"/>.
+        /// </summary>
+        public bool PreserveCase
+        {
+            get
+            {
+                Lock.EnterReadLock();
+                try
+                {
+                    return preserveCase;
+                }
+                finally
+                {
+                    Lock.ExitReadLock();
+                }
+            }
+
+            set
+            {
+                Lock.EnterWriteLock();
+                try
+                {
+                    if (preserveCase == value)
+                        return;
+
+                    preserveCase = value;
+                }
+                finally
+                {
+                    Lock.ExitWriteLock();
+                }
+
+                OnHintUpdated(nameof(PreserveCase));
+            }
+        }
+
+        /// <summary>
         /// Gets or sets a value indicating whether this hint is hidden from the player's display.
         /// </summary>
         public bool Hide
@@ -470,6 +512,7 @@ namespace HintServiceMeow.Core.Models.Hints
             this.fontSize = copyFrom.fontSize;
             this.lineHeight = copyFrom.lineHeight;
             this.content = copyFrom.content;
+            this.preserveCase = copyFrom.preserveCase;
             this.hide = copyFrom.hide;
         }
 
@@ -480,6 +523,7 @@ namespace HintServiceMeow.Core.Models.Hints
         {
             this.id = string.Empty;
             this.content = null!;
+            this.preserveCase = false;
         }
 
         /// <summary>
